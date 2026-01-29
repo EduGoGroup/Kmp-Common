@@ -92,11 +92,6 @@ obj/
 test-results/
 .coverage/
 
-# Documentación generada
-docs/
-javadoc/
-kdoc/
-
 # Archivos temporales
 *.tmp
 *.temp
@@ -104,6 +99,3 @@ kdoc/
 .cache/
 tmp/
 temp/
-
-# Git
-.git/

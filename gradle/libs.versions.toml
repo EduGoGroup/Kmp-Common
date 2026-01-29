@@ -1,0 +1,146 @@
+# =============================================================================
+# EduGo KMP Shared - Version Catalog
+# =============================================================================
+# Centraliza todas las versiones de dependencias y plugins del proyecto.
+# Gradle 8.11+ | Kotlin 2.1.20 | AGP 8.7.2
+# =============================================================================
+
+[versions]
+# -----------------------------------------------------------------------------
+# Core Versions
+# -----------------------------------------------------------------------------
+kotlin = "2.1.20"
+agp = "8.7.2"
+ksp = "2.1.20-1.0.29"
+
+# -----------------------------------------------------------------------------
+# Kotlin Libraries (alineado con Constitución)
+# -----------------------------------------------------------------------------
+kotlinx-coroutines = "1.10.2"
+kotlinx-serialization = "1.8.1"
+kotlinx-datetime = "0.6.2"
+
+# -----------------------------------------------------------------------------
+# Ktor (Networking) - alineado con Constitución
+# -----------------------------------------------------------------------------
+ktor = "3.1.3"
+
+# -----------------------------------------------------------------------------
+# Testing
+# -----------------------------------------------------------------------------
+junit = "4.13.2"
+junit5 = "5.10.2"
+kotest = "5.9.1"
+
+# -----------------------------------------------------------------------------
+# Android SDK Versions
+# -----------------------------------------------------------------------------
+android-compileSdk = "35"
+android-targetSdk = "35"
+android-minSdk = "29"
+
+# -----------------------------------------------------------------------------
+# AndroidX
+# -----------------------------------------------------------------------------
+androidx-core = "1.15.0"
+androidx-lifecycle = "2.8.7"
+
+# -----------------------------------------------------------------------------
+# Logging
+# -----------------------------------------------------------------------------
+kermit = "2.0.4"
+
+# -----------------------------------------------------------------------------
+# Storage
+# -----------------------------------------------------------------------------
+multiplatform-settings = "1.3.0"
+
+[libraries]
+# -----------------------------------------------------------------------------
+# Kotlin Standard Libraries
+# -----------------------------------------------------------------------------
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
+
+# -----------------------------------------------------------------------------
+# Kotlinx Coroutines
+# -----------------------------------------------------------------------------
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+
+# -----------------------------------------------------------------------------
+# Kotlinx Serialization
+# -----------------------------------------------------------------------------
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+
+# -----------------------------------------------------------------------------
+# Kotlinx DateTime
+# -----------------------------------------------------------------------------
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
+
+# -----------------------------------------------------------------------------
+# Ktor Client
+# -----------------------------------------------------------------------------
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+
+# -----------------------------------------------------------------------------
+# Testing
+# -----------------------------------------------------------------------------
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+
+# -----------------------------------------------------------------------------
+# AndroidX
+# -----------------------------------------------------------------------------
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core" }
+androidx-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
+
+# -----------------------------------------------------------------------------
+# Logging (Kermit)
+# -----------------------------------------------------------------------------
+kermit = { group = "co.touchlab", name = "kermit", version.ref = "kermit" }
+kermit-crashlytics = { group = "co.touchlab", name = "kermit-crashlytics", version.ref = "kermit" }
+
+# -----------------------------------------------------------------------------
+# Storage (multiplatform-settings)
+# -----------------------------------------------------------------------------
+multiplatform-settings = { group = "com.russhwolf", name = "multiplatform-settings", version.ref = "multiplatform-settings" }
+multiplatform-settings-no-arg = { group = "com.russhwolf", name = "multiplatform-settings-no-arg", version.ref = "multiplatform-settings" }
+multiplatform-settings-coroutines = { group = "com.russhwolf", name = "multiplatform-settings-coroutines", version.ref = "multiplatform-settings" }
+multiplatform-settings-serialization = { group = "com.russhwolf", name = "multiplatform-settings-serialization", version.ref = "multiplatform-settings" }
+
+[plugins]
+# -----------------------------------------------------------------------------
+# Kotlin Plugins
+# -----------------------------------------------------------------------------
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
+# -----------------------------------------------------------------------------
+# Android Plugins
+# -----------------------------------------------------------------------------
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+
+# -----------------------------------------------------------------------------
+# KSP (Kotlin Symbol Processing)
+# -----------------------------------------------------------------------------
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+
+[bundles]
+# -----------------------------------------------------------------------------
+# Common bundles for easy dependency management
+# -----------------------------------------------------------------------------
+kotlinx-coroutines = ["kotlinx-coroutines-core", "kotlinx-coroutines-android"]
+kotlinx-serialization = ["kotlinx-serialization-core", "kotlinx-serialization-json"]
+ktor-client-common = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-serialization-kotlinx-json", "ktor-client-logging"]
+multiplatform-settings-common = ["multiplatform-settings", "multiplatform-settings-coroutines", "multiplatform-settings-serialization"]
