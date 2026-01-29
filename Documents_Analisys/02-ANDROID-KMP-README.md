@@ -6,6 +6,20 @@
 
 ---
 
+Datos de entrada
+
+* Ruta del Proyecto
+  La actual
+  /Users/jhoanmedina/source/EduGo/EduUI/Modules/Kmp-Common  
+
+* Ruta de los comando slash
+  /Users/jhoanmedina/source/EduGo/EduUI/Modules/Kmp-Common  
+
+* Nivel del proyecto
+  Enterprite
+
+
+
 ## 📋 Resumen Ejecutivo
 
 Este proyecto define e implementa un **Kotlin Multiplatform (KMP)** modular con 8 módulos base para las aplicaciones Android de EduGo. La arquitectura está diseñada para máxima reutilización entre Android, JVM Desktop y preparación para Kotlin/JS.
