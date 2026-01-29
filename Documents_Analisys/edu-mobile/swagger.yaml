@@ -1,0 +1,1031 @@
+basePath: /
+definitions:
+  dto.AnswerFeedbackDTO:
+    properties:
+      correct_answer:
+        type: string
+      is_correct:
+        type: boolean
+      message:
+        type: string
+      question_id:
+        type: string
+      question_text:
+        type: string
+      selected_option:
+        type: string
+    type: object
+  dto.AssessmentResponse:
+    properties:
+      assessment_id:
+        type: string
+      estimated_time_minutes:
+        type: integer
+      material_id:
+        type: string
+      max_attempts:
+        type: integer
+      pass_threshold:
+        type: integer
+      questions:
+        items:
+          $ref: '#/definitions/dto.QuestionDTO'
+        type: array
+      time_limit_minutes:
+        type: integer
+      title:
+        type: string
+      total_questions:
+        type: integer
+    type: object
+  dto.AttemptHistoryResponse:
+    properties:
+      attempts:
+        items:
+          $ref: '#/definitions/dto.AttemptSummaryDTO'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total_count:
+        type: integer
+    type: object
+  dto.AttemptResultResponse:
+    properties:
+      assessment_id:
+        type: string
+      attempt_id:
+        type: string
+      can_retake:
+        type: boolean
+      completed_at:
+        type: string
+      correct_answers:
+        type: integer
+      feedback:
+        items:
+          $ref: '#/definitions/dto.AnswerFeedbackDTO'
+        type: array
+      max_score:
+        type: integer
+      pass_threshold:
+        type: integer
+      passed:
+        type: boolean
+      previous_best_score:
+        type: integer
+      score:
+        type: integer
+      started_at:
+        type: string
+      time_spent_seconds:
+        type: integer
+      total_questions:
+        type: integer
+    type: object
+  dto.AttemptSummaryDTO:
+    properties:
+      assessment_id:
+        type: string
+      attempt_id:
+        type: string
+      completed_at:
+        type: string
+      material_id:
+        type: string
+      material_title:
+        type: string
+      max_score:
+        type: integer
+      passed:
+        type: boolean
+      score:
+        type: integer
+      time_spent_seconds:
+        type: integer
+    type: object
+  dto.CreateAttemptRequest:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/dto.UserAnswerDTO'
+        minItems: 1
+        type: array
+      time_spent_seconds:
+        maximum: 7200
+        minimum: 1
+        type: integer
+    required:
+    - answers
+    - time_spent_seconds
+    type: object
+  dto.CreateMaterialRequest:
+    properties:
+      description:
+        example: A comprehensive guide to differential and integral calculus
+        maxLength: 1000
+        type: string
+      grade:
+        example: 12th Grade
+        type: string
+      subject:
+        example: Mathematics
+        type: string
+      title:
+        example: Introduction to Calculus
+        maxLength: 200
+        minLength: 3
+        type: string
+    required:
+    - title
+    type: object
+  dto.GenerateDownloadURLResponse:
+    properties:
+      download_url:
+        example: https://s3.amazonaws.com/bucket/materials/550e8400.pdf?X-Amz-Algorithm=...
+        type: string
+      expires_in:
+        description: En segundos
+        example: 3600
+        type: integer
+    type: object
+  dto.GenerateUploadURLRequest:
+    properties:
+      content_type:
+        example: application/pdf
+        type: string
+      file_name:
+        example: calculus.pdf
+        type: string
+    required:
+    - content_type
+    - file_name
+    type: object
+  dto.GenerateUploadURLResponse:
+    properties:
+      expires_in:
+        description: En segundos
+        example: 900
+        type: integer
+      file_url:
+        example: https://s3.amazonaws.com/bucket/materials/550e8400.pdf
+        type: string
+      upload_url:
+        example: https://s3.amazonaws.com/bucket/materials/550e8400.pdf?X-Amz-Algorithm=...
+        type: string
+    type: object
+  dto.MaterialResponse:
+    properties:
+      academic_unit_id:
+        example: 880e8400-e29b-41d4-a716-446655440003
+        type: string
+      created_at:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      deleted_at:
+        type: string
+      description:
+        example: A comprehensive guide to differential and integral calculus
+        type: string
+      file_size_bytes:
+        example: 1048576
+        type: integer
+      file_type:
+        example: application/pdf
+        type: string
+      file_url:
+        example: https://s3.amazonaws.com/bucket/materials/550e8400.pdf
+        type: string
+      grade:
+        example: 12th Grade
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      is_public:
+        example: false
+        type: boolean
+      processing_completed_at:
+        example: "2024-01-15T10:35:00Z"
+        type: string
+      processing_started_at:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      school_id:
+        example: 660e8400-e29b-41d4-a716-446655440001
+        type: string
+      status:
+        description: uploaded, processing, ready, failed
+        example: uploaded
+        type: string
+      subject:
+        example: Mathematics
+        type: string
+      title:
+        example: Introduction to Calculus
+        type: string
+      updated_at:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      uploaded_by_teacher_id:
+        example: 770e8400-e29b-41d4-a716-446655440002
+        type: string
+    type: object
+  dto.MaterialVersionResponse:
+    properties:
+      changed_by:
+        example: 660e8400-e29b-41d4-a716-446655440001
+        type: string
+      content_url:
+        example: https://s3.amazonaws.com/bucket/materials/file-v2.pdf
+        type: string
+      created_at:
+        example: "2024-01-20T14:30:00Z"
+        type: string
+      id:
+        example: 880e8400-e29b-41d4-a716-446655440003
+        type: string
+      material_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      title:
+        example: Introduction to Calculus - Updated
+        type: string
+      version_number:
+        example: 2
+        type: integer
+    type: object
+  dto.MaterialWithVersionsResponse:
+    properties:
+      material:
+        $ref: '#/definitions/dto.MaterialResponse'
+      versions:
+        items:
+          $ref: '#/definitions/dto.MaterialVersionResponse'
+        type: array
+    type: object
+  dto.OptionDTO:
+    properties:
+      id:
+        type: string
+      text:
+        type: string
+    type: object
+  dto.QuestionDTO:
+    properties:
+      id:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/dto.OptionDTO'
+        type: array
+      text:
+        type: string
+      type:
+        type: string
+    type: object
+  dto.UpdateMaterialRequest:
+    properties:
+      academic_unit_id:
+        example: 880e8400-e29b-41d4-a716-446655440003
+        type: string
+      description:
+        example: Updated description
+        maxLength: 1000
+        type: string
+      grade:
+        example: 11th Grade
+        type: string
+      is_public:
+        example: true
+        type: boolean
+      subject:
+        example: Physics
+        type: string
+      title:
+        example: Updated Material Title
+        maxLength: 200
+        minLength: 3
+        type: string
+    type: object
+  dto.UploadCompleteRequest:
+    properties:
+      file_size_bytes:
+        example: 1048576
+        type: integer
+      file_type:
+        example: application/pdf
+        type: string
+      file_url:
+        example: https://s3.amazonaws.com/bucket/materials/file.pdf
+        type: string
+    type: object
+  dto.UserAnswerDTO:
+    properties:
+      question_id:
+        type: string
+      selected_answer_id:
+        type: string
+      time_spent_seconds:
+        minimum: 0
+        type: integer
+    required:
+    - question_id
+    - selected_answer_id
+    - time_spent_seconds
+    type: object
+  handler.ComponentHealth:
+    properties:
+      error:
+        type: string
+      latency:
+        type: string
+      optional:
+        type: boolean
+      status:
+        type: string
+    type: object
+  handler.DetailedHealthResponse:
+    properties:
+      components:
+        additionalProperties:
+          $ref: '#/definitions/handler.ComponentHealth'
+        type: object
+      service:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      total_time:
+        type: string
+      version:
+        type: string
+    type: object
+  handler.ErrorResponse:
+    properties:
+      code:
+        example: INVALID_REQUEST
+        type: string
+      error:
+        example: invalid request body
+        type: string
+    type: object
+  handler.HealthResponse:
+    properties:
+      mongodb:
+        type: string
+      postgres:
+        type: string
+      service:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+  handler.ProgressResponse:
+    properties:
+      last_page:
+        example: 45
+        type: integer
+      material_id:
+        example: 660e8400-e29b-41d4-a716-446655440001
+        type: string
+      message:
+        example: progress updated successfully
+        type: string
+      progress_percentage:
+        example: 75
+        type: integer
+      user_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    type: object
+  handler.UpsertProgressRequest:
+    properties:
+      last_page:
+        example: 45
+        type: integer
+      material_id:
+        example: 660e8400-e29b-41d4-a716-446655440001
+        type: string
+      progress_percentage:
+        example: 75
+        maximum: 100
+        minimum: 0
+        type: integer
+      user_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    required:
+    - material_id
+    - progress_percentage
+    - user_id
+    type: object
+info:
+  contact:
+    email: soporte@edugo.com
+    name: Equipo EduGo
+  description: API para operaciones frecuentes de docentes y estudiantes en EduGo
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://edugo.com/terms/
+  title: EduGo API Mobile
+  version: "1.0"
+paths:
+  /health:
+    get:
+      description: |-
+        Verifica que la API y sus dependencias (PostgreSQL, MongoDB, RabbitMQ, S3) estén funcionando correctamente.
+        Use el parámetro detail=1 para obtener información detallada con latencias de cada componente.
+      parameters:
+      - description: Incluir detalles de cada componente (1=detallado, retorna DetailedHealthResponse)
+        in: query
+        name: detail
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sistema saludable (respuesta detallada con detail=1)
+          schema:
+            $ref: '#/definitions/handler.DetailedHealthResponse'
+        "500":
+          description: Sistema no disponible
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Health check
+      tags:
+      - health
+  /v1/attempts/{id}/results:
+    get:
+      description: Retorna los resultados detallados de un intento, incluyendo feedback
+        por pregunta
+      parameters:
+      - description: Attempt ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Resultados obtenidos exitosamente
+          schema:
+            $ref: '#/definitions/dto.AttemptResultResponse'
+        "400":
+          description: Invalid attempt ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden - attempt does not belong to user
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Attempt not found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener resultados de un intento específico
+      tags:
+      - Evaluaciones
+  /v1/materials:
+    get:
+      description: Retrieves a list of all educational materials available in the
+        system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of materials retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/dto.MaterialResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List all materials
+      tags:
+      - materials
+    post:
+      consumes:
+      - application/json
+      description: Creates a new educational material with title, description, and
+        optional subject. Requires authentication.
+      parameters:
+      - description: Material data (title, description, subject_id)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateMaterialRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Material created successfully
+          schema:
+            $ref: '#/definitions/dto.MaterialResponse'
+        "400":
+          description: Invalid request body or validation error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: User not authenticated
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new material
+      tags:
+      - materials
+  /v1/materials/{id}:
+    get:
+      description: Retrieves a specific educational material by its unique identifier
+      parameters:
+      - description: Material ID (UUID format)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Material found successfully
+          schema:
+            $ref: '#/definitions/dto.MaterialResponse'
+        "400":
+          description: Invalid material ID format
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Material not found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get material by ID
+      tags:
+      - materials
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing material's metadata (title, description, subject,
+        grade, academic_unit_id, is_public)
+      parameters:
+      - description: Material ID (UUID format)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateMaterialRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Material updated successfully
+          schema:
+            $ref: '#/definitions/dto.MaterialResponse'
+        "400":
+          description: Invalid request body or validation error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Not authorized to update this material
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Material not found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update material
+      tags:
+      - materials
+  /v1/materials/{id}/assessment:
+    get:
+      description: Retorna las preguntas de evaluación de un material sin exponer
+        las respuestas correctas
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Assessment obtenido exitosamente
+          schema:
+            $ref: '#/definitions/dto.AssessmentResponse'
+        "400":
+          description: Invalid material ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Assessment not found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener cuestionario de un material (SIN respuestas correctas)
+      tags:
+      - Evaluaciones
+  /v1/materials/{id}/assessment/attempts:
+    post:
+      description: Crea un intento, valida respuestas en servidor, calcula score y
+        retorna resultados con feedback
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Respuestas del estudiante
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAttemptRequest'
+      responses:
+        "201":
+          description: Attempt creado exitosamente
+          schema:
+            $ref: '#/definitions/dto.AttemptResultResponse'
+        "400":
+          description: Invalid request or material ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Assessment not found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear intento de evaluación y obtener calificación
+      tags:
+      - Evaluaciones
+  /v1/materials/{id}/download-url:
+    get:
+      description: Generate a presigned URL for downloading a material file from S3
+      parameters:
+      - description: Material ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GenerateDownloadURLResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Generate presigned download URL
+      tags:
+      - materials
+  /v1/materials/{id}/stats:
+    get:
+      description: Retrieves statistics for a specific material including views, completion
+        rate, and average score
+      parameters:
+      - description: Material ID (UUID format)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Material statistics retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid material ID format
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Material not found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get material statistics
+      tags:
+      - stats
+  /v1/materials/{id}/summary:
+    get:
+      description: Retrieves an AI-generated summary of the material content
+      parameters:
+      - description: Material ID (UUID format)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Summary retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid material ID format
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Summary not found for this material
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get material summary
+      tags:
+      - materials
+  /v1/materials/{id}/upload-complete:
+    post:
+      consumes:
+      - application/json
+      description: Notifies the system that a PDF file has been successfully uploaded
+        to S3
+      parameters:
+      - description: Material ID (UUID format)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: S3 key and URL information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UploadCompleteRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Upload notification processed successfully
+        "400":
+          description: Invalid request body or material ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Material not found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Notify upload complete
+      tags:
+      - materials
+  /v1/materials/{id}/upload-url:
+    post:
+      consumes:
+      - application/json
+      description: Generate a presigned URL for uploading a material file to S3
+      parameters:
+      - description: Material ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Upload URL request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GenerateUploadURLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GenerateUploadURLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Generate presigned upload URL
+      tags:
+      - materials
+  /v1/materials/{id}/versions:
+    get:
+      description: Get a material including its complete version history
+      parameters:
+      - description: Material ID (UUID format)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MaterialWithVersionsResponse'
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Material not found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get material with version history
+      tags:
+      - materials
+  /v1/progress:
+    put:
+      consumes:
+      - application/json
+      description: Updates user progress in a material using idempotent UPSERT operation.
+        Multiple calls with same data are safe.
+      parameters:
+      - description: Progress data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpsertProgressRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Progress updated successfully
+          schema:
+            $ref: '#/definitions/handler.ProgressResponse'
+        "400":
+          description: Invalid request (bad UUID, percentage out of range)
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden (user can only update own progress)
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upsert progress idempotently (new UPSERT endpoint)
+      tags:
+      - progress
+  /v1/stats/global:
+    get:
+      description: Obtiene estadísticas globales del sistema (solo admins)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - solo admins
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get global system statistics
+      tags:
+      - stats
+  /v1/users/me/attempts:
+    get:
+      description: Retorna todos los intentos de evaluación del usuario, ordenados
+        por fecha descendente
+      parameters:
+      - default: 10
+        description: Número máximo de resultados
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Número de resultados a saltar
+        in: query
+        name: offset
+        type: integer
+      responses:
+        "200":
+          description: Historial obtenido exitosamente
+          schema:
+            $ref: '#/definitions/dto.AttemptHistoryResponse'
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener historial de intentos del usuario autenticado
+      tags:
+      - Evaluaciones
+securityDefinitions:
+  BearerAuth:
+    description: 'JWT token con formato: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -1,0 +1,1540 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API para operaciones frecuentes de docentes y estudiantes en EduGo",
+        "title": "EduGo API Mobile",
+        "termsOfService": "http://edugo.com/terms/",
+        "contact": {
+            "name": "Equipo EduGo",
+            "email": "soporte@edugo.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {
+        "/health": {
+            "get": {
+                "description": "Verifica que la API y sus dependencias (PostgreSQL, MongoDB, RabbitMQ, S3) estén funcionando correctamente.\nUse el parámetro detail=1 para obtener información detallada con latencias de cada componente.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health check",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Incluir detalles de cada componente (1=detallado, retorna DetailedHealthResponse)",
+                        "name": "detail",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sistema saludable (respuesta detallada con detail=1)",
+                        "schema": {
+                            "$ref": "#/definitions/handler.DetailedHealthResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Sistema no disponible",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/attempts/{id}/results": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna los resultados detallados de un intento, incluyendo feedback por pregunta",
+                "tags": [
+                    "Evaluaciones"
+                ],
+                "summary": "Obtener resultados de un intento específico",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Attempt ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultados obtenidos exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AttemptResultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid attempt ID",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - attempt does not belong to user",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Attempt not found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/materials": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a list of all educational materials available in the system",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "materials"
+                ],
+                "summary": "List all materials",
+                "responses": {
+                    "200": {
+                        "description": "List of materials retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.MaterialResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new educational material with title, description, and optional subject. Requires authentication.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "materials"
+                ],
+                "summary": "Create a new material",
+                "parameters": [
+                    {
+                        "description": "Material data (title, description, subject_id)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateMaterialRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Material created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MaterialResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or validation error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/materials/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific educational material by its unique identifier",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "materials"
+                ],
+                "summary": "Get material by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Material ID (UUID format)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Material found successfully",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MaterialResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid material ID format",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Material not found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing material's metadata (title, description, subject, grade, academic_unit_id, is_public)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "materials"
+                ],
+                "summary": "Update material",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Material ID (UUID format)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateMaterialRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Material updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MaterialResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or validation error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Not authorized to update this material",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Material not found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/materials/{id}/assessment": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna las preguntas de evaluación de un material sin exponer las respuestas correctas",
+                "tags": [
+                    "Evaluaciones"
+                ],
+                "summary": "Obtener cuestionario de un material (SIN respuestas correctas)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Material ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessment obtenido exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AssessmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid material ID",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Assessment not found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/materials/{id}/assessment/attempts": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Crea un intento, valida respuestas en servidor, calcula score y retorna resultados con feedback",
+                "tags": [
+                    "Evaluaciones"
+                ],
+                "summary": "Crear intento de evaluación y obtener calificación",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Material ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Respuestas del estudiante",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateAttemptRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Attempt creado exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AttemptResultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request or material ID",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Assessment not found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/materials/{id}/download-url": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate a presigned URL for downloading a material file from S3",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "materials"
+                ],
+                "summary": "Generate presigned download URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Material ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GenerateDownloadURLResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/materials/{id}/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves statistics for a specific material including views, completion rate, and average score",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stats"
+                ],
+                "summary": "Get material statistics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Material ID (UUID format)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Material statistics retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid material ID format",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Material not found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/materials/{id}/summary": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves an AI-generated summary of the material content",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "materials"
+                ],
+                "summary": "Get material summary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Material ID (UUID format)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Summary retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid material ID format",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Summary not found for this material",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/materials/{id}/upload-complete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Notifies the system that a PDF file has been successfully uploaded to S3",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "materials"
+                ],
+                "summary": "Notify upload complete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Material ID (UUID format)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "S3 key and URL information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UploadCompleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Upload notification processed successfully"
+                    },
+                    "400": {
+                        "description": "Invalid request body or material ID",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Material not found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/materials/{id}/upload-url": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate a presigned URL for uploading a material file to S3",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "materials"
+                ],
+                "summary": "Generate presigned upload URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Material ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Upload URL request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GenerateUploadURLRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GenerateUploadURLResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/materials/{id}/versions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a material including its complete version history",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "materials"
+                ],
+                "summary": "Get material with version history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Material ID (UUID format)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MaterialWithVersionsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Material not found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/progress": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates user progress in a material using idempotent UPSERT operation. Multiple calls with same data are safe.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "progress"
+                ],
+                "summary": "Upsert progress idempotently (new UPSERT endpoint)",
+                "parameters": [
+                    {
+                        "description": "Progress data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.UpsertProgressRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Progress updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ProgressResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request (bad UUID, percentage out of range)",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (user can only update own progress)",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/stats/global": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Obtiene estadísticas globales del sistema (solo admins)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stats"
+                ],
+                "summary": "Get global system statistics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - solo admins",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/me/attempts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna todos los intentos de evaluación del usuario, ordenados por fecha descendente",
+                "tags": [
+                    "Evaluaciones"
+                ],
+                "summary": "Obtener historial de intentos del usuario autenticado",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Número máximo de resultados",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Número de resultados a saltar",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial obtenido exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AttemptHistoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.AnswerFeedbackDTO": {
+            "type": "object",
+            "properties": {
+                "correct_answer": {
+                    "type": "string"
+                },
+                "is_correct": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "question_id": {
+                    "type": "string"
+                },
+                "question_text": {
+                    "type": "string"
+                },
+                "selected_option": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AssessmentResponse": {
+            "type": "object",
+            "properties": {
+                "assessment_id": {
+                    "type": "string"
+                },
+                "estimated_time_minutes": {
+                    "type": "integer"
+                },
+                "material_id": {
+                    "type": "string"
+                },
+                "max_attempts": {
+                    "type": "integer"
+                },
+                "pass_threshold": {
+                    "type": "integer"
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.QuestionDTO"
+                    }
+                },
+                "time_limit_minutes": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "total_questions": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AttemptHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AttemptSummaryDTO"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AttemptResultResponse": {
+            "type": "object",
+            "properties": {
+                "assessment_id": {
+                    "type": "string"
+                },
+                "attempt_id": {
+                    "type": "string"
+                },
+                "can_retake": {
+                    "type": "boolean"
+                },
+                "completed_at": {
+                    "type": "string"
+                },
+                "correct_answers": {
+                    "type": "integer"
+                },
+                "feedback": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AnswerFeedbackDTO"
+                    }
+                },
+                "max_score": {
+                    "type": "integer"
+                },
+                "pass_threshold": {
+                    "type": "integer"
+                },
+                "passed": {
+                    "type": "boolean"
+                },
+                "previous_best_score": {
+                    "type": "integer"
+                },
+                "score": {
+                    "type": "integer"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "time_spent_seconds": {
+                    "type": "integer"
+                },
+                "total_questions": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AttemptSummaryDTO": {
+            "type": "object",
+            "properties": {
+                "assessment_id": {
+                    "type": "string"
+                },
+                "attempt_id": {
+                    "type": "string"
+                },
+                "completed_at": {
+                    "type": "string"
+                },
+                "material_id": {
+                    "type": "string"
+                },
+                "material_title": {
+                    "type": "string"
+                },
+                "max_score": {
+                    "type": "integer"
+                },
+                "passed": {
+                    "type": "boolean"
+                },
+                "score": {
+                    "type": "integer"
+                },
+                "time_spent_seconds": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreateAttemptRequest": {
+            "type": "object",
+            "required": [
+                "answers",
+                "time_spent_seconds"
+            ],
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/dto.UserAnswerDTO"
+                    }
+                },
+                "time_spent_seconds": {
+                    "type": "integer",
+                    "maximum": 7200,
+                    "minimum": 1
+                }
+            }
+        },
+        "dto.CreateMaterialRequest": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "example": "A comprehensive guide to differential and integral calculus"
+                },
+                "grade": {
+                    "type": "string",
+                    "example": "12th Grade"
+                },
+                "subject": {
+                    "type": "string",
+                    "example": "Mathematics"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 3,
+                    "example": "Introduction to Calculus"
+                }
+            }
+        },
+        "dto.GenerateDownloadURLResponse": {
+            "type": "object",
+            "properties": {
+                "download_url": {
+                    "type": "string",
+                    "example": "https://s3.amazonaws.com/bucket/materials/550e8400.pdf?X-Amz-Algorithm=..."
+                },
+                "expires_in": {
+                    "description": "En segundos",
+                    "type": "integer",
+                    "example": 3600
+                }
+            }
+        },
+        "dto.GenerateUploadURLRequest": {
+            "type": "object",
+            "required": [
+                "content_type",
+                "file_name"
+            ],
+            "properties": {
+                "content_type": {
+                    "type": "string",
+                    "example": "application/pdf"
+                },
+                "file_name": {
+                    "type": "string",
+                    "example": "calculus.pdf"
+                }
+            }
+        },
+        "dto.GenerateUploadURLResponse": {
+            "type": "object",
+            "properties": {
+                "expires_in": {
+                    "description": "En segundos",
+                    "type": "integer",
+                    "example": 900
+                },
+                "file_url": {
+                    "type": "string",
+                    "example": "https://s3.amazonaws.com/bucket/materials/550e8400.pdf"
+                },
+                "upload_url": {
+                    "type": "string",
+                    "example": "https://s3.amazonaws.com/bucket/materials/550e8400.pdf?X-Amz-Algorithm=..."
+                }
+            }
+        },
+        "dto.MaterialResponse": {
+            "type": "object",
+            "properties": {
+                "academic_unit_id": {
+                    "type": "string",
+                    "example": "880e8400-e29b-41d4-a716-446655440003"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "A comprehensive guide to differential and integral calculus"
+                },
+                "file_size_bytes": {
+                    "type": "integer",
+                    "example": 1048576
+                },
+                "file_type": {
+                    "type": "string",
+                    "example": "application/pdf"
+                },
+                "file_url": {
+                    "type": "string",
+                    "example": "https://s3.amazonaws.com/bucket/materials/550e8400.pdf"
+                },
+                "grade": {
+                    "type": "string",
+                    "example": "12th Grade"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "is_public": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "processing_completed_at": {
+                    "type": "string",
+                    "example": "2024-01-15T10:35:00Z"
+                },
+                "processing_started_at": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "school_id": {
+                    "type": "string",
+                    "example": "660e8400-e29b-41d4-a716-446655440001"
+                },
+                "status": {
+                    "description": "uploaded, processing, ready, failed",
+                    "type": "string",
+                    "example": "uploaded"
+                },
+                "subject": {
+                    "type": "string",
+                    "example": "Mathematics"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Introduction to Calculus"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "uploaded_by_teacher_id": {
+                    "type": "string",
+                    "example": "770e8400-e29b-41d4-a716-446655440002"
+                }
+            }
+        },
+        "dto.MaterialVersionResponse": {
+            "type": "object",
+            "properties": {
+                "changed_by": {
+                    "type": "string",
+                    "example": "660e8400-e29b-41d4-a716-446655440001"
+                },
+                "content_url": {
+                    "type": "string",
+                    "example": "https://s3.amazonaws.com/bucket/materials/file-v2.pdf"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-20T14:30:00Z"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "880e8400-e29b-41d4-a716-446655440003"
+                },
+                "material_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Introduction to Calculus - Updated"
+                },
+                "version_number": {
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        },
+        "dto.MaterialWithVersionsResponse": {
+            "type": "object",
+            "properties": {
+                "material": {
+                    "$ref": "#/definitions/dto.MaterialResponse"
+                },
+                "versions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MaterialVersionResponse"
+                    }
+                }
+            }
+        },
+        "dto.OptionDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.QuestionDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.OptionDTO"
+                    }
+                },
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateMaterialRequest": {
+            "type": "object",
+            "properties": {
+                "academic_unit_id": {
+                    "type": "string",
+                    "example": "880e8400-e29b-41d4-a716-446655440003"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "example": "Updated description"
+                },
+                "grade": {
+                    "type": "string",
+                    "example": "11th Grade"
+                },
+                "is_public": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "subject": {
+                    "type": "string",
+                    "example": "Physics"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 3,
+                    "example": "Updated Material Title"
+                }
+            }
+        },
+        "dto.UploadCompleteRequest": {
+            "type": "object",
+            "properties": {
+                "file_size_bytes": {
+                    "type": "integer",
+                    "example": 1048576
+                },
+                "file_type": {
+                    "type": "string",
+                    "example": "application/pdf"
+                },
+                "file_url": {
+                    "type": "string",
+                    "example": "https://s3.amazonaws.com/bucket/materials/file.pdf"
+                }
+            }
+        },
+        "dto.UserAnswerDTO": {
+            "type": "object",
+            "required": [
+                "question_id",
+                "selected_answer_id",
+                "time_spent_seconds"
+            ],
+            "properties": {
+                "question_id": {
+                    "type": "string"
+                },
+                "selected_answer_id": {
+                    "type": "string"
+                },
+                "time_spent_seconds": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "handler.ComponentHealth": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "latency": {
+                    "type": "string"
+                },
+                "optional": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.DetailedHealthResponse": {
+            "type": "object",
+            "properties": {
+                "components": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/handler.ComponentHealth"
+                    }
+                },
+                "service": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "total_time": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "INVALID_REQUEST"
+                },
+                "error": {
+                    "type": "string",
+                    "example": "invalid request body"
+                }
+            }
+        },
+        "handler.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "mongodb": {
+                    "type": "string"
+                },
+                "postgres": {
+                    "type": "string"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.ProgressResponse": {
+            "type": "object",
+            "properties": {
+                "last_page": {
+                    "type": "integer",
+                    "example": 45
+                },
+                "material_id": {
+                    "type": "string",
+                    "example": "660e8400-e29b-41d4-a716-446655440001"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "progress updated successfully"
+                },
+                "progress_percentage": {
+                    "type": "integer",
+                    "example": 75
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                }
+            }
+        },
+        "handler.UpsertProgressRequest": {
+            "type": "object",
+            "required": [
+                "material_id",
+                "progress_percentage",
+                "user_id"
+            ],
+            "properties": {
+                "last_page": {
+                    "type": "integer",
+                    "example": 45
+                },
+                "material_id": {
+                    "type": "string",
+                    "example": "660e8400-e29b-41d4-a716-446655440001"
+                },
+                "progress_percentage": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0,
+                    "example": 75
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "JWT token con formato: Bearer {token}",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

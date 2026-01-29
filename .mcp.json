@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "MCPEco": {
+      "command": "/Users/jhoanmedina/source/GeneratorEco/MCPEco/bin/mcp-server",
+      "args": [],
+      "env": {},
+      "description": "MCPEco Server - Sistema de gestión de workflows con PostgreSQL y soporte RAG"
+    }
+  }
+}

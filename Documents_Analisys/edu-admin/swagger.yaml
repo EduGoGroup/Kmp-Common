@@ -1,0 +1,2086 @@
+basePath: /v1
+definitions:
+  ErrorResponse:
+    properties:
+      code:
+        type: string
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      error:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.AcademicUnitResponse:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      display_name:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties: true
+        type: object
+      parent_unit_id:
+        type: string
+      school_id:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateAcademicUnitRequest:
+    properties:
+      code:
+        maxLength: 50
+        minLength: 2
+        type: string
+      description:
+        type: string
+      display_name:
+        maxLength: 255
+        minLength: 3
+        type: string
+      metadata:
+        additionalProperties: true
+        type: object
+      parent_unit_id:
+        type: string
+      type:
+        description: Validación realizada por valueobject.ParseUnitType
+        type: string
+    required:
+    - display_name
+    - type
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateGuardianRelationRequest:
+    properties:
+      guardian_id:
+        type: string
+      relationship_type:
+        type: string
+      student_id:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateMembershipRequest:
+    properties:
+      role:
+        type: string
+      unit_id:
+        type: string
+      user_id:
+        type: string
+      valid_from:
+        type: string
+      valid_until:
+        type: string
+    required:
+    - role
+    - unit_id
+    - user_id
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateSchoolRequest:
+    properties:
+      address:
+        type: string
+      city:
+        type: string
+      code:
+        minLength: 3
+        type: string
+      contact_email:
+        type: string
+      contact_phone:
+        type: string
+      country:
+        description: 'Default: "CO"'
+        type: string
+      max_students:
+        description: 'Default: 500'
+        type: integer
+      max_teachers:
+        description: 'Default: 50'
+        type: integer
+      metadata:
+        additionalProperties: true
+        type: object
+      name:
+        minLength: 3
+        type: string
+      subscription_tier:
+        description: 'Default: "free"'
+        enum:
+        - free
+        - basic
+        - premium
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateSubjectRequest:
+    properties:
+      description:
+        type: string
+      metadata:
+        type: string
+      name:
+        minLength: 2
+        type: string
+    required:
+    - name
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateUnitRequest:
+    properties:
+      description:
+        type: string
+      name:
+        minLength: 2
+        type: string
+      parent_unit_id:
+        type: string
+      school_id:
+        type: string
+    required:
+    - name
+    - school_id
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.GlobalStatsResponse:
+    properties:
+      total_active_users:
+        type: integer
+      total_guardian_relations:
+        type: integer
+      total_schools:
+        type: integer
+      total_subjects:
+        type: integer
+      total_users:
+        type: integer
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.GuardianRelationResponse:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: string
+      guardian_id:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      relationship_type:
+        type: string
+      student_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.MembershipResponse:
+    properties:
+      created_at:
+        type: string
+      enrolled_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      role:
+        type: string
+      unit_id:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      withdrawn_at:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.SchoolResponse:
+    properties:
+      address:
+        type: string
+      city:
+        type: string
+      code:
+        type: string
+      contact_email:
+        type: string
+      contact_phone:
+        type: string
+      country:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      max_students:
+        type: integer
+      max_teachers:
+        type: integer
+      metadata:
+        additionalProperties: true
+        type: object
+      name:
+        type: string
+      subscription_tier:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.SubjectResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      metadata:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UnitResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      parent_unit_id:
+        type: string
+      school_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UnitTreeNode:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UnitTreeNode'
+        type: array
+      code:
+        type: string
+      depth:
+        type: integer
+      display_name:
+        type: string
+      id:
+        type: string
+      type:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateAcademicUnitRequest:
+    properties:
+      description:
+        type: string
+      display_name:
+        maxLength: 255
+        minLength: 3
+        type: string
+      metadata:
+        additionalProperties: true
+        type: object
+      parent_unit_id:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateGuardianRelationRequest:
+    properties:
+      is_active:
+        type: boolean
+      relationship_type:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateMembershipRequest:
+    properties:
+      role:
+        type: string
+      valid_until:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateSchoolRequest:
+    properties:
+      address:
+        type: string
+      city:
+        type: string
+      contact_email:
+        type: string
+      contact_phone:
+        type: string
+      country:
+        type: string
+      max_students:
+        type: integer
+      max_teachers:
+        type: integer
+      metadata:
+        additionalProperties: true
+        type: object
+      name:
+        minLength: 3
+        type: string
+      subscription_tier:
+        enum:
+        - free
+        - basic
+        - premium
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateSubjectRequest:
+    properties:
+      description:
+        type: string
+      metadata:
+        type: string
+      name:
+        minLength: 2
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateUnitRequest:
+    properties:
+      description:
+        type: string
+      name:
+        minLength: 2
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateUserRequest:
+    properties:
+      first_name:
+        type: string
+      is_active:
+        type: boolean
+      last_name:
+        type: string
+      role:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      last_name:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ContextInfo:
+    properties:
+      email:
+        type: string
+      role:
+        type: string
+      school_id:
+        type: string
+      school_name:
+        type: string
+      user_id:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse:
+    properties:
+      code:
+        type: string
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      token_type:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.UserInfo'
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.RefreshResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      token_type:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.SwitchContextRequest:
+    properties:
+      school_id:
+        type: string
+    required:
+    - school_id
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.SwitchContextResponse:
+    properties:
+      access_token:
+        type: string
+      context:
+        $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ContextInfo'
+      expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      token_type:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.UserInfo:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      role:
+        type: string
+      school_id:
+        description: Escuela principal del usuario
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.VerifyTokenBulkRequest:
+    properties:
+      tokens:
+        items:
+          type: string
+        maxItems: 100
+        minItems: 1
+        type: array
+    required:
+    - tokens
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.VerifyTokenBulkResponse:
+    properties:
+      results:
+        additionalProperties:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.VerifyTokenResponse'
+        type: object
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.VerifyTokenRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.VerifyTokenResponse:
+    properties:
+      email:
+        type: string
+      error:
+        type: string
+      expires_at:
+        type: string
+      role:
+        type: string
+      school_id:
+        description: Escuela principal del usuario
+        type: string
+      user_id:
+        type: string
+      valid:
+        type: boolean
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  description: API para operaciones CRUD y administrativas en EduGo
+  title: EduGo API Administración
+  version: "1.0"
+paths:
+  /v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Autentica un usuario y retorna tokens JWT
+      parameters:
+      - description: Credenciales de login
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.LoginResponse'
+        "400":
+          description: Request inválido
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "401":
+          description: Credenciales inválidas
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "403":
+          description: Usuario inactivo
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "500":
+          description: Error interno
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+      summary: Login de usuario
+      tags:
+      - auth
+  /v1/auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalida el access token actual
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout exitoso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Token no proporcionado
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "500":
+          description: Error interno
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+      summary: Logout de usuario
+      tags:
+      - auth
+  /v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Genera un nuevo access token usando el refresh token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Solo access_token, expires_in, token_type
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.RefreshResponse'
+        "400":
+          description: Request inválido
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "401":
+          description: Refresh token inválido
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "403":
+          description: Usuario inactivo
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "500":
+          description: Error interno
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+      summary: Refrescar access token
+      tags:
+      - auth
+  /v1/auth/switch-context:
+    post:
+      consumes:
+      - application/json
+      description: Cambia el contexto (escuela) del usuario autenticado
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Escuela destino
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.SwitchContextRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.SwitchContextResponse'
+        "400":
+          description: Request inválido
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "401":
+          description: Token inválido
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "403":
+          description: Sin membresía en escuela destino
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "500":
+          description: Error interno
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+      summary: Cambiar contexto de escuela
+      tags:
+      - auth
+  /v1/auth/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifica la validez de un token JWT y retorna información del usuario
+      parameters:
+      - description: Token a verificar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.VerifyTokenRequest'
+      - description: API Key del servicio (para rate limiting diferenciado)
+        in: header
+        name: X-Service-API-Key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.VerifyTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "429":
+          description: Rate limit excedido
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+      summary: Verificar token JWT
+      tags:
+      - auth
+  /v1/auth/verify-bulk:
+    post:
+      consumes:
+      - application/json
+      description: Verifica la validez de múltiples tokens JWT en una sola llamada
+      parameters:
+      - description: Tokens a verificar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.VerifyTokenBulkRequest'
+      - description: API Key del servicio (requerido para bulk)
+        in: header
+        name: X-Service-API-Key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.VerifyTokenBulkResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "401":
+          description: API Key inválida
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "429":
+          description: Rate limit excedido
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.ErrorResponse'
+      summary: Verificar múltiples tokens JWT
+      tags:
+      - auth
+  /v1/guardian-relations:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new relationship between a guardian and a student
+      parameters:
+      - description: Guardian relation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateGuardianRelationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.GuardianRelationResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "409":
+          description: Relation already exists
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create guardian-student relation
+      tags:
+      - guardians
+  /v1/guardian-relations/{id}:
+    delete:
+      description: Soft deletes a guardian-student relationship
+      parameters:
+      - description: Relation ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete guardian relation
+      tags:
+      - guardians
+    get:
+      description: Get details of a specific guardian-student relation
+      parameters:
+      - description: Relation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.GuardianRelationResponse'
+        "404":
+          description: Relation not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get guardian relation by ID
+      tags:
+      - guardians
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing guardian-student relationship
+      parameters:
+      - description: Relation ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateGuardianRelationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.GuardianRelationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update guardian relation
+      tags:
+      - guardians
+  /v1/guardians/{guardian_id}/relations:
+    get:
+      description: Get all student relations for a specific guardian
+      parameters:
+      - description: Guardian ID
+        in: path
+        name: guardian_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.GuardianRelationResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all relations for a guardian
+      tags:
+      - guardians
+  /v1/materials/{id}:
+    delete:
+      description: Soft delete a material (mark as deleted)
+      parameters:
+      - description: Material ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Material not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a material
+      tags:
+      - materials
+  /v1/memberships:
+    post:
+      consumes:
+      - application/json
+      description: Assigns a user to an academic unit with a specific role
+      parameters:
+      - description: Membership data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateMembershipRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.MembershipResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new membership
+      tags:
+      - memberships
+  /v1/memberships/{id}:
+    delete:
+      description: Permanently deletes a membership from the system
+      parameters:
+      - description: Membership ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a membership
+      tags:
+      - memberships
+    get:
+      description: Retrieves a membership by its ID
+      parameters:
+      - description: Membership ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.MembershipResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a membership by ID
+      tags:
+      - memberships
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing membership (e.g., change role or validity dates)
+      parameters:
+      - description: Membership ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated membership data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateMembershipRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.MembershipResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a membership
+      tags:
+      - memberships
+  /v1/memberships/{id}/expire:
+    post:
+      description: Sets a membership as expired (sets valid_until to now)
+      parameters:
+      - description: Membership ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Expire a membership
+      tags:
+      - memberships
+  /v1/schools:
+    get:
+      description: Retrieves a list of all schools in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.SchoolResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List all schools
+      tags:
+      - schools
+    post:
+      consumes:
+      - application/json
+      description: Creates a new school in the system
+      parameters:
+      - description: School data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateSchoolRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.SchoolResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new school
+      tags:
+      - schools
+  /v1/schools/{id}:
+    delete:
+      description: Soft deletes a school from the system
+      parameters:
+      - description: School ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a school
+      tags:
+      - schools
+    get:
+      description: Retrieves a school by its ID
+      parameters:
+      - description: School ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.SchoolResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a school by ID
+      tags:
+      - schools
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing school
+      parameters:
+      - description: School ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated school data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateSchoolRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.SchoolResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a school
+      tags:
+      - schools
+  /v1/schools/{schoolId}/units:
+    get:
+      description: Retrieves all academic units for a specific school
+      parameters:
+      - description: School ID
+        in: path
+        name: schoolId
+        required: true
+        type: string
+      - description: Include soft-deleted units
+        in: query
+        name: includeDeleted
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.AcademicUnitResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List all units for a school
+      tags:
+      - academic-units
+    post:
+      consumes:
+      - application/json
+      description: Creates a new academic unit (grade, section, club, department)
+        within a school
+      parameters:
+      - description: School ID
+        in: path
+        name: schoolId
+        required: true
+        type: string
+      - description: Academic unit data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateAcademicUnitRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.AcademicUnitResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new academic unit
+      tags:
+      - academic-units
+  /v1/schools/{schoolId}/units/by-type:
+    get:
+      description: Retrieves academic units filtered by type (grade, section, club,
+        department)
+      parameters:
+      - description: School ID
+        in: path
+        name: schoolId
+        required: true
+        type: string
+      - description: Unit type (grade, section, club, department)
+        in: query
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.AcademicUnitResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List units by type
+      tags:
+      - academic-units
+  /v1/schools/{schoolId}/units/tree:
+    get:
+      description: Retrieves the complete hierarchy tree of academic units for a school
+      parameters:
+      - description: School ID
+        in: path
+        name: schoolId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UnitTreeNode'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the hierarchical tree of units for a school
+      tags:
+      - academic-units
+  /v1/schools/code/{code}:
+    get:
+      description: Retrieves a school by its unique code
+      parameters:
+      - description: School Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.SchoolResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a school by code
+      tags:
+      - schools
+  /v1/stats/global:
+    get:
+      description: Get system-wide statistics (users, schools, subjects, etc.)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.GlobalStatsResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get global statistics
+      tags:
+      - stats
+  /v1/students/{student_id}/guardians:
+    get:
+      description: Get all guardian relations for a specific student
+      parameters:
+      - description: Student ID
+        in: path
+        name: student_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.GuardianRelationResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all guardians for a student
+      tags:
+      - guardians
+  /v1/subjects:
+    get:
+      consumes:
+      - application/json
+      description: Lists all subjects, optionally filtered by school
+      parameters:
+      - description: Filter by school ID
+        format: uuid
+        in: query
+        name: school_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.SubjectResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List subjects
+      tags:
+      - subjects
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Subject data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateSubjectRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.SubjectResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new subject
+      tags:
+      - subjects
+  /v1/subjects/{id}:
+    delete:
+      description: Soft deletes a subject
+      parameters:
+      - description: Subject ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete subject
+      tags:
+      - subjects
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a subject by its unique identifier
+      parameters:
+      - description: Subject ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.SubjectResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get subject by ID
+      tags:
+      - subjects
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Subject ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateSubjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.SubjectResponse'
+      security:
+      - BearerAuth: []
+      summary: Update subject
+      tags:
+      - subjects
+  /v1/units:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new organizational unit (department, grade, group, etc.)
+      parameters:
+      - description: Unit data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateUnitRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UnitResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new unit
+      tags:
+      - units
+  /v1/units/{id}:
+    delete:
+      description: Soft deletes an academic unit
+      parameters:
+      - description: Unit ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete an academic unit
+      tags:
+      - academic-units
+    get:
+      description: Retrieves an academic unit by its ID
+      parameters:
+      - description: Unit ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.AcademicUnitResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get an academic unit by ID
+      tags:
+      - academic-units
+    patch:
+      consumes:
+      - application/json
+      description: Update unit information
+      parameters:
+      - description: Unit ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateUnitRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UnitResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update unit
+      tags:
+      - units
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing academic unit
+      parameters:
+      - description: Unit ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated unit data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateAcademicUnitRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.AcademicUnitResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an academic unit
+      tags:
+      - academic-units
+  /v1/units/{id}/hierarchy-path:
+    get:
+      description: Retrieves the complete hierarchy path from root to the specified
+        unit
+      parameters:
+      - description: Unit ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.AcademicUnitResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the hierarchy path for a unit
+      tags:
+      - academic-units
+  /v1/units/{id}/members:
+    post:
+      consumes:
+      - application/json
+      description: Assign a user (teacher or student) to a unit
+      parameters:
+      - description: Unit ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign member to unit
+      tags:
+      - units
+  /v1/units/{id}/restore:
+    post:
+      description: Restores a previously soft-deleted academic unit
+      parameters:
+      - description: Unit ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restore a soft-deleted academic unit
+      tags:
+      - academic-units
+  /v1/units/{unitId}/memberships:
+    get:
+      description: Retrieves all memberships for a specific academic unit
+      parameters:
+      - description: Unit ID
+        in: path
+        name: unitId
+        required: true
+        type: string
+      - description: Show only active memberships
+        in: query
+        name: activeOnly
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.MembershipResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List memberships for a unit
+      tags:
+      - memberships
+  /v1/units/{unitId}/memberships/by-role:
+    get:
+      description: Retrieves memberships filtered by role within a unit
+      parameters:
+      - description: Unit ID
+        in: path
+        name: unitId
+        required: true
+        type: string
+      - description: Role (owner, teacher, assistant, student, guardian)
+        in: query
+        name: role
+        required: true
+        type: string
+      - description: Show only active memberships
+        in: query
+        name: activeOnly
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.MembershipResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List memberships by role
+      tags:
+      - memberships
+  /v1/users:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user in the system
+      parameters:
+      - description: User data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UserResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "409":
+          description: User already exists
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new user
+      tags:
+      - users
+  /v1/users/{id}:
+    delete:
+      description: Soft delete a user (deactivate)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete user
+      tags:
+      - users
+    get:
+      description: Get details of a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UserResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Update user information
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UserResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - users
+  /v1/users/{userId}/memberships:
+    get:
+      description: Retrieves all memberships for a specific user across all units
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Show only active memberships
+        in: query
+        name: activeOnly
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.MembershipResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List memberships for a user
+      tags:
+      - memberships
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
