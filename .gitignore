@@ -1,0 +1,109 @@
+# Gradle
+.gradle/
+build/
+.gradle
+gradle-app.setting
+gradlew
+gradlew.bat
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# IDE
+.idea/
+.idea_modules/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Android Studio
+.AS_Setup/
+.android/
+captures/
+.externalNativeBuild/
+
+# IntelliJ / Android Studio
+local.properties
+*.jks
+*.keystore
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+.settings/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.sublime-workspace
+
+# Kotlin
+*.kt.bak
+.kotlin
+kotlin-js-store/
+
+# JVM
+*.class
+*.jar
+*.war
+*.ear
+
+# Node (para proyectos JS/TS)
+node_modules/
+npm-debug.log
+yarn-error.log
+pnpm-error.log
+
+# iOS / Swift (macOS específico)
+Pods/
+Podfile.lock
+.swiftpm/
+DerivedData/
+xcuserdata/
+*.xcworkspace/
+.build/
+.swiftpm/
+
+# Recursos sensibles
+*.jks
+*.keystore
+*.p12
+*.pfx
+key.properties
+local.properties
+secrets.properties
+.env
+.env.local
+
+# Compilación
+bin/
+gen/
+obj/
+.bin/
+
+# Tests
+test-results/
+.coverage/
+
+# Documentación generada
+docs/
+javadoc/
+kdoc/
+
+# Archivos temporales
+*.tmp
+*.temp
+*.log
+.cache/
+tmp/
+temp/
+
+# Git
+.git/
