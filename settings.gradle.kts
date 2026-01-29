@@ -6,6 +6,9 @@
  */
 
 pluginManagement {
+    // Convention Plugins locales
+    includeBuild("build-logic")
+
     repositories {
         google {
             content {
@@ -20,17 +23,29 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
+    // Forzar uso centralizado de repositorios
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
     repositories {
         google()
         mavenCentral()
     }
+
+    // Version Catalog: gradle/libs.versions.toml (auto-detectado por Gradle 8.11+)
 }
 
-rootProject.name = "EduGo-KMP-Shared"
+rootProject.name = "EduGo-KMP-Modules"
 
-// Habilitar version catalog (habilitado por defecto en Gradle 8+)
+// Habilitar type-safe project accessors
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+// Build cache local
+buildCache {
+    local {
+        isEnabled = true
+        directory = File(rootDir, ".gradle/build-cache")
+    }
+}
 
 // Incluir módulos cuando existan
 // include(":core:common")
