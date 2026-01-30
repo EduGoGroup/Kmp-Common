@@ -10,8 +10,8 @@ plugins {
 val libs: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 kotlin {
-    // JVM Target
-    jvm {
+    // JVM Desktop target - nombre específico para distinguir de otros JVM targets
+    jvm("desktop") {
         compilations.all {
             compilerOptions.configure {
                 jvmTarget.set(JvmTarget.JVM_17)
@@ -50,9 +50,9 @@ kotlin {
                     .orElseThrow { IllegalStateException("Library 'turbine' not found in version catalog. Check gradle/libs.versions.toml") })
             }
         }
-        val jvmMain by getting {
+        val desktopMain by getting {
             dependencies {
-                // Ktor engine para JVM (CIO - Coroutine I/O)
+                // Ktor engine para JVM Desktop (CIO - Coroutine I/O)
                 implementation(libs.findLibrary("ktor-client-cio")
                     .orElseThrow { IllegalStateException("Library 'ktor-client-cio' not found in version catalog. Check gradle/libs.versions.toml") })
 
@@ -61,7 +61,7 @@ kotlin {
                     .orElseThrow { IllegalStateException("Library 'kotlinx-coroutines-swing' not found in version catalog. Check gradle/libs.versions.toml") })
             }
         }
-        val jvmTest by getting {
+        val desktopTest by getting {
             dependencies {
                 implementation(libs.findLibrary("mockk")
                     .orElseThrow { IllegalStateException("Library 'mockk' not found in version catalog. Check gradle/libs.versions.toml") })
