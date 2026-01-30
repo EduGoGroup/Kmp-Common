@@ -1,8 +1,13 @@
+import org.gradle.api.artifacts.VersionCatalog
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("multiplatform")
 }
+
+// Acceso al version catalog desde included build
+val libs: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 kotlin {
     // JVM Target
@@ -24,10 +29,17 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation(libs.findLibrary("kotlinx-coroutines-test").get())
+                implementation(libs.findLibrary("turbine").get())
             }
         }
         val jvmMain by getting
-        val jvmTest by getting
+        val jvmTest by getting {
+            dependencies {
+                implementation(libs.findLibrary("mockk").get())
+                implementation(libs.findLibrary("kotlin-test-junit").get())
+            }
+        }
     }
 
     // Configuración del toolchain
