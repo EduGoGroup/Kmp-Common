@@ -19,6 +19,7 @@ class ResultTest {
         val exception = RuntimeException("test error")
         val result: Result<String> = Result.Error(exception)
         assertIs<Result.Error>(result)
+        assertEquals(exception, result.exception)
         assertEquals("test error", result.exception.message)
     }
 
@@ -35,5 +36,29 @@ class ResultTest {
         val result: Result<Int> = Result.Error(RuntimeException("error"))
         val mapped = result.map { it * 2 }
         assertIs<Result.Error>(mapped)
+        assertEquals("error", mapped.exception.message)
+    }
+
+    @Test
+    fun success_withNullableData() {
+        val result: Result<String?> = Result.Success(null)
+        assertIs<Result.Success<String?>>(result)
+        assertEquals(null, result.data)
+    }
+
+    @Test
+    fun map_withNullableData() {
+        val result: Result<String?> = Result.Success("test")
+        val mapped = result.map { it?.uppercase() }
+        assertIs<Result.Success<String?>>(mapped)
+        assertEquals("TEST", mapped.data)
+    }
+
+    @Test
+    fun map_chainingMultipleOperations() {
+        val result: Result<Int> = Result.Success(5)
+        val mapped = result.map { it * 2 }.map { it + 1 }
+        assertIs<Result.Success<Int>>(mapped)
+        assertEquals(11, mapped.data)
     }
 }

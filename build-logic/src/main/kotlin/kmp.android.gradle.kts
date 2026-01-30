@@ -11,8 +11,26 @@ plugins {
 
 // Constantes de configuración
 val VERSION_CATALOG_NAME = "libs"
+
+/**
+ * Android SDK version to compile against.
+ * SDK 35 = Android 15 (VanillaIceCream) - Latest stable as of 2024.
+ * This determines which Android APIs are available during compilation.
+ */
 val COMPILE_SDK = 35
+
+/**
+ * Minimum Android version required to run the app.
+ * SDK 29 = Android 10 - Covers ~85% of active devices (as of 2024).
+ * Provides modern APIs (Scoped Storage, NNAPI 1.2, TLS 1.3) while maintaining broad compatibility.
+ */
 val MIN_SDK = 29
+
+/**
+ * JVM target version for Kotlin compilation.
+ * Java 17 is the LTS version required by Android Gradle Plugin 8.x+.
+ * Provides modern language features while ensuring compatibility with Android runtime.
+ */
 val JVM_TARGET = 17
 
 // Acceso al version catalog desde included build
@@ -41,11 +59,11 @@ kotlin {
             dependencies {
                 // KotlinX Common (coroutines, serialization, datetime)
                 implementation(libs.findBundle("kotlinx-common")
-                    .orElseThrow { IllegalStateException("kotlinx-common bundle not found in catalog") })
+                    .orElseThrow { IllegalStateException("Bundle 'kotlinx-common' not found in version catalog. Check gradle/libs.versions.toml") })
 
                 // Ktor Common (client core + plugins)
                 implementation(libs.findBundle("ktor-common")
-                    .orElseThrow { IllegalStateException("ktor-common bundle not found in catalog") })
+                    .orElseThrow { IllegalStateException("Bundle 'ktor-common' not found in version catalog. Check gradle/libs.versions.toml") })
             }
         }
         val commonTest by getting {
@@ -55,53 +73,53 @@ kotlin {
 
                 // Ktor mock para testing de network
                 implementation(libs.findLibrary("ktor-client-mock")
-                    .orElseThrow { IllegalStateException("ktor-client-mock not found in catalog") })
+                    .orElseThrow { IllegalStateException("Library 'ktor-client-mock' not found in version catalog. Check gradle/libs.versions.toml") })
 
                 // Coroutines test utilities
                 implementation(libs.findLibrary("kotlinx-coroutines-test")
-                    .orElseThrow { IllegalStateException("kotlinx-coroutines-test not found in catalog") })
+                    .orElseThrow { IllegalStateException("Library 'kotlinx-coroutines-test' not found in version catalog. Check gradle/libs.versions.toml") })
 
                 // Flow testing
                 implementation(libs.findLibrary("turbine")
-                    .orElseThrow { IllegalStateException("turbine not found in catalog") })
+                    .orElseThrow { IllegalStateException("Library 'turbine' not found in version catalog. Check gradle/libs.versions.toml") })
             }
         }
         val androidMain by getting {
             dependencies {
                 // Ktor engine para Android (OkHttp)
                 implementation(libs.findLibrary("ktor-client-okhttp")
-                    .orElseThrow { IllegalStateException("ktor-client-okhttp not found in catalog") })
+                    .orElseThrow { IllegalStateException("Library 'ktor-client-okhttp' not found in version catalog. Check gradle/libs.versions.toml") })
 
                 // Coroutines con Dispatchers.Main para UI
                 implementation(libs.findLibrary("kotlinx-coroutines-android")
-                    .orElseThrow { IllegalStateException("kotlinx-coroutines-android not found in catalog") })
+                    .orElseThrow { IllegalStateException("Library 'kotlinx-coroutines-android' not found in version catalog. Check gradle/libs.versions.toml") })
             }
         }
         val androidUnitTest by getting {
             dependencies {
                 implementation(libs.findLibrary("mockk-android")
-                    .orElseThrow { IllegalStateException("mockk-android not found in catalog") })
+                    .orElseThrow { IllegalStateException("Library 'mockk-android' not found in version catalog. Check gradle/libs.versions.toml") })
                 implementation(libs.findLibrary("kotlin-test-junit")
-                    .orElseThrow { IllegalStateException("kotlin-test-junit not found in catalog") })
+                    .orElseThrow { IllegalStateException("Library 'kotlin-test-junit' not found in version catalog. Check gradle/libs.versions.toml") })
             }
         }
         val desktopMain by getting {
             dependencies {
                 // Ktor engine para JVM Desktop (CIO - Coroutine I/O)
                 implementation(libs.findLibrary("ktor-client-cio")
-                    .orElseThrow { IllegalStateException("ktor-client-cio not found in catalog") })
+                    .orElseThrow { IllegalStateException("Library 'ktor-client-cio' not found in version catalog. Check gradle/libs.versions.toml") })
 
                 // Coroutines con Dispatchers.Swing para Desktop GUI
                 implementation(libs.findLibrary("kotlinx-coroutines-swing")
-                    .orElseThrow { IllegalStateException("kotlinx-coroutines-swing not found in catalog") })
+                    .orElseThrow { IllegalStateException("Library 'kotlinx-coroutines-swing' not found in version catalog. Check gradle/libs.versions.toml") })
             }
         }
         val desktopTest by getting {
             dependencies {
                 implementation(libs.findLibrary("mockk")
-                    .orElseThrow { IllegalStateException("mockk not found in catalog") })
+                    .orElseThrow { IllegalStateException("Library 'mockk' not found in version catalog. Check gradle/libs.versions.toml") })
                 implementation(libs.findLibrary("kotlin-test-junit")
-                    .orElseThrow { IllegalStateException("kotlin-test-junit not found in catalog") })
+                    .orElseThrow { IllegalStateException("Library 'kotlin-test-junit' not found in version catalog. Check gradle/libs.versions.toml") })
             }
         }
     }
