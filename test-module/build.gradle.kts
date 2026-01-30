@@ -1,5 +1,6 @@
 plugins {
     id("kmp.android")
+    id("kover")
 }
 
 android {

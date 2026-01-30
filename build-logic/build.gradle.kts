@@ -12,6 +12,7 @@ dependencies {
     // Dependencias para los plugins que vamos a configurar
     implementation(libs.kotlin.gradle.plugin)
     implementation(libs.android.gradle.plugin)
+    implementation(libs.kover.gradle.plugin)
 }
 
 // Configuración de Java toolchain

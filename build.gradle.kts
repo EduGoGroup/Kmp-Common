@@ -20,6 +20,9 @@ plugins {
 
     // Kotlin Serialization - para módulos que usan serialización
     alias(libs.plugins.kotlin.serialization) apply false
+
+    // Kover - Code Coverage para KMP
+    alias(libs.plugins.kover)
 }
 
 allprojects {
@@ -42,3 +45,35 @@ subprojects {
 
 // La tarea 'clean' es provista automáticamente por LifecycleBasePlugin
 // a través de los plugins Kotlin/Android en los subproyectos
+
+// Kover - Merge de reportes de todos los subproyectos
+dependencies {
+    subprojects.forEach { subproject ->
+        kover(subproject)
+    }
+}
+
+kover {
+    reports {
+        total {
+            xml {
+                onCheck.set(true)
+            }
+            html {
+                onCheck.set(true)
+            }
+        }
+
+        filters {
+            excludes {
+                classes(
+                    "*BuildConfig*",
+                    "*_Impl*",
+                    "*_Factory*",
+                    "*.Companion",
+                    "*.DefaultImpls"
+                )
+            }
+        }
+    }
+}
