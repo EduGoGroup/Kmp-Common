@@ -23,12 +23,38 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    // Forzar uso centralizado de repositorios
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    // Preferir settings pero permitir repositorios de proyecto para Kotlin/JS
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
 
     repositories {
         google()
         mavenCentral()
+
+        // Repositorio Node.js para Kotlin/JS
+        exclusiveContent {
+            forRepository {
+                ivy("https://nodejs.org/dist") {
+                    patternLayout {
+                        artifact("v[revision]/[artifact](-v[revision]-[classifier]).[ext]")
+                    }
+                    metadataSources { artifact() }
+                }
+            }
+            filter { includeModule("org.nodejs", "node") }
+        }
+
+        // Repositorio Yarn para Kotlin/JS
+        exclusiveContent {
+            forRepository {
+                ivy("https://github.com/yarnpkg/yarn/releases/download") {
+                    patternLayout {
+                        artifact("v[revision]/[artifact]-v[revision].[ext]")
+                    }
+                    metadataSources { artifact() }
+                }
+            }
+            filter { includeModule("com.yarnpkg", "yarn") }
+        }
     }
 
     // Version Catalog: gradle/libs.versions.toml (auto-detectado por Gradle 8.11+)
@@ -54,3 +80,5 @@ buildCache {
 
 // Módulo de prueba temporal para validación de Convention Plugins
 include(":test-module")
+// Módulo de prueba para full multiplatform (JS + Desktop)
+include(":test-module-full")

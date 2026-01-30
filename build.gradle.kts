@@ -40,7 +40,5 @@ subprojects {
     }
 }
 
-// Tarea de limpieza global
-tasks.register<Delete>("clean") {
-    delete(layout.buildDirectory)
-}
+// La tarea 'clean' es provista automáticamente por LifecycleBasePlugin
+// a través de los plugins Kotlin/Android en los subproyectos
