@@ -19,7 +19,8 @@ kotlin {
         }
     }
 
-    // Source Sets comunes
+    // Source Sets con jerarquía consistente con kmp.android.gradle.kts
+    // Jerarquía: commonMain -> jvmSharedMain -> desktopMain
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -50,7 +51,20 @@ kotlin {
                     .orElseThrow { IllegalStateException("Library 'turbine' not found in version catalog. Check gradle/libs.versions.toml") })
             }
         }
+
+        // Intermediate sourceset para código JVM compartido
+        // Mantiene consistencia con kmp.android.gradle.kts para que módulos
+        // library-only puedan compartir código con módulos Android
+        val jvmSharedMain by creating {
+            dependsOn(commonMain)
+            // Dependencias JVM comunes (APIs de java.* disponibles)
+        }
+        val jvmSharedTest by creating {
+            dependsOn(commonTest)
+        }
+
         val desktopMain by getting {
+            dependsOn(jvmSharedMain)
             dependencies {
                 // Ktor engine para JVM Desktop (CIO - Coroutine I/O)
                 implementation(libs.findLibrary("ktor-client-cio")
@@ -62,6 +76,7 @@ kotlin {
             }
         }
         val desktopTest by getting {
+            dependsOn(jvmSharedTest)
             dependencies {
                 implementation(libs.findLibrary("mockk")
                     .orElseThrow { IllegalStateException("Library 'mockk' not found in version catalog. Check gradle/libs.versions.toml") })

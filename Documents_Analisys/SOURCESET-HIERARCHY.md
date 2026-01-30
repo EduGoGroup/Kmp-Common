@@ -10,7 +10,11 @@ kotlin.mpp.applyDefaultHierarchyTemplate=true
 kotlin.mpp.androidSourceSetLayoutVersion=2
 ```
 
-Ademas, se configura un intermediate sourceset `jvmSharedMain` manualmente en el convention plugin `kmp.android.gradle.kts`.
+Ademas, se configura un intermediate sourceset `jvmSharedMain` manualmente en ambos convention plugins:
+- `kmp.android.gradle.kts` - Para módulos con Android + Desktop
+- `kmp.library.gradle.kts` - Para módulos solo Desktop
+
+Esto garantiza consistencia en la jerarquía independientemente del plugin usado.
 
 ## Jerarquia Visual
 
