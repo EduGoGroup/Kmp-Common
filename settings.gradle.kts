@@ -51,3 +51,6 @@ buildCache {
 // include(":core:common")
 // include(":core:network")
 // include(":feature:auth")
+
+// Módulo de prueba temporal para validación de Convention Plugins
+include(":test-module")

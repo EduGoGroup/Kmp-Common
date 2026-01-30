@@ -10,8 +10,8 @@ repositories {
 
 dependencies {
     // Dependencias para los plugins que vamos a configurar
-    compileOnly(libs.kotlin.gradle.plugin)
-    compileOnly(libs.android.gradle.plugin)
+    implementation(libs.kotlin.gradle.plugin)
+    implementation(libs.android.gradle.plugin)
 }
 
 // Configuración de Java toolchain
@@ -21,15 +21,5 @@ java {
     }
 }
 
-gradlePlugin {
-    plugins {
-        register("kmpLibrary") {
-            id = "kmp.library"
-            implementationClass = "KmpLibraryPlugin"
-        }
-        register("kmpAndroid") {
-            id = "kmp.android"
-            implementationClass = "KmpAndroidPlugin"
-        }
-    }
-}
+// Los convention plugins se registran automáticamente desde los archivos .gradle.kts
+// No es necesario registrarlos explícitamente con gradlePlugin {}
