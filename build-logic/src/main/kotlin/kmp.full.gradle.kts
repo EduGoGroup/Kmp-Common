@@ -20,9 +20,14 @@ kotlin {
         }
     }
 
-    // JavaScript Target con IR compiler
+    // JavaScript Target con IR compiler (modo recomendado para producción)
     js(IR) {
         browser {
+            commonWebpackConfig {
+                cssSupport {
+                    enabled.set(true)
+                }
+            }
             testTask {
                 useKarma {
                     useChromeHeadless()
@@ -34,6 +39,8 @@ kotlin {
                 useMocha()
             }
         }
+        // Genera JS ejecutable
+        binaries.executable()
     }
 
     // Source Sets

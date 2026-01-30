@@ -21,8 +21,8 @@ kotlin {
         }
     }
 
-    // JVM también para tests
-    jvm {
+    // JVM Desktop target - nombre específico para distinguir de otros JVM targets
+    jvm("desktop") {
         compilations.all {
             compilerOptions.configure {
                 jvmTarget.set(JvmTarget.JVM_17)
@@ -77,16 +77,16 @@ kotlin {
                 implementation(libs.findLibrary("kotlin-test-junit").get())
             }
         }
-        val jvmMain by getting {
+        val desktopMain by getting {
             dependencies {
-                // Ktor engine para JVM (CIO - Coroutine I/O)
+                // Ktor engine para JVM Desktop (CIO - Coroutine I/O)
                 implementation(libs.findLibrary("ktor-client-cio").get())
 
                 // Coroutines con Dispatchers.Swing para Desktop GUI
                 implementation(libs.findLibrary("kotlinx-coroutines-swing").get())
             }
         }
-        val jvmTest by getting {
+        val desktopTest by getting {
             dependencies {
                 implementation(libs.findLibrary("mockk").get())
                 implementation(libs.findLibrary("kotlin-test-junit").get())
