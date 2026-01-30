@@ -22,7 +22,7 @@ un proyecto Kotlin Multiplatform con multiples modulos independientes equivalent
 |------------|---------|-------|
 | **Kotlin** | 2.1.20 | K2 Compiler habilitado |
 | **Gradle** | 8.11 | Con Version Catalogs |
-| **JDK** | 21 LTS | Minimo requerido |
+| **JDK** | 17 LTS | Minimo requerido (compatible con Android minSdk 29 y KMP) |
 | **Android compileSdk** | 35 | Android 15 |
 | **Android targetSdk** | 35 | Android 15 |
 | **Android minSdk** | 26 | Android 8.0 Oreo |
@@ -86,8 +86,8 @@ android-minSdk = "26"
 android-targetSdk = "35"
 
 # Build
-java-target = "21"
-jvm-target = "21"
+java-target = "17"
+jvm-target = "17"
 
 [libraries]
 # ============================================
@@ -346,7 +346,7 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
 }
 
 gradlePlugin {
@@ -377,7 +377,7 @@ kotlin {
         compilations.all {
             compileTaskProvider.configure {
                 compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_21)
+                    jvmTarget.set(JvmTarget.JVM_17)
                     freeCompilerArgs.addAll(
                         "-opt-in=kotlin.RequiresOptIn",
                         "-opt-in=kotlin.uuid.ExperimentalUuidApi"
@@ -393,7 +393,7 @@ kotlin {
         compilations.all {
             compileTaskProvider.configure {
                 compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_21)
+                    jvmTarget.set(JvmTarget.JVM_17)
                     freeCompilerArgs.addAll(
                         "-opt-in=kotlin.RequiresOptIn",
                         "-opt-in=kotlin.uuid.ExperimentalUuidApi"
@@ -457,8 +457,8 @@ android {
     }
     
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     
     buildFeatures {
@@ -938,10 +938,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup JDK 21
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
       
       - name: Setup Gradle
@@ -960,7 +960,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew lintDebug --no-daemon
@@ -972,7 +972,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew jsBrowserTest --no-daemon

@@ -1,7 +1,7 @@
 # EduGo Android Modules - Kotlin Multiplatform
 
 > **Versión**: 2.0.0  
-> **Stack**: Android 8.0+ (API 26) | Kotlin 2.1.20 | Gradle 8.11 | JDK 21 LTS  
+> **Stack**: Android 8.0+ (API 26) | Kotlin 2.1.20 | Gradle 8.11 | JDK 17 LTS  
 > **Status**: 🚧 En Planificación
 
 ---
@@ -51,7 +51,7 @@ Crear una biblioteca compartida de módulos Kotlin que:
 
 - **Kotlin 2.1.20**: K2 Compiler habilitado, características modernas
 - **Gradle 8.11**: Con Version Catalogs y build logic
-- **JDK 21 LTS**: Minimo requerido para desarrollo
+- **JDK 17 LTS**: Minimo requerido para desarrollo (compatible con Android minSdk 29 y KMP)
 - **Android API 26+** (Android 8.0 Oreo): minSdk
 - **Android API 35** (Android 15): targetSdk y compileSdk
 - **AGP 8.7.2**: Android Gradle Plugin versión compatible
@@ -589,7 +589,7 @@ kotlin {
     android {
         compilations.all {
             kotlinOptions {
-                jvmTarget = "21"
+                jvmTarget = "17"
             }
         }
     }
@@ -641,8 +641,8 @@ android {
     }
     
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 ```
