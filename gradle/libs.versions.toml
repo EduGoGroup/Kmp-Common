@@ -85,6 +85,7 @@ kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", vers
 # -----------------------------------------------------------------------------
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 
 # -----------------------------------------------------------------------------
@@ -195,6 +196,20 @@ kotlinx-serialization = ["kotlinx-serialization-core", "kotlinx-serialization-js
 # Multiplatform Settings bundle
 # -----------------------------------------------------------------------------
 multiplatform-settings-common = ["multiplatform-settings", "multiplatform-settings-coroutines", "multiplatform-settings-serialization"]
+
+# -----------------------------------------------------------------------------
+# Ktor por plataforma
+# -----------------------------------------------------------------------------
+ktor-android = ["ktor-client-okhttp"]
+ktor-desktop = ["ktor-client-cio"]
+ktor-js = ["ktor-client-js"]
+ktor-ios = ["ktor-client-darwin"]
+
+# -----------------------------------------------------------------------------
+# Coroutines por plataforma
+# -----------------------------------------------------------------------------
+coroutines-android = ["kotlinx-coroutines-core", "kotlinx-coroutines-android"]
+coroutines-desktop = ["kotlinx-coroutines-core", "kotlinx-coroutines-swing"]
 
 [plugins]
 # -----------------------------------------------------------------------------

@@ -31,22 +31,61 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+                // Ktor Client
+                implementation(libs.findLibrary("ktor-client-core").get())
+                implementation(libs.findLibrary("ktor-client-content-negotiation").get())
+                implementation(libs.findLibrary("ktor-serialization-kotlinx-json").get())
+                implementation(libs.findLibrary("ktor-client-logging").get())
+
+                // Serialization
+                implementation(libs.findLibrary("kotlinx-serialization-core").get())
+                implementation(libs.findLibrary("kotlinx-serialization-json").get())
+
+                // Coroutines
+                implementation(libs.findLibrary("kotlinx-coroutines-core").get())
+            }
+        }
         val commonTest by getting {
             dependencies {
+                // Testing framework multiplataforma
                 implementation(kotlin("test"))
+
+                // Ktor mock para testing de network
+                implementation(libs.findLibrary("ktor-client-mock").get())
+
+                // Coroutines test utilities
                 implementation(libs.findLibrary("kotlinx-coroutines-test").get())
+
+                // Flow testing
                 implementation(libs.findLibrary("turbine").get())
             }
         }
-        val androidMain by getting
+        val androidMain by getting {
+            dependencies {
+                // Ktor engine para Android (OkHttp)
+                implementation(libs.findLibrary("ktor-client-okhttp").get())
+
+                // Coroutines con Dispatchers.Main para UI
+                implementation(libs.findLibrary("kotlinx-coroutines-android").get())
+            }
+        }
         val androidUnitTest by getting {
             dependencies {
                 implementation(libs.findLibrary("mockk-android").get())
                 implementation(libs.findLibrary("kotlin-test-junit").get())
             }
         }
-        val jvmMain by getting
+        val jvmMain by getting {
+            dependencies {
+                // Ktor engine para JVM (CIO - Coroutine I/O)
+                implementation(libs.findLibrary("ktor-client-cio").get())
+
+                // Coroutines con Dispatchers.Swing para Desktop GUI
+                implementation(libs.findLibrary("kotlinx-coroutines-swing").get())
+            }
+        }
         val jvmTest by getting {
             dependencies {
                 implementation(libs.findLibrary("mockk").get())

@@ -40,19 +40,46 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                // Dependencias comunes se agregarán aquí
+                // Ktor Client
+                implementation(libs.findLibrary("ktor-client-core").get())
+                implementation(libs.findLibrary("ktor-client-content-negotiation").get())
+                implementation(libs.findLibrary("ktor-serialization-kotlinx-json").get())
+                implementation(libs.findLibrary("ktor-client-logging").get())
+
+                // Serialization
+                implementation(libs.findLibrary("kotlinx-serialization-core").get())
+                implementation(libs.findLibrary("kotlinx-serialization-json").get())
+
+                // Coroutines
+                implementation(libs.findLibrary("kotlinx-coroutines-core").get())
             }
         }
         val commonTest by getting {
             dependencies {
+                // Testing framework multiplataforma
                 implementation(kotlin("test"))
+
+                // Ktor mock para testing de network
+                implementation(libs.findLibrary("ktor-client-mock").get())
+
+                // Coroutines test utilities
                 implementation(libs.findLibrary("kotlinx-coroutines-test").get())
+
+                // Flow testing
                 implementation(libs.findLibrary("turbine").get())
             }
         }
 
         // Desktop (JVM) source sets
-        val desktopMain by getting
+        val desktopMain by getting {
+            dependencies {
+                // Ktor engine para JVM/Desktop (CIO)
+                implementation(libs.findLibrary("ktor-client-cio").get())
+
+                // Coroutines con Dispatchers.Swing
+                implementation(libs.findLibrary("kotlinx-coroutines-swing").get())
+            }
+        }
         val desktopTest by getting {
             dependencies {
                 implementation(libs.findLibrary("mockk").get())
@@ -61,7 +88,12 @@ kotlin {
         }
 
         // JavaScript source sets
-        val jsMain by getting
+        val jsMain by getting {
+            dependencies {
+                // Ktor engine para JavaScript (usa fetch API)
+                implementation(libs.findLibrary("ktor-client-js").get())
+            }
+        }
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
