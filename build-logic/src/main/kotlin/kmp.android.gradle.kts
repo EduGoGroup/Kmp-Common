@@ -84,7 +84,19 @@ kotlin {
                     .orElseThrow { IllegalStateException("Library 'turbine' not found in version catalog. Check gradle/libs.versions.toml") })
             }
         }
+
+        // Intermediate sourceset para código JVM compartido entre Android y Desktop
+        // Jerarquía: commonMain -> jvmSharedMain -> androidMain/desktopMain
+        val jvmSharedMain by creating {
+            dependsOn(commonMain)
+            // Dependencias JVM comunes (APIs de java.* disponibles en ambos)
+        }
+        val jvmSharedTest by creating {
+            dependsOn(commonTest)
+        }
+
         val androidMain by getting {
+            dependsOn(jvmSharedMain)
             dependencies {
                 // Ktor engine para Android (OkHttp)
                 implementation(libs.findLibrary("ktor-client-okhttp")
@@ -96,6 +108,7 @@ kotlin {
             }
         }
         val androidUnitTest by getting {
+            dependsOn(jvmSharedTest)
             dependencies {
                 implementation(libs.findLibrary("mockk-android")
                     .orElseThrow { IllegalStateException("Library 'mockk-android' not found in version catalog. Check gradle/libs.versions.toml") })
@@ -104,6 +117,7 @@ kotlin {
             }
         }
         val desktopMain by getting {
+            dependsOn(jvmSharedMain)
             dependencies {
                 // Ktor engine para JVM Desktop (CIO - Coroutine I/O)
                 implementation(libs.findLibrary("ktor-client-cio")
@@ -115,6 +129,7 @@ kotlin {
             }
         }
         val desktopTest by getting {
+            dependsOn(jvmSharedTest)
             dependencies {
                 implementation(libs.findLibrary("mockk")
                     .orElseThrow { IllegalStateException("Library 'mockk' not found in version catalog. Check gradle/libs.versions.toml") })
