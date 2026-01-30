@@ -39,25 +39,13 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                // Ktor Client
-                implementation(libs.findLibrary("ktor-client-core")
-                    .orElseThrow { IllegalStateException("ktor-client-core not found in catalog") })
-                implementation(libs.findLibrary("ktor-client-content-negotiation")
-                    .orElseThrow { IllegalStateException("ktor-client-content-negotiation not found in catalog") })
-                implementation(libs.findLibrary("ktor-serialization-kotlinx-json")
-                    .orElseThrow { IllegalStateException("ktor-serialization-kotlinx-json not found in catalog") })
-                implementation(libs.findLibrary("ktor-client-logging")
-                    .orElseThrow { IllegalStateException("ktor-client-logging not found in catalog") })
+                // KotlinX Common (coroutines, serialization, datetime)
+                implementation(libs.findBundle("kotlinx-common")
+                    .orElseThrow { IllegalStateException("kotlinx-common bundle not found in catalog") })
 
-                // Serialization
-                implementation(libs.findLibrary("kotlinx-serialization-core")
-                    .orElseThrow { IllegalStateException("kotlinx-serialization-core not found in catalog") })
-                implementation(libs.findLibrary("kotlinx-serialization-json")
-                    .orElseThrow { IllegalStateException("kotlinx-serialization-json not found in catalog") })
-
-                // Coroutines
-                implementation(libs.findLibrary("kotlinx-coroutines-core")
-                    .orElseThrow { IllegalStateException("kotlinx-coroutines-core not found in catalog") })
+                // Ktor Common (client core + plugins)
+                implementation(libs.findBundle("ktor-common")
+                    .orElseThrow { IllegalStateException("ktor-common bundle not found in catalog") })
             }
         }
         val commonTest by getting {

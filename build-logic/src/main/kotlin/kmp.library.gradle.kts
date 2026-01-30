@@ -23,18 +23,11 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                // Ktor Client
-                implementation(libs.findLibrary("ktor-client-core").get())
-                implementation(libs.findLibrary("ktor-client-content-negotiation").get())
-                implementation(libs.findLibrary("ktor-serialization-kotlinx-json").get())
-                implementation(libs.findLibrary("ktor-client-logging").get())
+                // KotlinX Common (coroutines, serialization, datetime)
+                implementation(libs.findBundle("kotlinx-common").get())
 
-                // Serialization
-                implementation(libs.findLibrary("kotlinx-serialization-core").get())
-                implementation(libs.findLibrary("kotlinx-serialization-json").get())
-
-                // Coroutines
-                implementation(libs.findLibrary("kotlinx-coroutines-core").get())
+                // Ktor Common (client core + plugins)
+                implementation(libs.findBundle("ktor-common").get())
             }
         }
         val commonTest by getting {
