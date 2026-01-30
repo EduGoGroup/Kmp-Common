@@ -9,14 +9,20 @@ plugins {
     id("com.android.library")
 }
 
+// Constantes de configuración
+val VERSION_CATALOG_NAME = "libs"
+val COMPILE_SDK = 35
+val MIN_SDK = 29
+val JVM_TARGET = 17
+
 // Acceso al version catalog desde included build
-val libs: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+val libs: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named(VERSION_CATALOG_NAME)
 
 kotlin {
     androidTarget {
         compilations.all {
             compilerOptions.configure {
-                jvmTarget.set(JvmTarget.JVM_17)
+                jvmTarget.set(JvmTarget.fromTarget(JVM_TARGET.toString()))
             }
         }
     }
@@ -25,7 +31,7 @@ kotlin {
     jvm("desktop") {
         compilations.all {
             compilerOptions.configure {
-                jvmTarget.set(JvmTarget.JVM_17)
+                jvmTarget.set(JvmTarget.fromTarget(JVM_TARGET.toString()))
             }
         }
     }
@@ -34,17 +40,24 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 // Ktor Client
-                implementation(libs.findLibrary("ktor-client-core").get())
-                implementation(libs.findLibrary("ktor-client-content-negotiation").get())
-                implementation(libs.findLibrary("ktor-serialization-kotlinx-json").get())
-                implementation(libs.findLibrary("ktor-client-logging").get())
+                implementation(libs.findLibrary("ktor-client-core")
+                    .orElseThrow { IllegalStateException("ktor-client-core not found in catalog") })
+                implementation(libs.findLibrary("ktor-client-content-negotiation")
+                    .orElseThrow { IllegalStateException("ktor-client-content-negotiation not found in catalog") })
+                implementation(libs.findLibrary("ktor-serialization-kotlinx-json")
+                    .orElseThrow { IllegalStateException("ktor-serialization-kotlinx-json not found in catalog") })
+                implementation(libs.findLibrary("ktor-client-logging")
+                    .orElseThrow { IllegalStateException("ktor-client-logging not found in catalog") })
 
                 // Serialization
-                implementation(libs.findLibrary("kotlinx-serialization-core").get())
-                implementation(libs.findLibrary("kotlinx-serialization-json").get())
+                implementation(libs.findLibrary("kotlinx-serialization-core")
+                    .orElseThrow { IllegalStateException("kotlinx-serialization-core not found in catalog") })
+                implementation(libs.findLibrary("kotlinx-serialization-json")
+                    .orElseThrow { IllegalStateException("kotlinx-serialization-json not found in catalog") })
 
                 // Coroutines
-                implementation(libs.findLibrary("kotlinx-coroutines-core").get())
+                implementation(libs.findLibrary("kotlinx-coroutines-core")
+                    .orElseThrow { IllegalStateException("kotlinx-coroutines-core not found in catalog") })
             }
         }
         val commonTest by getting {
@@ -53,56 +66,67 @@ kotlin {
                 implementation(kotlin("test"))
 
                 // Ktor mock para testing de network
-                implementation(libs.findLibrary("ktor-client-mock").get())
+                implementation(libs.findLibrary("ktor-client-mock")
+                    .orElseThrow { IllegalStateException("ktor-client-mock not found in catalog") })
 
                 // Coroutines test utilities
-                implementation(libs.findLibrary("kotlinx-coroutines-test").get())
+                implementation(libs.findLibrary("kotlinx-coroutines-test")
+                    .orElseThrow { IllegalStateException("kotlinx-coroutines-test not found in catalog") })
 
                 // Flow testing
-                implementation(libs.findLibrary("turbine").get())
+                implementation(libs.findLibrary("turbine")
+                    .orElseThrow { IllegalStateException("turbine not found in catalog") })
             }
         }
         val androidMain by getting {
             dependencies {
                 // Ktor engine para Android (OkHttp)
-                implementation(libs.findLibrary("ktor-client-okhttp").get())
+                implementation(libs.findLibrary("ktor-client-okhttp")
+                    .orElseThrow { IllegalStateException("ktor-client-okhttp not found in catalog") })
 
                 // Coroutines con Dispatchers.Main para UI
-                implementation(libs.findLibrary("kotlinx-coroutines-android").get())
+                implementation(libs.findLibrary("kotlinx-coroutines-android")
+                    .orElseThrow { IllegalStateException("kotlinx-coroutines-android not found in catalog") })
             }
         }
         val androidUnitTest by getting {
             dependencies {
-                implementation(libs.findLibrary("mockk-android").get())
-                implementation(libs.findLibrary("kotlin-test-junit").get())
+                implementation(libs.findLibrary("mockk-android")
+                    .orElseThrow { IllegalStateException("mockk-android not found in catalog") })
+                implementation(libs.findLibrary("kotlin-test-junit")
+                    .orElseThrow { IllegalStateException("kotlin-test-junit not found in catalog") })
             }
         }
         val desktopMain by getting {
             dependencies {
                 // Ktor engine para JVM Desktop (CIO - Coroutine I/O)
-                implementation(libs.findLibrary("ktor-client-cio").get())
+                implementation(libs.findLibrary("ktor-client-cio")
+                    .orElseThrow { IllegalStateException("ktor-client-cio not found in catalog") })
 
                 // Coroutines con Dispatchers.Swing para Desktop GUI
-                implementation(libs.findLibrary("kotlinx-coroutines-swing").get())
+                implementation(libs.findLibrary("kotlinx-coroutines-swing")
+                    .orElseThrow { IllegalStateException("kotlinx-coroutines-swing not found in catalog") })
             }
         }
         val desktopTest by getting {
             dependencies {
-                implementation(libs.findLibrary("mockk").get())
-                implementation(libs.findLibrary("kotlin-test-junit").get())
+                implementation(libs.findLibrary("mockk")
+                    .orElseThrow { IllegalStateException("mockk not found in catalog") })
+                implementation(libs.findLibrary("kotlin-test-junit")
+                    .orElseThrow { IllegalStateException("kotlin-test-junit not found in catalog") })
             }
         }
     }
 
-    jvmToolchain(17)
+    jvmToolchain(JVM_TARGET)
 }
 
 // Configuración Android
 configure<LibraryExtension> {
-    compileSdk = 35
+    compileSdk = COMPILE_SDK
 
     defaultConfig {
-        minSdk = 29  // NNAPI 1.2, Scoped Storage, TLS 1.3
+        minSdk = MIN_SDK  // NNAPI 1.2, Scoped Storage, TLS 1.3
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -111,8 +135,8 @@ configure<LibraryExtension> {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // Namespace se debe configurar en cada módulo
-    // namespace = "com.edugo.module"
+    // NOTA: Cada módulo debe configurar su namespace en build.gradle.kts
+    // Ejemplo: android { namespace = "com.edugo.tu.modulo" }
 }
 
 // Opciones de compilador comunes

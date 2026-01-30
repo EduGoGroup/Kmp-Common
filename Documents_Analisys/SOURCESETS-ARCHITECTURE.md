@@ -4,14 +4,14 @@
 
 ### Plugin: kmp.android (test-module)
 
-| Target | Sourceset | Descripcion |
+| Target | Sourceset | Descripción |
 |--------|-----------|-------------|
 | Android | androidMain | Apps Android nativas |
 | Desktop | desktopMain | Aplicaciones JVM Desktop |
 
 ### Plugin: kmp.full (test-module-full)
 
-| Target | Sourceset | Descripcion |
+| Target | Sourceset | Descripción |
 |--------|-----------|-------------|
 | Desktop | desktopMain | Aplicaciones JVM Desktop |
 | JavaScript | jsMain | Web apps y Node.js |
@@ -20,7 +20,7 @@
 
 ```
 test-module/src/
-├── commonMain/kotlin/       # Codigo compartido
+├── commonMain/kotlin/       # Código compartido
 ├── commonTest/kotlin/       # Tests compartidos
 ├── androidMain/kotlin/      # Implementaciones Android
 ├── androidUnitTest/kotlin/  # Tests Android
@@ -28,7 +28,7 @@ test-module/src/
 └── desktopTest/kotlin/      # Tests Desktop
 
 test-module-full/src/
-├── commonMain/kotlin/       # Codigo compartido
+├── commonMain/kotlin/       # Código compartido
 ├── commonTest/kotlin/       # Tests compartidos
 ├── desktopMain/kotlin/      # Implementaciones Desktop/JVM
 ├── desktopTest/kotlin/      # Tests Desktop
@@ -36,11 +36,11 @@ test-module-full/src/
 └── jsTest/kotlin/           # Tests JavaScript
 ```
 
-## Patron expect/actual
+## Patrón expect/actual
 
 ### Platform
 
-Declaracion basica de plataforma:
+Declaración básica de plataforma:
 
 ```kotlin
 // commonMain
@@ -58,11 +58,17 @@ actual class Platform actual constructor() {
 actual class Platform actual constructor() {
     actual val name: String = "JVM ${System.getProperty("java.version")}"
 }
+
+// jsMain
+actual class Platform actual constructor() {
+    actual val name: String = "JavaScript"
+}
+actual fun getPlatformName(): String = "JS"
 ```
 
 ### AICapabilities
 
-Deteccion de IA On-Device por plataforma:
+Detección de IA On-Device por plataforma:
 
 | Plataforma | Gemini Nano | ML Kit | Provider Preferido |
 |------------|-------------|--------|-------------------|
@@ -85,9 +91,37 @@ enum class AIProvider {
     CLOUD_API,    // Fallback cloud
     NONE          // Sin IA disponible
 }
+
+// androidMain
+actual object AICapabilities {
+    actual fun isGeminiNanoAvailable(): Boolean = 
+        Build.VERSION.SDK_INT >= 34
+    actual fun isMLKitAvailable(): Boolean = 
+        Build.VERSION.SDK_INT >= 21
+    actual fun getPreferredAIProvider(): AIProvider = 
+        when {
+            isGeminiNanoAvailable() -> AIProvider.GEMINI_NANO
+            isMLKitAvailable() -> AIProvider.ML_KIT
+            else -> AIProvider.CLOUD_API
+        }
+}
+
+// desktopMain
+actual object AICapabilities {
+    actual fun isGeminiNanoAvailable(): Boolean = false
+    actual fun isMLKitAvailable(): Boolean = false
+    actual fun getPreferredAIProvider(): AIProvider = AIProvider.CLOUD_API
+}
+
+// jsMain
+actual object AICapabilities {
+    actual fun isGeminiNanoAvailable(): Boolean = false
+    actual fun isMLKitAvailable(): Boolean = false
+    actual fun getPreferredAIProvider(): AIProvider = AIProvider.CLOUD_API
+}
 ```
 
-## Comandos de Compilacion
+## Comandos de Compilación
 
 ### Compilar targets individuales
 
@@ -156,3 +190,4 @@ enum class AIProvider {
 - [Kotlin Multiplatform Documentation](https://kotlinlang.org/docs/multiplatform.html)
 - [Expect/Actual Declarations](https://kotlinlang.org/docs/multiplatform-expect-actual.html)
 - [KMP Project Structure](https://kotlinlang.org/docs/multiplatform-discover-project.html)
+
