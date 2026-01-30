@@ -76,11 +76,15 @@ kotlin {
 }
 
 // Opciones de compilador comunes
+// NOTA: Esta configuración está duplicada intencionalmente en kmp.android.gradle.kts
+// para mantener la configuración explícita y clara en cada plugin.
+// Si se agregan más flags o plugins, considerar extraer a un plugin base compartido.
+// Ver: Issue #6 - Compiler options duplicados (LOW severity, refactorización futura)
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
         freeCompilerArgs.addAll(
-            "-Xcontext-receivers",
-            "-opt-in=kotlin.RequiresOptIn"
+            "-Xcontext-receivers",  // Habilita context receivers (Kotlin experimental feature)
+            "-opt-in=kotlin.RequiresOptIn"  // Permite uso de APIs experimentales sin warnings
         )
     }
 }
