@@ -14,13 +14,13 @@ class AppErrorTest {
     @Test
     fun appError_canBeConstructedWithAllParameters() {
         val error = AppError(
-            code = ErrorCode.VALIDATION,
+            code = ErrorCode.VALIDATION_INVALID_INPUT,
             message = "Test error",
             inputDetails = mapOf("field" to "email"),
             cause = IllegalArgumentException("Invalid email")
         )
 
-        assertEquals(ErrorCode.VALIDATION, error.code)
+        assertEquals(ErrorCode.VALIDATION_INVALID_INPUT, error.code)
         assertEquals("Test error", error.message)
         assertEquals(mapOf("field" to "email"), error.details)
         assertNotNull(error.cause)
@@ -30,11 +30,11 @@ class AppErrorTest {
     @Test
     fun appError_canBeConstructedWithMinimalParameters() {
         val error = AppError(
-            code = ErrorCode.NOT_FOUND,
+            code = ErrorCode.BUSINESS_RESOURCE_NOT_FOUND,
             message = "Resource not found"
         )
 
-        assertEquals(ErrorCode.NOT_FOUND, error.code)
+        assertEquals(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND, error.code)
         assertEquals("Resource not found", error.message)
         assertTrue(error.details.isEmpty())
         assertNull(error.cause)
@@ -44,14 +44,14 @@ class AppErrorTest {
     fun appError_requiresNonBlankMessage() {
         assertFailsWith<IllegalArgumentException> {
             AppError(
-                code = ErrorCode.UNKNOWN,
+                code = ErrorCode.SYSTEM_UNKNOWN_ERROR,
                 message = ""
             )
         }
 
         assertFailsWith<IllegalArgumentException> {
             AppError(
-                code = ErrorCode.UNKNOWN,
+                code = ErrorCode.SYSTEM_UNKNOWN_ERROR,
                 message = "   "
             )
         }
@@ -63,7 +63,7 @@ class AppErrorTest {
         val exception = RuntimeException("Something went wrong")
         val error = AppError.fromException(exception)
 
-        assertEquals(ErrorCode.UNKNOWN, error.code)
+        assertEquals(ErrorCode.SYSTEM_UNKNOWN_ERROR, error.code)
         assertEquals("Something went wrong", error.message)
         assertEquals(exception, error.cause)
     }
@@ -73,10 +73,10 @@ class AppErrorTest {
         val exception = RuntimeException("Network failed")
         val error = AppError.fromException(
             exception = exception,
-            code = ErrorCode.NETWORK
+            code = ErrorCode.NETWORK_NO_CONNECTION
         )
 
-        assertEquals(ErrorCode.NETWORK, error.code)
+        assertEquals(ErrorCode.NETWORK_NO_CONNECTION, error.code)
         assertEquals("Network failed", error.message)
     }
 
@@ -85,7 +85,7 @@ class AppErrorTest {
         val exception = RuntimeException("Error")
         val error = AppError.fromException(
             exception = exception,
-            code = ErrorCode.SERVER_ERROR,
+            code = ErrorCode.SYSTEM_INTERNAL_ERROR,
             inputDetails = mapOf("endpoint" to "/api/users", "status" to 500)
         )
 
@@ -97,10 +97,10 @@ class AppErrorTest {
         val exception = RuntimeException()
         val error = AppError.fromException(
             exception = exception,
-            code = ErrorCode.NETWORK
+            code = ErrorCode.NETWORK_NO_CONNECTION
         )
 
-        assertEquals(ErrorCode.NETWORK.defaultMessage, error.message)
+        assertEquals(ErrorCode.NETWORK_NO_CONNECTION.defaultMessage, error.message)
     }
 
     @Test
@@ -108,37 +108,37 @@ class AppErrorTest {
         val exception = RuntimeException("   ")
         val error = AppError.fromException(
             exception = exception,
-            code = ErrorCode.TIMEOUT
+            code = ErrorCode.NETWORK_TIMEOUT
         )
 
-        assertEquals(ErrorCode.TIMEOUT.defaultMessage, error.message)
+        assertEquals(ErrorCode.NETWORK_TIMEOUT.defaultMessage, error.message)
     }
 
     // fromCode tests
     @Test
     fun fromCode_createsErrorFromCode() {
-        val error = AppError.fromCode(ErrorCode.VALIDATION)
+        val error = AppError.fromCode(ErrorCode.VALIDATION_INVALID_INPUT)
 
-        assertEquals(ErrorCode.VALIDATION, error.code)
-        assertEquals(ErrorCode.VALIDATION.defaultMessage, error.message)
+        assertEquals(ErrorCode.VALIDATION_INVALID_INPUT, error.code)
+        assertEquals(ErrorCode.VALIDATION_INVALID_INPUT.defaultMessage, error.message)
         assertNull(error.cause)
     }
 
     @Test
     fun fromCode_usesCustomMessage() {
         val error = AppError.fromCode(
-            code = ErrorCode.NOT_FOUND,
+            code = ErrorCode.BUSINESS_RESOURCE_NOT_FOUND,
             customMessage = "User with ID 123 not found"
         )
 
-        assertEquals(ErrorCode.NOT_FOUND, error.code)
+        assertEquals(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND, error.code)
         assertEquals("User with ID 123 not found", error.message)
     }
 
     @Test
     fun fromCode_includesDetails() {
         val error = AppError.fromCode(
-            code = ErrorCode.CONFLICT,
+            code = ErrorCode.BUSINESS_RESOURCE_CONFLICT,
             customMessage = "Resource already exists",
             inputDetails = mapOf("resourceId" to 456)
         )
@@ -153,7 +153,7 @@ class AppErrorTest {
             message = "Email is required"
         )
 
-        assertEquals(ErrorCode.VALIDATION, error.code)
+        assertEquals(ErrorCode.VALIDATION_INVALID_INPUT, error.code)
         assertEquals("Email is required", error.message)
     }
 
@@ -164,7 +164,7 @@ class AppErrorTest {
             field = "phoneNumber"
         )
 
-        assertEquals(ErrorCode.VALIDATION, error.code)
+        assertEquals(ErrorCode.VALIDATION_INVALID_INPUT, error.code)
         assertEquals("Invalid format", error.message)
         assertEquals(mapOf("field" to "phoneNumber"), error.details)
     }
@@ -199,7 +199,7 @@ class AppErrorTest {
         val exception = RuntimeException("Connection refused")
         val error = AppError.network(exception)
 
-        assertEquals(ErrorCode.NETWORK, error.code)
+        assertEquals(ErrorCode.NETWORK_NO_CONNECTION, error.code)
         assertEquals("Connection refused", error.message)
         assertEquals(exception, error.cause)
     }
@@ -220,8 +220,8 @@ class AppErrorTest {
     fun timeout_createsTimeoutError() {
         val error = AppError.timeout()
 
-        assertEquals(ErrorCode.TIMEOUT, error.code)
-        assertEquals(ErrorCode.TIMEOUT.defaultMessage, error.message)
+        assertEquals(ErrorCode.NETWORK_TIMEOUT, error.code)
+        assertEquals(ErrorCode.NETWORK_TIMEOUT.defaultMessage, error.message)
     }
 
     @Test
@@ -248,8 +248,8 @@ class AppErrorTest {
     fun unauthorized_createsUnauthorizedError() {
         val error = AppError.unauthorized()
 
-        assertEquals(ErrorCode.UNAUTHORIZED, error.code)
-        assertEquals(ErrorCode.UNAUTHORIZED.defaultMessage, error.message)
+        assertEquals(ErrorCode.AUTH_UNAUTHORIZED, error.code)
+        assertEquals(ErrorCode.AUTH_UNAUTHORIZED.defaultMessage, error.message)
     }
 
     @Test
@@ -276,8 +276,8 @@ class AppErrorTest {
     fun notFound_createsNotFoundError() {
         val error = AppError.notFound()
 
-        assertEquals(ErrorCode.NOT_FOUND, error.code)
-        assertEquals(ErrorCode.NOT_FOUND.defaultMessage, error.message)
+        assertEquals(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND, error.code)
+        assertEquals(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND.defaultMessage, error.message)
     }
 
     @Test
@@ -304,8 +304,8 @@ class AppErrorTest {
     fun serverError_createsServerErrorWithoutCause() {
         val error = AppError.serverError()
 
-        assertEquals(ErrorCode.SERVER_ERROR, error.code)
-        assertEquals(ErrorCode.SERVER_ERROR.defaultMessage, error.message)
+        assertEquals(ErrorCode.SYSTEM_INTERNAL_ERROR, error.code)
+        assertEquals(ErrorCode.SYSTEM_INTERNAL_ERROR.defaultMessage, error.message)
         assertNull(error.cause)
     }
 
@@ -314,7 +314,7 @@ class AppErrorTest {
         val exception = RuntimeException("Database error")
         val error = AppError.serverError(cause = exception)
 
-        assertEquals(ErrorCode.SERVER_ERROR, error.code)
+        assertEquals(ErrorCode.SYSTEM_INTERNAL_ERROR, error.code)
         assertEquals("Database error", error.message)
         assertEquals(exception, error.cause)
     }
@@ -352,7 +352,7 @@ class AppErrorTest {
     // getRootCause tests
     @Test
     fun getRootCause_returnsNullWhenNoCause() {
-        val error = AppError.fromCode(ErrorCode.VALIDATION)
+        val error = AppError.fromCode(ErrorCode.VALIDATION_INVALID_INPUT)
         assertNull(error.getRootCause())
     }
 
@@ -377,7 +377,7 @@ class AppErrorTest {
     // getAllCauses tests
     @Test
     fun getAllCauses_returnsEmptyListWhenNoCause() {
-        val error = AppError.fromCode(ErrorCode.NETWORK)
+        val error = AppError.fromCode(ErrorCode.NETWORK_NO_CONNECTION)
         assertTrue(error.getAllCauses().isEmpty())
     }
 
@@ -402,7 +402,7 @@ class AppErrorTest {
     // getStackTraceString tests
     @Test
     fun getStackTraceString_returnsEmptyWhenNoCause() {
-        val error = AppError.fromCode(ErrorCode.TIMEOUT)
+        val error = AppError.fromCode(ErrorCode.NETWORK_TIMEOUT)
         assertEquals("", error.getStackTraceString())
     }
 
@@ -434,9 +434,9 @@ class AppErrorTest {
     // isRetryable tests
     @Test
     fun isRetryable_delegatesToErrorCode() {
-        val networkError = AppError.fromCode(ErrorCode.NETWORK)
-        val timeoutError = AppError.fromCode(ErrorCode.TIMEOUT)
-        val validationError = AppError.fromCode(ErrorCode.VALIDATION)
+        val networkError = AppError.fromCode(ErrorCode.NETWORK_NO_CONNECTION)
+        val timeoutError = AppError.fromCode(ErrorCode.NETWORK_TIMEOUT)
+        val validationError = AppError.fromCode(ErrorCode.VALIDATION_INVALID_INPUT)
 
         assertTrue(networkError.isRetryable())
         assertTrue(timeoutError.isRetryable())
@@ -446,9 +446,9 @@ class AppErrorTest {
     // isClientError and isServerError tests
     @Test
     fun isClientError_delegatesToErrorCode() {
-        val validationError = AppError.fromCode(ErrorCode.VALIDATION)
-        val notFoundError = AppError.fromCode(ErrorCode.NOT_FOUND)
-        val serverError = AppError.fromCode(ErrorCode.SERVER_ERROR)
+        val validationError = AppError.fromCode(ErrorCode.VALIDATION_INVALID_INPUT)
+        val notFoundError = AppError.fromCode(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND)
+        val serverError = AppError.fromCode(ErrorCode.SYSTEM_INTERNAL_ERROR)
 
         assertTrue(validationError.isClientError())
         assertTrue(notFoundError.isClientError())
@@ -457,9 +457,9 @@ class AppErrorTest {
 
     @Test
     fun isServerError_delegatesToErrorCode() {
-        val serverError = AppError.fromCode(ErrorCode.SERVER_ERROR)
-        val serviceUnavailable = AppError.fromCode(ErrorCode.SERVICE_UNAVAILABLE)
-        val validationError = AppError.fromCode(ErrorCode.VALIDATION)
+        val serverError = AppError.fromCode(ErrorCode.SYSTEM_INTERNAL_ERROR)
+        val serviceUnavailable = AppError.fromCode(ErrorCode.SYSTEM_SERVICE_UNAVAILABLE)
+        val validationError = AppError.fromCode(ErrorCode.VALIDATION_INVALID_INPUT)
 
         assertTrue(serverError.isServerError())
         assertTrue(serviceUnavailable.isServerError())
@@ -469,7 +469,7 @@ class AppErrorTest {
     // withDetails tests
     @Test
     fun withDetails_addsNewDetails() {
-        val error = AppError.fromCode(ErrorCode.NOT_FOUND)
+        val error = AppError.fromCode(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND)
         val enriched = error.withDetails("userId" to 123, "resource" to "User")
 
         assertEquals(mapOf("userId" to 123, "resource" to "User"), enriched.details)
@@ -480,7 +480,7 @@ class AppErrorTest {
     @Test
     fun withDetails_mergesWithExistingDetails() {
         val error = AppError.fromCode(
-            code = ErrorCode.VALIDATION,
+            code = ErrorCode.VALIDATION_INVALID_INPUT,
             inputDetails = mapOf("field" to "email")
         )
         val enriched = error.withDetails("constraint" to "format", "pattern" to ".*@.*")
@@ -494,7 +494,7 @@ class AppErrorTest {
     @Test
     fun withDetails_overwritesExistingKeys() {
         val error = AppError.fromCode(
-            code = ErrorCode.CONFLICT,
+            code = ErrorCode.BUSINESS_RESOURCE_CONFLICT,
             inputDetails = mapOf("resourceId" to 1)
         )
         val enriched = error.withDetails("resourceId" to 2, "version" to 1)
@@ -505,7 +505,7 @@ class AppErrorTest {
     @Test
     fun withDetails_preservesImmutability() {
         val error = AppError.fromCode(
-            code = ErrorCode.NETWORK,
+            code = ErrorCode.NETWORK_NO_CONNECTION,
             inputDetails = mapOf("attempt" to 1)
         )
         val enriched = error.withDetails("attempt" to 2)
@@ -519,31 +519,31 @@ class AppErrorTest {
     fun toUserMessage_providesUserFriendlyMessages() {
         assertEquals(
             "Please check your internet connection and try again",
-            AppError.fromCode(ErrorCode.NETWORK).toUserMessage()
+            AppError.fromCode(ErrorCode.NETWORK_NO_CONNECTION).toUserMessage()
         )
         assertEquals(
-            "The operation took too long. Please try again",
-            AppError.fromCode(ErrorCode.TIMEOUT).toUserMessage()
+            "Please check your internet connection and try again",
+            AppError.fromCode(ErrorCode.NETWORK_TIMEOUT).toUserMessage()
         )
         assertEquals(
             "The service is temporarily unavailable. Please try again later",
-            AppError.fromCode(ErrorCode.SERVICE_UNAVAILABLE).toUserMessage()
+            AppError.fromCode(ErrorCode.SYSTEM_SERVICE_UNAVAILABLE).toUserMessage()
         )
         assertEquals(
             "Too many requests. Please wait a moment and try again",
-            AppError.fromCode(ErrorCode.RATE_LIMIT_EXCEEDED).toUserMessage()
+            AppError.fromCode(ErrorCode.BUSINESS_RATE_LIMIT_EXCEEDED).toUserMessage()
         )
         assertEquals(
             "Please sign in to continue",
-            AppError.fromCode(ErrorCode.UNAUTHORIZED).toUserMessage()
+            AppError.fromCode(ErrorCode.AUTH_UNAUTHORIZED).toUserMessage()
         )
         assertEquals(
             "You don't have permission to perform this action",
-            AppError.fromCode(ErrorCode.FORBIDDEN).toUserMessage()
+            AppError.fromCode(ErrorCode.AUTH_FORBIDDEN).toUserMessage()
         )
         assertEquals(
             "The requested resource was not found",
-            AppError.fromCode(ErrorCode.NOT_FOUND).toUserMessage()
+            AppError.fromCode(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND).toUserMessage()
         )
     }
 
@@ -557,32 +557,32 @@ class AppErrorTest {
     fun toUserMessage_showsGenericForUnknownErrors() {
         assertEquals(
             "Something went wrong. Please try again",
-            AppError.fromCode(ErrorCode.UNKNOWN).toUserMessage()
+            AppError.fromCode(ErrorCode.SYSTEM_UNKNOWN_ERROR).toUserMessage()
         )
         assertEquals(
             "Something went wrong. Please try again",
-            AppError.fromCode(ErrorCode.SERVER_ERROR).toUserMessage()
+            AppError.fromCode(ErrorCode.SYSTEM_INTERNAL_ERROR).toUserMessage()
         )
         assertEquals(
             "Something went wrong. Please try again",
-            AppError.fromCode(ErrorCode.SERIALIZATION).toUserMessage()
+            AppError.fromCode(ErrorCode.SYSTEM_SERIALIZATION_ERROR).toUserMessage()
         )
     }
 
     // toString tests
     @Test
     fun toString_includesCodeAndMessage() {
-        val error = AppError.fromCode(ErrorCode.VALIDATION, "Invalid input")
+        val error = AppError.fromCode(ErrorCode.VALIDATION_INVALID_INPUT, "Invalid input")
         val str = error.toString()
 
-        assertTrue(str.contains("code=VALIDATION"))
+        assertTrue(str.contains("code=VALIDATION_INVALID_INPUT"))
         assertTrue(str.contains("message=\"Invalid input\""))
     }
 
     @Test
     fun toString_includesDetailsWhenPresent() {
         val error = AppError.fromCode(
-            code = ErrorCode.NOT_FOUND,
+            code = ErrorCode.BUSINESS_RESOURCE_NOT_FOUND,
             customMessage = "User not found",
             inputDetails = mapOf("userId" to 123)
         )
@@ -593,7 +593,7 @@ class AppErrorTest {
 
     @Test
     fun toString_omitsDetailsWhenEmpty() {
-        val error = AppError.fromCode(ErrorCode.NETWORK)
+        val error = AppError.fromCode(ErrorCode.NETWORK_NO_CONNECTION)
         val str = error.toString()
 
         assertFalse(str.contains("details="))
@@ -610,7 +610,7 @@ class AppErrorTest {
 
     @Test
     fun toString_startsWith_AppError() {
-        val error = AppError.fromCode(ErrorCode.TIMEOUT)
+        val error = AppError.fromCode(ErrorCode.NETWORK_TIMEOUT)
         assertTrue(error.toString().startsWith("AppError["))
     }
 
@@ -618,14 +618,14 @@ class AppErrorTest {
     @Test
     fun appError_dataClassCopy() {
         val error = AppError(
-            code = ErrorCode.VALIDATION,
+            code = ErrorCode.VALIDATION_INVALID_INPUT,
             message = "Original message",
             inputDetails = mapOf("field" to "email")
         )
 
         val copied = error.copy(message = "Updated message")
 
-        assertEquals(ErrorCode.VALIDATION, copied.code)
+        assertEquals(ErrorCode.VALIDATION_INVALID_INPUT, copied.code)
         assertEquals("Updated message", copied.message)
         assertEquals(mapOf("field" to "email"), copied.details)
     }
@@ -633,17 +633,17 @@ class AppErrorTest {
     @Test
     fun appError_dataClassEquals() {
         val error1 = AppError(
-            code = ErrorCode.NETWORK,
+            code = ErrorCode.NETWORK_NO_CONNECTION,
             message = "Network error",
             timestamp = 1000L
         )
         val error2 = AppError(
-            code = ErrorCode.NETWORK,
+            code = ErrorCode.NETWORK_NO_CONNECTION,
             message = "Network error",
             timestamp = 1000L
         )
         val error3 = AppError(
-            code = ErrorCode.NETWORK,
+            code = ErrorCode.NETWORK_NO_CONNECTION,
             message = "Different message",
             timestamp = 1000L
         )
@@ -656,7 +656,7 @@ class AppErrorTest {
     fun appError_immutableDetails() {
         val mutableMap = mutableMapOf("key" to "value")
         val error = AppError(
-            code = ErrorCode.UNKNOWN,
+            code = ErrorCode.SYSTEM_UNKNOWN_ERROR,
             message = "Test",
             inputDetails = mutableMap
         )
@@ -673,7 +673,7 @@ class AppErrorTest {
         val originalException = IllegalArgumentException("Invalid format")
         val error = AppError.fromException(
             exception = originalException,
-            code = ErrorCode.VALIDATION,
+            code = ErrorCode.VALIDATION_INVALID_INPUT,
             inputDetails = mapOf("field" to "email")
         )
 
@@ -682,7 +682,7 @@ class AppErrorTest {
             "attempt" to 1
         )
 
-        assertEquals(ErrorCode.VALIDATION, enriched.code)
+        assertEquals(ErrorCode.VALIDATION_INVALID_INPUT, enriched.code)
         assertEquals("Invalid format", enriched.message)
         assertEquals(
             mapOf("field" to "email", "userId" to 123, "attempt" to 1),
@@ -702,7 +702,7 @@ class AppErrorTest {
 
         val error = AppError.fromException(
             exception = top,
-            code = ErrorCode.SERVER_ERROR,
+            code = ErrorCode.SYSTEM_INTERNAL_ERROR,
             inputDetails = mapOf("endpoint" to "/api/process")
         )
 
@@ -726,11 +726,11 @@ class AppErrorTest {
             AppError.serverError(message = "Database error")
         )
 
-        assertEquals(ErrorCode.VALIDATION, errors[0].code)
-        assertEquals(ErrorCode.NETWORK, errors[1].code)
-        assertEquals(ErrorCode.TIMEOUT, errors[2].code)
-        assertEquals(ErrorCode.UNAUTHORIZED, errors[3].code)
-        assertEquals(ErrorCode.NOT_FOUND, errors[4].code)
-        assertEquals(ErrorCode.SERVER_ERROR, errors[5].code)
+        assertEquals(ErrorCode.VALIDATION_INVALID_INPUT, errors[0].code)
+        assertEquals(ErrorCode.NETWORK_NO_CONNECTION, errors[1].code)
+        assertEquals(ErrorCode.NETWORK_TIMEOUT, errors[2].code)
+        assertEquals(ErrorCode.AUTH_UNAUTHORIZED, errors[3].code)
+        assertEquals(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND, errors[4].code)
+        assertEquals(ErrorCode.SYSTEM_INTERNAL_ERROR, errors[5].code)
     }
 }

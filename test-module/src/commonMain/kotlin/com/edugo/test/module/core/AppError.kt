@@ -37,12 +37,12 @@ import kotlinx.datetime.Clock
  * Example usage:
  * ```kotlin
  * // Simple error from code
- * val error = AppError.fromCode(ErrorCode.NOT_FOUND, "User not found")
+ * val error = AppError.fromCode(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND, "User not found")
  *
  * // Error from exception with context
  * val error = AppError.fromException(
  *     exception = NetworkException("Connection failed"),
- *     code = ErrorCode.NETWORK,
+ *     code = ErrorCode.NETWORK_NO_CONNECTION,
  *     details = mapOf("endpoint" to "/api/users", "retries" to 3)
  * )
  *
@@ -263,15 +263,27 @@ class AppError(
      * @return A user-friendly error message
      */
     fun toUserMessage(): String {
-        return when (code) {
-            ErrorCode.NETWORK -> "Please check your internet connection and try again"
-            ErrorCode.TIMEOUT -> "The operation took too long. Please try again"
-            ErrorCode.SERVICE_UNAVAILABLE -> "The service is temporarily unavailable. Please try again later"
-            ErrorCode.RATE_LIMIT_EXCEEDED -> "Too many requests. Please wait a moment and try again"
-            ErrorCode.UNAUTHORIZED -> "Please sign in to continue"
-            ErrorCode.FORBIDDEN -> "You don't have permission to perform this action"
-            ErrorCode.NOT_FOUND -> "The requested resource was not found"
-            ErrorCode.VALIDATION -> message // Validation messages are usually safe to show
+        return when {
+            code.isNetworkError() -> "Please check your internet connection and try again"
+            code.isAuthError() -> when (code) {
+                ErrorCode.AUTH_UNAUTHORIZED, ErrorCode.AUTH_TOKEN_EXPIRED,
+                ErrorCode.AUTH_INVALID_CREDENTIALS, ErrorCode.AUTH_SESSION_INVALIDATED,
+                ErrorCode.AUTH_REFRESH_TOKEN_INVALID -> "Please sign in to continue"
+                ErrorCode.AUTH_FORBIDDEN -> "You don't have permission to perform this action"
+                ErrorCode.AUTH_ACCOUNT_LOCKED -> "Your account has been locked. Please contact support"
+                else -> "Authentication error. Please sign in again"
+            }
+            code.isValidationError() -> message // Validation messages are usually safe to show
+            code.isBusinessError() -> when (code) {
+                ErrorCode.BUSINESS_RESOURCE_NOT_FOUND -> "The requested resource was not found"
+                ErrorCode.BUSINESS_RATE_LIMIT_EXCEEDED -> "Too many requests. Please wait a moment and try again"
+                ErrorCode.BUSINESS_OPERATION_EXPIRED -> "This operation has expired. Please try again"
+                else -> message
+            }
+            code.isSystemError() -> when (code) {
+                ErrorCode.SYSTEM_SERVICE_UNAVAILABLE -> "The service is temporarily unavailable. Please try again later"
+                else -> "Something went wrong. Please try again"
+            }
             else -> "Something went wrong. Please try again"
         }
     }
@@ -323,20 +335,20 @@ class AppError(
          * } catch (e: Exception) {
          *     val error = AppError.fromException(
          *         exception = e,
-         *         code = ErrorCode.NETWORK,
+         *         code = ErrorCode.NETWORK_NO_CONNECTION,
          *         details = mapOf("operation" to "fetchData")
          *     )
          * }
          * ```
          *
          * @param exception The exception that occurred
-         * @param code The error code to categorize this error (defaults to UNKNOWN)
+         * @param code The error code to categorize this error (defaults to SYSTEM_UNKNOWN_ERROR)
          * @param details Additional context information
          * @return A new AppError instance
          */
         fun fromException(
             exception: Throwable,
-            code: ErrorCode = ErrorCode.UNKNOWN,
+            code: ErrorCode = ErrorCode.SYSTEM_UNKNOWN_ERROR,
             inputDetails: Map<String, Any?> = emptyMap()
         ): AppError {
             val message = exception.message?.takeIf { it.isNotBlank() } ?: code.defaultMessage
@@ -397,7 +409,7 @@ class AppError(
          * @param message The validation error message
          * @param field The field that failed validation (optional)
          * @param details Additional context information
-         * @return A new AppError instance with VALIDATION code
+         * @return A new AppError instance with VALIDATION_INVALID_INPUT code
          */
         fun validation(
             message: String,
@@ -411,7 +423,7 @@ class AppError(
             }
 
             return AppError(
-                code = ErrorCode.VALIDATION,
+                code = ErrorCode.VALIDATION_INVALID_INPUT,
                 message = message,
                 inputDetails = enrichedDetails,
                 cause = null
@@ -422,7 +434,7 @@ class AppError(
          * Creates a network error from an exception.
          *
          * This is a convenience method for network-related errors,
-         * automatically setting the error code to NETWORK.
+         * automatically setting the error code to NETWORK_NO_CONNECTION.
          *
          * Example:
          * ```kotlin
@@ -438,7 +450,7 @@ class AppError(
          *
          * @param cause The network-related exception
          * @param details Additional context information
-         * @return A new AppError instance with NETWORK code
+         * @return A new AppError instance with NETWORK_NO_CONNECTION code
          */
         fun network(
             cause: Throwable,
@@ -446,7 +458,7 @@ class AppError(
         ): AppError {
             return fromException(
                 exception = cause,
-                code = ErrorCode.NETWORK,
+                code = ErrorCode.NETWORK_NO_CONNECTION,
                 inputDetails = inputDetails
             )
         }
@@ -466,14 +478,14 @@ class AppError(
          *
          * @param message The timeout error message
          * @param details Additional context information
-         * @return A new AppError instance with TIMEOUT code
+         * @return A new AppError instance with NETWORK_TIMEOUT code
          */
         fun timeout(
-            message: String = ErrorCode.TIMEOUT.defaultMessage,
+            message: String = ErrorCode.NETWORK_TIMEOUT.defaultMessage,
             inputDetails: Map<String, Any?> = emptyMap()
         ): AppError {
             return AppError(
-                code = ErrorCode.TIMEOUT,
+                code = ErrorCode.NETWORK_TIMEOUT,
                 message = message,
                 inputDetails = inputDetails,
                 cause = null
@@ -495,14 +507,14 @@ class AppError(
          *
          * @param message The unauthorized error message
          * @param details Additional context information
-         * @return A new AppError instance with UNAUTHORIZED code
+         * @return A new AppError instance with AUTH_UNAUTHORIZED code
          */
         fun unauthorized(
-            message: String = ErrorCode.UNAUTHORIZED.defaultMessage,
+            message: String = ErrorCode.AUTH_UNAUTHORIZED.defaultMessage,
             inputDetails: Map<String, Any?> = emptyMap()
         ): AppError {
             return AppError(
-                code = ErrorCode.UNAUTHORIZED,
+                code = ErrorCode.AUTH_UNAUTHORIZED,
                 message = message,
                 inputDetails = inputDetails,
                 cause = null
@@ -524,14 +536,14 @@ class AppError(
          *
          * @param message The not found error message
          * @param details Additional context information
-         * @return A new AppError instance with NOT_FOUND code
+         * @return A new AppError instance with BUSINESS_RESOURCE_NOT_FOUND code
          */
         fun notFound(
-            message: String = ErrorCode.NOT_FOUND.defaultMessage,
+            message: String = ErrorCode.BUSINESS_RESOURCE_NOT_FOUND.defaultMessage,
             inputDetails: Map<String, Any?> = emptyMap()
         ): AppError {
             return AppError(
-                code = ErrorCode.NOT_FOUND,
+                code = ErrorCode.BUSINESS_RESOURCE_NOT_FOUND,
                 message = message,
                 inputDetails = inputDetails,
                 cause = null
@@ -558,7 +570,7 @@ class AppError(
          * @param cause The server-side exception
          * @param message Custom error message (uses cause message if null)
          * @param details Additional context information
-         * @return A new AppError instance with SERVER_ERROR code
+         * @return A new AppError instance with SYSTEM_INTERNAL_ERROR code
          */
         fun serverError(
             cause: Throwable? = null,
@@ -567,10 +579,10 @@ class AppError(
         ): AppError {
             val errorMessage = message
                 ?: cause?.message
-                ?: ErrorCode.SERVER_ERROR.defaultMessage
+                ?: ErrorCode.SYSTEM_INTERNAL_ERROR.defaultMessage
 
             return AppError(
-                code = ErrorCode.SERVER_ERROR,
+                code = ErrorCode.SYSTEM_INTERNAL_ERROR,
                 message = errorMessage,
                 inputDetails = inputDetails,
                 cause = cause
