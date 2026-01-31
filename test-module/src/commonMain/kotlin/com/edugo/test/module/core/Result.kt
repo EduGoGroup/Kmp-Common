@@ -84,6 +84,109 @@ inline fun <T, R> Result<T>.map(transform: (T) -> R): Result<R> = when (this) {
 }
 
 /**
+ * Chains multiple Result-returning operations together.
+ *
+ * This function allows composing operations that each return a Result, flattening
+ * the nested Result structure. Only executes the transform if this is a Success.
+ *
+ * Example:
+ * ```kotlin
+ * val userResult: Result<User> = fetchUser()
+ * val postsResult: Result<List<Post>> = userResult.flatMap { user ->
+ *     fetchUserPosts(user.id)
+ * }
+ * ```
+ *
+ * @param transform Function that transforms the success data into another Result
+ * @return The result from the transform, or the original Failure/Loading state
+ */
+inline fun <T, R> Result<T>.flatMap(transform: (T) -> Result<R>): Result<R> = when (this) {
+    is Result.Success -> transform(data)
+    is Result.Failure -> this
+    is Result.Loading -> this
+}
+
+/**
+ * Transforms the error message of a Failure result.
+ *
+ * This function allows modifying the error message without affecting Success or Loading states.
+ * Useful for adding context or translating error messages.
+ *
+ * Example:
+ * ```kotlin
+ * val result: Result<User> = fetchUser()
+ *     .mapError { error -> "Failed to fetch user: $error" }
+ * ```
+ *
+ * @param transform Function to transform the error message
+ * @return A new Result with the transformed error, or the original Success/Loading state
+ */
+inline fun <T> Result<T>.mapError(transform: (String) -> String): Result<T> = when (this) {
+    is Result.Success -> this
+    is Result.Failure -> Result.Failure(transform(error))
+    is Result.Loading -> this
+}
+
+/**
+ * Folds the Result into a single value by applying the appropriate function.
+ *
+ * This provides a functional pattern-matching approach to handle both success and failure cases.
+ *
+ * Example:
+ * ```kotlin
+ * val message: String = userResult.fold(
+ *     onSuccess = { user -> "Welcome, ${user.name}!" },
+ *     onFailure = { error -> "Error: $error" }
+ * )
+ * ```
+ *
+ * @param onSuccess Function to apply if this is a Success
+ * @param onFailure Function to apply if this is a Failure
+ * @return The result of applying the appropriate function, or null if Loading
+ */
+inline fun <T, R> Result<T>.fold(
+    onSuccess: (T) -> R,
+    onFailure: (String) -> R
+): R? = when (this) {
+    is Result.Success -> onSuccess(data)
+    is Result.Failure -> onFailure(error)
+    is Result.Loading -> null
+}
+
+/**
+ * Returns the success value or a default value if this is a Failure or Loading.
+ *
+ * Example:
+ * ```kotlin
+ * val userName: String = userResult.getOrElse { "Guest" }
+ * ```
+ *
+ * @param default Function that provides the default value
+ * @return The success data or the default value
+ */
+inline fun <T> Result<T>.getOrElse(default: () -> T): T = when (this) {
+    is Result.Success -> data
+    is Result.Failure -> default()
+    is Result.Loading -> default()
+}
+
+/**
+ * Returns the success value or null if this is a Failure or Loading.
+ *
+ * Example:
+ * ```kotlin
+ * val user: User? = userResult.getOrNull()
+ * ```
+ *
+ * @return The success data or null
+ */
+fun <T> Result<T>.getOrNull(): T? = when (this) {
+    is Result.Success -> data
+    is Result.Failure -> null
+    is Result.Loading -> null
+}
+
+/**
  * Executes the given block and wraps any thrown exception into a [Result.Failure].
  *
  * This helper function automatically catches exceptions and converts them to
