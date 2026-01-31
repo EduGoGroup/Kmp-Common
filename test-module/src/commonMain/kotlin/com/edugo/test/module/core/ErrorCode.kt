@@ -30,8 +30,9 @@ enum class ErrorCode(
 ) {
     /**
      * Unknown or unexpected error.
-     * Use this as a fallback when the error type cannot be determined.
-     * Note: SERVER_ERROR is the primary 500 error code. This is kept for semantic clarity.
+     * Use this as a fallback when the error type cannot be determined or classified.
+     * This is for internal/non-HTTP errors where the specific category is unclear.
+     * For HTTP-related server errors, use SERVER_ERROR instead.
      */
     UNKNOWN(
         defaultMessage = "An unexpected error occurred",
@@ -40,7 +41,8 @@ enum class ErrorCode(
 
     /**
      * Validation error for user input or data constraints.
-     * Typically used when data doesn't meet required criteria.
+     * This is the primary error code for HTTP 400 Bad Request scenarios.
+     * Use when data doesn't meet required criteria, format, or validation rules.
      */
     VALIDATION(
         defaultMessage = "Validation failed",
@@ -126,16 +128,6 @@ enum class ErrorCode(
     TIMEOUT(
         defaultMessage = "Operation timed out",
         httpStatusCode = 408
-    ),
-
-    /**
-     * Bad request error.
-     * Use when the request is malformed or contains invalid data.
-     * Note: VALIDATION is the primary 400 error code. This is kept for semantic clarity.
-     */
-    BAD_REQUEST(
-        defaultMessage = "Bad request",
-        httpStatusCode = null
     ),
 
     /**

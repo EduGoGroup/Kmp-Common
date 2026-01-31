@@ -6,7 +6,7 @@ import kotlinx.datetime.Clock
 /**
  * Application-level error representation with comprehensive context and traceability.
  *
- * This data class encapsulates all relevant error information in a structured, immutable way,
+ * This class encapsulates all relevant error information in a structured, immutable way,
  * making it easier to handle, log, and debug errors across the application. It supports
  * error chaining, detailed context via key-value pairs, and provides utilities for
  * analyzing the error chain.
@@ -17,6 +17,22 @@ import kotlinx.datetime.Clock
  * - Traceable: Maintains full exception chain and timestamp
  * - Contextual: Supports arbitrary metadata via details map
  * - Multiplatform: Works across JVM, JS, Native targets
+ *
+ * **Why @JsExport?**
+ * The @JsExport annotation makes this class accessible from JavaScript/TypeScript when
+ * targeting JS platforms. This enables seamless error handling in Kotlin Multiplatform
+ * projects with web frontends, allowing JS code to catch and handle AppError instances
+ * with full type safety and IDE support.
+ *
+ * Note: @JsExport is experimental. Suppress warnings with @OptIn(ExperimentalJsExport::class)
+ * if needed.
+ *
+ * **Why not a data class?**
+ * While this class implements data class-like behavior (copy, equals, hashCode), it's
+ * defined as a regular class for two reasons:
+ * 1. Kotlin data classes with @JsExport may have compatibility limitations on JS targets
+ * 2. Allows custom initialization logic (defensive copying, validation) in the init block
+ * 3. Provides explicit control over equality semantics for Throwable cause comparison
  *
  * Example usage:
  * ```kotlin
@@ -64,7 +80,12 @@ class AppError(
         require(message.isNotBlank()) { "Error message cannot be blank" }
     }
 
-    // Copy function for data class-like behavior
+    /**
+     * Creates a copy of this AppError with optionally modified properties.
+     *
+     * Implements data class-like behavior manually to maintain compatibility
+     * with @JsExport and allow custom validation logic.
+     */
     fun copy(
         code: ErrorCode = this.code,
         message: String = this.message,
@@ -73,7 +94,12 @@ class AppError(
         timestamp: Long = this.timestamp
     ): AppError = AppError(code, message, details, cause, timestamp)
 
-    // Implement equals, hashCode, toString for data class-like behavior
+    /**
+     * Implements structural equality for AppError instances.
+     *
+     * Two AppError instances are equal if all their properties match.
+     * Implemented manually instead of using data class to maintain @JsExport compatibility.
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
@@ -89,6 +115,12 @@ class AppError(
         return true
     }
 
+    /**
+     * Computes hash code for this AppError instance.
+     *
+     * Implements consistent hashing based on all properties.
+     * Implemented manually instead of using data class to maintain @JsExport compatibility.
+     */
     override fun hashCode(): Int {
         var result = code.hashCode()
         result = 31 * result + message.hashCode()

@@ -32,7 +32,6 @@ class ErrorCodeTest {
         assertEquals(503, ErrorCode.SERVICE_UNAVAILABLE.httpStatusCode)
         assertEquals(408, ErrorCode.TIMEOUT.httpStatusCode)
         assertEquals(400, ErrorCode.VALIDATION.httpStatusCode) // VALIDATION is the primary 400 error
-        assertEquals(null, ErrorCode.BAD_REQUEST.httpStatusCode) // BAD_REQUEST has no HTTP code
         assertEquals(422, ErrorCode.BUSINESS_LOGIC.httpStatusCode)
     }
 
@@ -52,7 +51,6 @@ class ErrorCodeTest {
         assertTrue(ErrorCode.CONFLICT.isClientError())
         assertTrue(ErrorCode.RATE_LIMIT_EXCEEDED.isClientError())
         assertTrue(ErrorCode.TIMEOUT.isClientError())
-        assertFalse(ErrorCode.BAD_REQUEST.isClientError()) // BAD_REQUEST has no HTTP code
         assertTrue(ErrorCode.BUSINESS_LOGIC.isClientError())
     }
 
@@ -111,7 +109,6 @@ class ErrorCodeTest {
         assertFalse(ErrorCode.FORBIDDEN.isRetryable())
         assertFalse(ErrorCode.SERVER_ERROR.isRetryable())
         assertFalse(ErrorCode.CONFLICT.isRetryable())
-        assertFalse(ErrorCode.BAD_REQUEST.isRetryable())
         assertFalse(ErrorCode.SERIALIZATION.isRetryable())
         assertFalse(ErrorCode.PERSISTENCE.isRetryable())
         assertFalse(ErrorCode.BUSINESS_LOGIC.isRetryable())
@@ -165,7 +162,6 @@ class ErrorCodeTest {
             ErrorCode.RATE_LIMIT_EXCEEDED,
             ErrorCode.SERVICE_UNAVAILABLE,
             ErrorCode.TIMEOUT,
-            ErrorCode.BAD_REQUEST,
             ErrorCode.SERIALIZATION,
             ErrorCode.PERSISTENCE,
             ErrorCode.BUSINESS_LOGIC
