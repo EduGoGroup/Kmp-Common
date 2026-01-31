@@ -1,5 +1,6 @@
 package com.edugo.test.module.core
 
+import kotlinx.datetime.Clock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -588,7 +589,9 @@ class AppErrorTest {
         )
         val str = error.toString()
 
-        assertTrue(str.contains("details={userId=123}"))
+        // Updated to match new toString() format
+        assertTrue(str.contains("details=1 entries"))
+        assertTrue(str.contains("userId=123"))
     }
 
     @Test
@@ -732,5 +735,83 @@ class AppErrorTest {
         assertEquals(ErrorCode.AUTH_UNAUTHORIZED, errors[3].code)
         assertEquals(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND, errors[4].code)
         assertEquals(ErrorCode.SYSTEM_INTERNAL_ERROR, errors[5].code)
+    }
+
+    // ============================================================================
+    // Edge case tests
+    // ============================================================================
+
+    @Test
+    fun copy_preservesOriginalTimestamp() {
+        val error = AppError.fromCode(ErrorCode.VALIDATION_INVALID_INPUT)
+        val originalTimestamp = error.timestamp
+
+        val copied = error.copy(message = "Different message")
+
+        assertEquals(
+            originalTimestamp,
+            copied.timestamp,
+            "copy() should preserve original timestamp unless explicitly changed"
+        )
+    }
+
+    @Test
+    fun withDetails_preservesTimestamp() {
+        val error = AppError.fromCode(ErrorCode.VALIDATION_INVALID_INPUT)
+        val originalTimestamp = error.timestamp
+
+        val enriched = error.withDetails("key" to "value")
+
+        assertEquals(
+            originalTimestamp,
+            enriched.timestamp,
+            "withDetails() should not modify timestamp"
+        )
+    }
+
+    @Test
+    fun details_isImmutable() {
+        val mutableInput = mutableMapOf("key1" to "value1")
+        val error = AppError.fromCode(
+            ErrorCode.VALIDATION_INVALID_INPUT,
+            inputDetails = mutableInput
+        )
+
+        // Modificar el mapa original no debe afectar el error
+        mutableInput["key2"] = "value2"
+
+        assertEquals(
+            1,
+            error.details.size,
+            "details should be immutable and not affected by changes to input map"
+        )
+        assertFalse(error.details.containsKey("key2"))
+    }
+
+    @Test
+    fun getAllCauses_handlesNormalCauseChain() {
+        val ex1 = RuntimeException("First")
+        val ex2 = RuntimeException("Second", ex1)
+        val ex3 = RuntimeException("Third", ex2)
+
+        val error = AppError.fromException(ex3)
+        val causes = error.getAllCauses()
+
+        assertEquals(3, causes.size)
+        assertEquals(ex3, causes[0])
+        assertEquals(ex2, causes[1])
+        assertEquals(ex1, causes[2])
+    }
+
+    @Test
+    fun timestamp_isReasonablyCloseToCurrentTime() {
+        val beforeCreation = Clock.System.now().toEpochMilliseconds()
+        val error = AppError.fromCode(ErrorCode.VALIDATION_INVALID_INPUT)
+        val afterCreation = Clock.System.now().toEpochMilliseconds()
+
+        assertTrue(
+            error.timestamp >= beforeCreation && error.timestamp <= afterCreation,
+            "Timestamp should be close to current time when error is created"
+        )
     }
 }

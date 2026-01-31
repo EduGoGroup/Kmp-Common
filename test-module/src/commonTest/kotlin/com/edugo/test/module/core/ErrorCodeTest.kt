@@ -164,54 +164,97 @@ class ErrorCodeTest {
     // ============================================================================
 
     @Test
-    fun httpStatusCode_mapsCorrectlyForAuthErrors() {
-        assertEquals(401, ErrorCode.AUTH_UNAUTHORIZED.httpStatusCode)
-        assertEquals(401, ErrorCode.AUTH_TOKEN_EXPIRED.httpStatusCode)
-        assertEquals(401, ErrorCode.AUTH_INVALID_CREDENTIALS.httpStatusCode)
-        assertEquals(403, ErrorCode.AUTH_FORBIDDEN.httpStatusCode)
-        assertEquals(423, ErrorCode.AUTH_ACCOUNT_LOCKED.httpStatusCode)
+    fun httpStatusCode_mapsCorrectlyForAllErrorCodes() {
+        val expectedMappings = mapOf(
+            // Network errors -> 4xx/5xx
+            ErrorCode.NETWORK_TIMEOUT to 408,
+            ErrorCode.NETWORK_NO_CONNECTION to 503,
+            ErrorCode.NETWORK_SERVER_ERROR to 502,
+            ErrorCode.NETWORK_DNS_FAILURE to 503,
+            ErrorCode.NETWORK_SSL_ERROR to 495,
+            ErrorCode.NETWORK_CONNECTION_RESET to 503,
+            ErrorCode.NETWORK_REQUEST_CANCELLED to 499,
+
+            // Auth errors -> 401/403/423
+            ErrorCode.AUTH_UNAUTHORIZED to 401,
+            ErrorCode.AUTH_TOKEN_EXPIRED to 401,
+            ErrorCode.AUTH_INVALID_CREDENTIALS to 401,
+            ErrorCode.AUTH_FORBIDDEN to 403,
+            ErrorCode.AUTH_ACCOUNT_LOCKED to 423,
+            ErrorCode.AUTH_SESSION_INVALIDATED to 401,
+            ErrorCode.AUTH_REFRESH_TOKEN_INVALID to 401,
+
+            // Validation errors -> 400/409/422
+            ErrorCode.VALIDATION_INVALID_INPUT to 400,
+            ErrorCode.VALIDATION_MISSING_FIELD to 422,
+            ErrorCode.VALIDATION_FORMAT_ERROR to 422,
+            ErrorCode.VALIDATION_OUT_OF_RANGE to 422,
+            ErrorCode.VALIDATION_MAX_LENGTH_EXCEEDED to 422,
+            ErrorCode.VALIDATION_INVALID_EMAIL to 422,
+            ErrorCode.VALIDATION_DUPLICATE_VALUE to 409,
+
+            // Business errors -> 402/403/404/409/410/429/501
+            ErrorCode.BUSINESS_RESOURCE_NOT_FOUND to 404,
+            ErrorCode.BUSINESS_OPERATION_NOT_ALLOWED to 403,
+            ErrorCode.BUSINESS_RESOURCE_CONFLICT to 409,
+            ErrorCode.BUSINESS_INSUFFICIENT_BALANCE to 402,
+            ErrorCode.BUSINESS_RATE_LIMIT_EXCEEDED to 429,
+            ErrorCode.BUSINESS_FEATURE_NOT_AVAILABLE to 501,
+            ErrorCode.BUSINESS_OPERATION_EXPIRED to 410,
+
+            // System errors -> 500/502/503
+            ErrorCode.SYSTEM_UNKNOWN_ERROR to 500,
+            ErrorCode.SYSTEM_CONFIGURATION_ERROR to 500,
+            ErrorCode.SYSTEM_SERVICE_UNAVAILABLE to 503,
+            ErrorCode.SYSTEM_DATABASE_ERROR to 500,
+            ErrorCode.SYSTEM_SERIALIZATION_ERROR to 500,
+            ErrorCode.SYSTEM_EXTERNAL_SERVICE_ERROR to 502,
+            ErrorCode.SYSTEM_INTERNAL_ERROR to 500
+        )
+
+        expectedMappings.forEach { (errorCode, expectedStatus) ->
+            assertEquals(
+                expectedStatus,
+                errorCode.httpStatusCode,
+                "Expected $errorCode to map to HTTP $expectedStatus"
+            )
+        }
     }
 
     @Test
-    fun httpStatusCode_mapsCorrectlyForValidationErrors() {
-        assertEquals(400, ErrorCode.VALIDATION_INVALID_INPUT.httpStatusCode)
-        assertEquals(422, ErrorCode.VALIDATION_MISSING_FIELD.httpStatusCode)
-        assertEquals(422, ErrorCode.VALIDATION_FORMAT_ERROR.httpStatusCode)
-        assertEquals(422, ErrorCode.VALIDATION_OUT_OF_RANGE.httpStatusCode)
-        assertEquals(422, ErrorCode.VALIDATION_MAX_LENGTH_EXCEEDED.httpStatusCode)
-        assertEquals(422, ErrorCode.VALIDATION_INVALID_EMAIL.httpStatusCode)
-        assertEquals(409, ErrorCode.VALIDATION_DUPLICATE_VALUE.httpStatusCode)
+    fun httpStatusCode_hasMappingForAllErrorCodes() {
+        ErrorCode.entries.forEach { errorCode ->
+            val httpStatus = errorCode.httpStatusCode
+
+            assertTrue(
+                httpStatus in 400..599,
+                "Expected $errorCode to map to a valid HTTP status code (400-599), got $httpStatus"
+            )
+        }
     }
 
     @Test
-    fun httpStatusCode_mapsCorrectlyForBusinessErrors() {
-        assertEquals(404, ErrorCode.BUSINESS_RESOURCE_NOT_FOUND.httpStatusCode)
-        assertEquals(403, ErrorCode.BUSINESS_OPERATION_NOT_ALLOWED.httpStatusCode)
-        assertEquals(409, ErrorCode.BUSINESS_RESOURCE_CONFLICT.httpStatusCode)
-        assertEquals(429, ErrorCode.BUSINESS_RATE_LIMIT_EXCEEDED.httpStatusCode)
-        assertEquals(410, ErrorCode.BUSINESS_OPERATION_EXPIRED.httpStatusCode)
-    }
+    fun httpStatusCode_usesStandardCodesWherePossible() {
+        val standardCodes = setOf(
+            400, 401, 402, 403, 404, 408, 409, 410, 422, 423, 429,
+            500, 501, 502, 503
+        )
 
-    @Test
-    fun httpStatusCode_mapsCorrectlyForSystemErrors() {
-        assertEquals(500, ErrorCode.SYSTEM_UNKNOWN_ERROR.httpStatusCode)
-        assertEquals(500, ErrorCode.SYSTEM_INTERNAL_ERROR.httpStatusCode)
-        assertEquals(503, ErrorCode.SYSTEM_SERVICE_UNAVAILABLE.httpStatusCode)
-    }
+        val nonStandardMappings = ErrorCode.entries
+            .filter { it.httpStatusCode !in standardCodes }
+            .associateWith { it.httpStatusCode }
 
-    @Test
-    fun httpStatusCode_returnsMappedForAllNetworkErrors() {
-        assertEquals(503, ErrorCode.NETWORK_NO_CONNECTION.httpStatusCode)
-        assertEquals(503, ErrorCode.NETWORK_DNS_FAILURE.httpStatusCode)
-        assertEquals(495, ErrorCode.NETWORK_SSL_ERROR.httpStatusCode)
-        assertEquals(503, ErrorCode.NETWORK_CONNECTION_RESET.httpStatusCode)
-        assertEquals(499, ErrorCode.NETWORK_REQUEST_CANCELLED.httpStatusCode)
-    }
+        // Documentar códigos no estándar (495, 499 de Nginx)
+        val expectedNonStandard = mapOf(
+            ErrorCode.NETWORK_SSL_ERROR to 495,
+            ErrorCode.NETWORK_REQUEST_CANCELLED to 499
+        )
 
-    @Test
-    fun httpStatusCode_returnsMappedForHttpNetworkErrors() {
-        assertEquals(408, ErrorCode.NETWORK_TIMEOUT.httpStatusCode)
-        assertEquals(502, ErrorCode.NETWORK_SERVER_ERROR.httpStatusCode)
+        assertEquals(
+            expectedNonStandard,
+            nonStandardMappings,
+            "Non-standard HTTP codes should only be used where necessary (e.g., Nginx codes)"
+        )
     }
 
     // ============================================================================
@@ -271,54 +314,72 @@ class ErrorCodeTest {
 
     @Test
     fun isRetryable_identifiesRetryableErrors() {
-        // Network errors (most are retryable)
-        assertTrue(ErrorCode.NETWORK_TIMEOUT.isRetryable())
-        assertTrue(ErrorCode.NETWORK_NO_CONNECTION.isRetryable())
-        assertTrue(ErrorCode.NETWORK_SERVER_ERROR.isRetryable())
-        assertTrue(ErrorCode.NETWORK_DNS_FAILURE.isRetryable())
-        assertTrue(ErrorCode.NETWORK_CONNECTION_RESET.isRetryable())
+        val retryableErrors = listOf(
+            // Network errors (most are retryable)
+            ErrorCode.NETWORK_TIMEOUT,
+            ErrorCode.NETWORK_NO_CONNECTION,
+            ErrorCode.NETWORK_SERVER_ERROR,
+            ErrorCode.NETWORK_DNS_FAILURE,
+            ErrorCode.NETWORK_CONNECTION_RESET,
 
-        // Auth errors (only TOKEN_EXPIRED is retryable)
-        assertTrue(ErrorCode.AUTH_TOKEN_EXPIRED.isRetryable())
+            // Auth errors (only TOKEN_EXPIRED is retryable)
+            ErrorCode.AUTH_TOKEN_EXPIRED,
 
-        // Business errors (only RATE_LIMIT is retryable)
-        assertTrue(ErrorCode.BUSINESS_RATE_LIMIT_EXCEEDED.isRetryable())
+            // Business errors (only RATE_LIMIT is retryable)
+            ErrorCode.BUSINESS_RATE_LIMIT_EXCEEDED,
 
-        // System errors (most are retryable)
-        assertTrue(ErrorCode.SYSTEM_UNKNOWN_ERROR.isRetryable())
-        assertTrue(ErrorCode.SYSTEM_SERVICE_UNAVAILABLE.isRetryable())
-        assertTrue(ErrorCode.SYSTEM_DATABASE_ERROR.isRetryable())
-        assertTrue(ErrorCode.SYSTEM_EXTERNAL_SERVICE_ERROR.isRetryable())
-        assertTrue(ErrorCode.SYSTEM_INTERNAL_ERROR.isRetryable())
+            // System errors (most are retryable)
+            ErrorCode.SYSTEM_UNKNOWN_ERROR,
+            ErrorCode.SYSTEM_SERVICE_UNAVAILABLE,
+            ErrorCode.SYSTEM_DATABASE_ERROR,
+            ErrorCode.SYSTEM_EXTERNAL_SERVICE_ERROR,
+            ErrorCode.SYSTEM_INTERNAL_ERROR
+        )
+
+        retryableErrors.forEach { errorCode ->
+            assertTrue(
+                errorCode.isRetryable(),
+                "Expected $errorCode to be retryable"
+            )
+        }
     }
 
     @Test
     fun isRetryable_returnsFalseForNonRetryableErrors() {
-        // Auth errors (except TOKEN_EXPIRED)
-        assertFalse(ErrorCode.AUTH_UNAUTHORIZED.isRetryable())
-        assertFalse(ErrorCode.AUTH_INVALID_CREDENTIALS.isRetryable())
-        assertFalse(ErrorCode.AUTH_FORBIDDEN.isRetryable())
-        assertFalse(ErrorCode.AUTH_ACCOUNT_LOCKED.isRetryable())
-        assertFalse(ErrorCode.AUTH_SESSION_INVALIDATED.isRetryable())
-        assertFalse(ErrorCode.AUTH_REFRESH_TOKEN_INVALID.isRetryable())
+        val nonRetryableErrors = listOf(
+            // Auth errors (except TOKEN_EXPIRED)
+            ErrorCode.AUTH_UNAUTHORIZED,
+            ErrorCode.AUTH_INVALID_CREDENTIALS,
+            ErrorCode.AUTH_FORBIDDEN,
+            ErrorCode.AUTH_ACCOUNT_LOCKED,
+            ErrorCode.AUTH_SESSION_INVALIDATED,
+            ErrorCode.AUTH_REFRESH_TOKEN_INVALID,
 
-        // Validation errors (never retryable)
-        assertFalse(ErrorCode.VALIDATION_INVALID_INPUT.isRetryable())
-        assertFalse(ErrorCode.VALIDATION_MISSING_FIELD.isRetryable())
-        assertFalse(ErrorCode.VALIDATION_FORMAT_ERROR.isRetryable())
+            // Validation errors (never retryable)
+            ErrorCode.VALIDATION_INVALID_INPUT,
+            ErrorCode.VALIDATION_MISSING_FIELD,
+            ErrorCode.VALIDATION_FORMAT_ERROR,
 
-        // Business errors (except RATE_LIMIT)
-        assertFalse(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND.isRetryable())
-        assertFalse(ErrorCode.BUSINESS_OPERATION_NOT_ALLOWED.isRetryable())
-        assertFalse(ErrorCode.BUSINESS_RESOURCE_CONFLICT.isRetryable())
+            // Business errors (except RATE_LIMIT)
+            ErrorCode.BUSINESS_RESOURCE_NOT_FOUND,
+            ErrorCode.BUSINESS_OPERATION_NOT_ALLOWED,
+            ErrorCode.BUSINESS_RESOURCE_CONFLICT,
 
-        // Network errors that are not retryable
-        assertFalse(ErrorCode.NETWORK_SSL_ERROR.isRetryable())
-        assertFalse(ErrorCode.NETWORK_REQUEST_CANCELLED.isRetryable())
+            // Network errors that are not retryable
+            ErrorCode.NETWORK_SSL_ERROR,
+            ErrorCode.NETWORK_REQUEST_CANCELLED,
 
-        // System errors that are not retryable
-        assertFalse(ErrorCode.SYSTEM_CONFIGURATION_ERROR.isRetryable())
-        assertFalse(ErrorCode.SYSTEM_SERIALIZATION_ERROR.isRetryable())
+            // System errors that are not retryable
+            ErrorCode.SYSTEM_CONFIGURATION_ERROR,
+            ErrorCode.SYSTEM_SERIALIZATION_ERROR
+        )
+
+        nonRetryableErrors.forEach { errorCode ->
+            assertFalse(
+                errorCode.isRetryable(),
+                "Expected $errorCode to NOT be retryable"
+            )
+        }
     }
 
     // ============================================================================

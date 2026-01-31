@@ -73,11 +73,22 @@ class AppError(
     val cause: Throwable? = null,
     val timestamp: Long = Clock.System.now().toEpochMilliseconds()
 ) {
-    // Defensive copy to ensure immutability
+    /**
+     * Additional context information as immutable key-value pairs.
+     *
+     * **Performance note:** A defensive copy is created to ensure immutability.
+     * For large maps (>100 entries), consider the performance trade-off vs. safety.
+     */
     val details: Map<String, Any?> = inputDetails.toMap()
 
     init {
         require(message.isNotBlank()) { "Error message cannot be blank" }
+
+        // Performance warning for large details maps
+        if (details.size > 50) {
+            println("⚠️ AppError created with ${details.size} detail entries. " +
+                    "Consider if all this data is necessary for error context.")
+        }
     }
 
     /**
@@ -98,6 +109,23 @@ class AppError(
      * Implements structural equality for AppError instances.
      *
      * Two AppError instances are equal if all their properties match.
+     *
+     * **Important:** The `cause` property is compared by reference equality (===),
+     * not structural equality. This means two AppError instances with different
+     * Throwable objects (even if they have identical messages and types) will
+     * be considered unequal.
+     *
+     * Rationale: Throwable doesn't implement structural equality, and comparing
+     * exceptions by reference is the most predictable behavior for debugging and
+     * error tracking.
+     *
+     * Example:
+     * ```kotlin
+     * val error1 = AppError.fromException(RuntimeException("fail"))
+     * val error2 = AppError.fromException(RuntimeException("fail"))
+     * // error1 != error2 because the Throwable instances are different objects
+     * ```
+     *
      * Implemented manually instead of using data class to maintain @JsExport compatibility.
      */
     override fun equals(other: Any?): Boolean {
@@ -109,7 +137,7 @@ class AppError(
         if (code != other.code) return false
         if (message != other.message) return false
         if (details != other.details) return false
-        if (cause != other.cause) return false
+        if (cause != other.cause) return false // Reference equality
         if (timestamp != other.timestamp) return false
 
         return true
@@ -126,7 +154,7 @@ class AppError(
         result = 31 * result + message.hashCode()
         result = 31 * result + details.hashCode()
         result = 31 * result + (cause?.hashCode() ?: 0)
-        result = 31 * result + timestamp.hashCode()
+        result = 31 * result + timestamp.toInt() // Direct conversion, no hashCode() needed
         return result
     }
 
@@ -199,6 +227,9 @@ class AppError(
      * subsequent causes in the chain. Useful for logging and debugging.
      * If there is no cause, returns an empty string.
      *
+     * **Cross-platform note:** Uses explicit '\n' for consistent newlines
+     * across JVM, JS, and Native platforms.
+     *
      * Example:
      * ```kotlin
      * logger.error("Error occurred: ${error.message}\n${error.getStackTraceString()}")
@@ -209,16 +240,16 @@ class AppError(
     fun getStackTraceString(): String {
         val cause = this.cause ?: return ""
         return buildString {
-            appendLine("Stack trace:")
+            append("Stack trace:\n")
             cause.stackTraceToString().lines().forEach { line ->
-                appendLine("  $line")
+                append("  $line\n")
             }
 
             val allCauses = getAllCauses()
             if (allCauses.size > 1) {
-                appendLine("\nCause chain:")
+                append("\nCause chain:\n")
                 allCauses.forEachIndexed { index, throwable ->
-                    appendLine("  ${index + 1}. ${throwable::class.simpleName}: ${throwable.message}")
+                    append("  ${index + 1}. ${throwable::class.simpleName}: ${throwable.message}\n")
                 }
             }
         }
@@ -271,9 +302,17 @@ class AppError(
      * This sanitizes the error message to be safe for display to end users,
      * hiding sensitive technical details while providing actionable information.
      *
+     * **TODO - i18n:** User-facing strings are currently hardcoded in English.
+     * When implementing internationalization:
+     * 1. Extract all string literals to a resource file system
+     * 2. Use message keys (e.g., "error.network.connection")
+     * 3. Load localized strings based on user's language preference
+     * 4. Consider using kotlinx-resources or platform-specific solutions
+     *
      * @return A user-friendly error message
      */
     fun toUserMessage(): String {
+        // TODO: Replace hardcoded strings with i18n resource lookups
         return when {
             code.isNetworkError() -> "Please check your internet connection and try again"
             code.isAuthError() -> when (code) {
@@ -303,29 +342,53 @@ class AppError(
      * Returns a structured string representation suitable for logging.
      *
      * This includes the error code, message, details, and cause information
-     * in a readable format. Sensitive information should not be included in
-     * the details map.
+     * in a readable format. Optimized for readability in logs.
      *
      * Format:
      * ```
-     * AppError[code=NETWORK, message="Connection failed", details={endpoint=/api/users}, cause=SocketException]
+     * AppError[
+     *   code=NETWORK_TIMEOUT (1000, HTTP 408)
+     *   message="Request timed out"
+     *   details=3 entries: endpoint=/api/users, timeout=30s, retries=3
+     *   cause=SocketTimeoutException: Read timed out
+     * ]
      * ```
      *
      * @return Formatted string representation
      */
     override fun toString(): String = buildString {
         append("AppError[")
-        append("code=$code")
-        append(", message=\"$message\"")
 
+        // Código con info adicional
+        append("code=${code.name} (${code.code}, HTTP ${code.httpStatusCode})")
+
+        // Mensaje (truncado si es muy largo)
+        append(", message=\"")
+        if (message.length > 100) {
+            append(message.take(97))
+            append("...")
+        } else {
+            append(message)
+        }
+        append("\"")
+
+        // Details con preview
         if (details.isNotEmpty()) {
-            append(", details={")
-            append(details.entries.joinToString(", ") { "${it.key}=${it.value}" })
-            append("}")
+            append(", details=${details.size} entries")
+            if (details.size <= 5) {
+                append(": ")
+                append(details.entries.joinToString(", ") { "${it.key}=${it.value}" })
+            } else {
+                append(": ")
+                val preview = details.entries.take(3).joinToString(", ") { "${it.key}=${it.value}" }
+                append(preview)
+                append(", ... (+${details.size - 3} more)")
+            }
         }
 
+        // Cause
         cause?.let {
-            append(", cause=${it::class.simpleName}: ${it.message}")
+            append(", cause=${it::class.simpleName}: ${it.message ?: "(no message)"}")
         }
 
         append("]")
