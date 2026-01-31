@@ -508,4 +508,363 @@ class ResultTest {
         assertEquals(10, valid.data)
         assertEquals("Value must be positive", invalid.error)
     }
+
+    // Loading state comprehensive tests
+    @Test
+    fun loading_preservedThroughMap() {
+        val result: Result<Int> = Result.Loading
+        val mapped = result.map { it * 2 }
+        assertIs<Result.Loading>(mapped)
+    }
+
+    @Test
+    fun loading_preservedThroughFlatMap() {
+        val result: Result<Int> = Result.Loading
+        val flatMapped = result.flatMap { value -> success(value * 2) }
+        assertIs<Result.Loading>(flatMapped)
+    }
+
+    @Test
+    fun loading_preservedThroughMapError() {
+        val result: Result<Int> = Result.Loading
+        val mapped = result.mapError { "Error: $it" }
+        assertIs<Result.Loading>(mapped)
+    }
+
+    @Test
+    fun loading_returnsNullInFold() {
+        val result: Result<Int> = Result.Loading
+        val folded = result.fold(
+            onSuccess = { it },
+            onFailure = { 0 }
+        )
+        assertEquals(null, folded)
+    }
+
+    @Test
+    fun loading_returnsDefaultInGetOrElse() {
+        val result: Result<String> = Result.Loading
+        val value = result.getOrElse { "loading default" }
+        assertEquals("loading default", value)
+    }
+
+    @Test
+    fun loading_returnsNullInGetOrNull() {
+        val result: Result<String> = Result.Loading
+        val value = result.getOrNull()
+        assertEquals(null, value)
+    }
+
+    // Nullable types edge cases
+    @Test
+    fun nullable_successWithNull() {
+        val result: Result<String?> = success(null)
+        assertIs<Result.Success<String?>>(result)
+        assertEquals(null, result.data)
+    }
+
+    @Test
+    fun nullable_mapPreservesNull() {
+        val result: Result<String?> = success(null)
+        val mapped = result.map { it?.length }
+        assertIs<Result.Success<Int?>>(mapped)
+        assertEquals(null, mapped.data)
+    }
+
+    @Test
+    fun nullable_flatMapWithNull() {
+        val result: Result<String?> = success(null)
+        val flatMapped = result.flatMap { value ->
+            if (value != null) success(value.length)
+            else failure("Value is null")
+        }
+        assertIs<Result.Failure>(flatMapped)
+        assertEquals("Value is null", flatMapped.error)
+    }
+
+    @Test
+    fun nullable_getOrNullDistinguishesSuccessNullFromFailure() {
+        val successNull: Result<String?> = success(null)
+        val failure: Result<String?> = failure("error")
+
+        assertEquals(null, successNull.getOrNull())
+        assertEquals(null, failure.getOrNull())
+    }
+
+    @Test
+    fun nullable_foldHandlesNullableSuccess() {
+        val result: Result<Int?> = success(null)
+        val folded = result.fold(
+            onSuccess = { it ?: -1 },
+            onFailure = { -2 }
+        )
+        assertEquals(-1, folded)
+    }
+
+    // Complex chaining scenarios
+    @Test
+    fun chaining_mapFlatMapMapGetOrElse() {
+        val result = success(10)
+            .map { it * 2 }
+            .flatMap { value -> success(value + 5) }
+            .map { it.toString() }
+            .getOrElse { "error" }
+        assertEquals("25", result)
+    }
+
+    @Test
+    fun chaining_errorPropagationThroughChain() {
+        val result: Result<String> = failure<Int>("initial error")
+            .map { it * 2 }
+            .flatMap { value -> success(value + 5) }
+            .map { it.toString() }
+            .mapError { "Wrapped: $it" }
+
+        assertIs<Result.Failure>(result)
+        assertEquals("Wrapped: initial error", result.error)
+    }
+
+    @Test
+    fun chaining_loadingPropagationThroughChain() {
+        val result: Result<String> = Result.Loading
+        val chained = result
+            .map { it.length }
+            .flatMap { value -> success(value * 2) }
+            .map { it.toString() }
+
+        assertIs<Result.Loading>(chained)
+    }
+
+    @Test
+    fun chaining_multipleTransformations() {
+        val result = success(5)
+            .map { it * 2 }        // 10
+            .map { it + 3 }        // 13
+            .map { it - 1 }        // 12
+            .flatMap { value -> success(value / 2) }  // 6
+            .map { it.toString() }  // "6"
+
+        assertIs<Result.Success<String>>(result)
+        assertEquals("6", result.data)
+    }
+
+    @Test
+    fun chaining_shortCircuitsOnFirstError() {
+        var mapCalled = 0
+        var flatMapCalled = 0
+
+        val result = success(10)
+            .map {
+                mapCalled++
+                it * 2
+            }
+            .flatMap<Int, Int> {
+                flatMapCalled++
+                failure("error in flatMap")
+            }
+            .map {
+                mapCalled++  // Should NOT be called
+                it + 1
+            }
+
+        assertIs<Result.Failure>(result)
+        assertEquals(1, mapCalled)
+        assertEquals(1, flatMapCalled)
+    }
+
+    // Catching with different exception types
+    @Test
+    fun catching_handlesIllegalArgumentException() {
+        val result = catching<String> {
+            throw IllegalArgumentException("Invalid argument")
+        }
+        assertIs<Result.Failure>(result)
+        assertEquals("Invalid argument", result.error)
+    }
+
+    @Test
+    fun catching_handlesNullPointerException() {
+        val result = catching<String> {
+            throw NullPointerException("Null value")
+        }
+        assertIs<Result.Failure>(result)
+        assertEquals("Null value", result.error)
+    }
+
+    @Test
+    fun catching_handlesCustomException() {
+        class CustomException(message: String) : Exception(message)
+
+        val result = catching<String> {
+            throw CustomException("Custom error")
+        }
+        assertIs<Result.Failure>(result)
+        assertEquals("Custom error", result.error)
+    }
+
+    @Test
+    fun catching_preservesSuccessWhenNoException() {
+        val result = catching {
+            val value = "computed value"
+            success(value)
+        }
+        assertIs<Result.Success<String>>(result)
+        assertEquals("computed value", result.data)
+    }
+
+    // Zip edge cases
+    @Test
+    fun zip_withNullableTypes() {
+        val result1: Result<Int?> = success(null)
+        val result2: Result<String?> = success("test")
+        val zipped = result1.zip(result2) { a, b ->
+            "a=$a, b=$b"
+        }
+        assertIs<Result.Success<String>>(zipped)
+        assertEquals("a=null, b=test", zipped.data)
+    }
+
+    @Test
+    fun zip_bothLoading() {
+        val result1: Result<Int> = Result.Loading
+        val result2: Result<Int> = Result.Loading
+        val zipped = result1.zip(result2) { a, b -> a + b }
+        assertIs<Result.Loading>(zipped)
+    }
+
+    @Test
+    fun zip_loadingTakesPrecedenceOverFailure() {
+        val result1: Result<Int> = Result.Loading
+        val result2: Result<Int> = failure("error")
+        val zipped = result1.zip(result2) { a, b -> a + b }
+        assertIs<Result.Loading>(zipped)
+    }
+
+    // Combine edge cases
+    @Test
+    fun combine_withNullableValues() {
+        val results = listOf(
+            success<String?>(null),
+            success<String?>("test"),
+            success<String?>(null)
+        )
+        val combined = combine(*results.toTypedArray())
+        assertIs<Result.Success<List<String?>>>(combined)
+        assertEquals(listOf(null, "test", null), combined.data)
+    }
+
+    @Test
+    fun combine_allLoading() {
+        val results = listOf<Result<Int>>(
+            Result.Loading,
+            Result.Loading,
+            Result.Loading
+        )
+        val combined = combine(*results.toTypedArray())
+        assertIs<Result.Loading>(combined)
+    }
+
+    @Test
+    fun combine_mixedSuccessAndLoading() {
+        val results = listOf(
+            success(1),
+            Result.Loading,
+            success(3)
+        )
+        val combined = combine(*results.toTypedArray())
+        assertIs<Result.Loading>(combined)
+    }
+
+    @Test
+    fun combine_largeNumberOfResults() {
+        val results = (1..100).map { success(it) }
+        val combined = combine(*results.toTypedArray())
+        assertIs<Result.Success<List<Int>>>(combined)
+        assertEquals((1..100).toList(), combined.data)
+    }
+
+    // getSafeMessage tests
+    @Test
+    fun getSafeMessage_returnsErrorString() {
+        val result = Result.Failure("specific error message")
+        assertEquals("specific error message", result.getSafeMessage())
+    }
+
+    @Test
+    fun getSafeMessage_handlesEmptyString() {
+        val result = Result.Failure("")
+        assertEquals("", result.getSafeMessage())
+    }
+
+    // Complex integration scenarios
+    @Test
+    fun integration_zipWithCombineAndFold() {
+        val result1 = success(10)
+        val result2 = success(20)
+
+        val zipped = result1.zip(result2) { a, b -> listOf(a, b) }
+        val results = listOf(success(30), success(40))
+        val combined = combine(*results.toTypedArray())
+
+        val final = zipped.zip(combined) { list1, list2 ->
+            list1 + list2
+        }.fold(
+            onSuccess = { it.sum() },
+            onFailure = { 0 }
+        )
+
+        assertEquals(100, final) // 10 + 20 + 30 + 40
+    }
+
+    @Test
+    fun integration_errorRecoveryPattern() {
+        val primaryResult: Result<String> = failure("primary failed")
+        val fallbackResult: Result<String> = success("fallback value")
+
+        val recovered = primaryResult.getOrNull() ?: fallbackResult.getOrElse { "default" }
+        assertEquals("fallback value", recovered)
+    }
+
+    @Test
+    fun integration_validationPipeline() {
+        fun validateNotEmpty(s: String): Result<String> =
+            if (s.isNotEmpty()) success(s) else failure("String is empty")
+
+        fun validateMinLength(s: String, min: Int): Result<String> =
+            if (s.length >= min) success(s) else failure("String too short")
+
+        fun validateMaxLength(s: String, max: Int): Result<String> =
+            if (s.length <= max) success(s) else failure("String too long")
+
+        val input = "test"
+        val result = validateNotEmpty(input)
+            .flatMap { validateMinLength(it, 3) }
+            .flatMap { validateMaxLength(it, 10) }
+
+        assertIs<Result.Success<String>>(result)
+        assertEquals("test", result.data)
+    }
+
+    @Test
+    fun integration_parallelOperationsWithCombine() {
+        // Simula operaciones paralelas que retornan Results
+        val op1 = success("Operation 1")
+        val op2 = success("Operation 2")
+        val op3 = success("Operation 3")
+
+        val combined = combine(op1, op2, op3)
+            .map { list -> list.joinToString(", ") }
+
+        assertIs<Result.Success<String>>(combined)
+        assertEquals("Operation 1, Operation 2, Operation 3", combined.data)
+    }
+
+    @Test
+    fun integration_nestedResultHandling() {
+        val outerResult: Result<Result<Int>> = success(success(42))
+
+        val flattened = outerResult.flatMap { it }
+        assertIs<Result.Success<Int>>(flattened)
+        assertEquals(42, flattened.data)
+    }
 }
