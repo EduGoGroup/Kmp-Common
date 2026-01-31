@@ -13,6 +13,9 @@ dependencies {
     implementation(libs.kotlin.gradle.plugin)
     implementation(libs.android.gradle.plugin)
     implementation(libs.kover.gradle.plugin)
+
+    // Plugin de serialización para Kotlin Multiplatform
+    implementation(libs.kotlin.serialization.gradle.plugin)
 }
 
 // Configuración de Java toolchain
