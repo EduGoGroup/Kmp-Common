@@ -1,6 +1,7 @@
 package com.edugo.test.module.core
 
 import kotlin.js.JsExport
+import kotlinx.datetime.Clock
 
 /**
  * Application-level error representation with comprehensive context and traceability.
@@ -54,7 +55,7 @@ class AppError(
     val message: String,
     inputDetails: Map<String, Any?> = emptyMap(),
     val cause: Throwable? = null,
-    val timestamp: Long = currentTimeMillis()
+    val timestamp: Long = Clock.System.now().toEpochMilliseconds()
 ) {
     // Defensive copy to ensure immutability
     val details: Map<String, Any?> = inputDetails.toMap()
@@ -545,12 +546,3 @@ class AppError(
         }
     }
 }
-
-/**
- * Multiplatform-compatible current time in milliseconds.
- *
- * This is a simple expect/actual implementation placeholder.
- * In a real implementation, you would use kotlinx-datetime or
- * platform-specific implementations.
- */
-internal expect fun currentTimeMillis(): Long
