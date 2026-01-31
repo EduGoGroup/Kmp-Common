@@ -15,12 +15,11 @@ class ResultTest {
     }
 
     @Test
-    fun error_containsException() {
-        val exception = RuntimeException("test error")
-        val result: Result<String> = Result.Error(exception)
-        assertIs<Result.Error>(result)
-        assertEquals(exception, result.exception)
-        assertEquals("test error", result.exception.message)
+    fun failure_containsErrorMessage() {
+        val result: Result<String> = Result.Failure("test error")
+        assertIs<Result.Failure>(result)
+        assertEquals("test error", result.error)
+        assertEquals("test error", result.getSafeMessage())
     }
 
     @Test
@@ -32,11 +31,11 @@ class ResultTest {
     }
 
     @Test
-    fun map_preservesError() {
-        val result: Result<Int> = Result.Error(RuntimeException("error"))
+    fun map_preservesFailure() {
+        val result: Result<Int> = Result.Failure("error")
         val mapped = result.map { it * 2 }
-        assertIs<Result.Error>(mapped)
-        assertEquals("error", mapped.exception.message)
+        assertIs<Result.Failure>(mapped)
+        assertEquals("error", mapped.error)
     }
 
     @Test
@@ -60,5 +59,42 @@ class ResultTest {
         val mapped = result.map { it * 2 }.map { it + 1 }
         assertIs<Result.Success<Int>>(mapped)
         assertEquals(11, mapped.data)
+    }
+
+    @Test
+    fun catching_returnsSuccessWhenNoException() {
+        val result = catching {
+            Result.Success("success")
+        }
+        assertIs<Result.Success<String>>(result)
+        assertEquals("success", result.data)
+    }
+
+    @Test
+    fun catching_returnsFailureWhenExceptionThrown() {
+        val result = catching<String> {
+            throw RuntimeException("test exception")
+        }
+        assertIs<Result.Failure>(result)
+        assertEquals("test exception", result.error)
+    }
+
+    @Test
+    fun catching_usesGenericMessageWhenExceptionHasNoMessage() {
+        val result = catching<String> {
+            throw RuntimeException()
+        }
+        assertIs<Result.Failure>(result)
+        assertEquals("An error occurred", result.error)
+    }
+
+    @Test
+    fun catching_worksWithDifferentResultTypes() {
+        val result = catching {
+            val value = 10
+            Result.Success(value * 2)
+        }
+        assertIs<Result.Success<Int>>(result)
+        assertEquals(20, result.data)
     }
 }

@@ -8,12 +8,18 @@ package com.edugo.test.module.core
  *
  * Example usage:
  * ```kotlin
- * suspend fun fetchUser(): Result<User> {
+ * suspend fun fetchUser(): Result<User> = catching {
+ *     val user = api.getUser()
+ *     Result.Success(user)
+ * }
+ *
+ * // Or manually:
+ * suspend fun fetchUserManual(): Result<User> {
  *     return try {
  *         val user = api.getUser()
  *         Result.Success(user)
  *     } catch (e: Exception) {
- *         Result.Error(e)
+ *         Result.Failure(e.message ?: "Failed to fetch user")
  *     }
  * }
  * ```
@@ -29,24 +35,22 @@ sealed class Result<out T> {
     /**
      * Represents a failed operation with error information.
      *
-     * **⚠️ Security Note**: The `exception` field may contain sensitive information
-     * in stack traces and messages. Use [getSafeMessage] when displaying errors to users
-     * or transmitting error information over the network.
+     * **Design Note**: This class uses String as the error type for simplicity
+     * and to avoid coupling with platform-specific exception types. Use the [catching]
+     * helper function to automatically convert exceptions to error messages.
      *
-     * @property exception The underlying exception (may contain sensitive data)
+     * @property error A human-readable error message describing what went wrong
      */
-    data class Error(val exception: Throwable) : Result<Nothing>() {
+    data class Failure(val error: String) : Result<Nothing>() {
         /**
-         * Returns a user-safe error message without sensitive details.
+         * Returns a user-safe error message.
          *
-         * This method extracts only the exception message, which is safer to display
-         * than the full exception with stack traces and internal details.
+         * Since error is already a String, this simply returns it.
+         * This method is kept for API compatibility and future extensibility.
          *
-         * @return A sanitized error message, or a generic message if none is available
+         * @return The error message
          */
-        fun getSafeMessage(): String {
-            return exception.message ?: "An error occurred"
-        }
+        fun getSafeMessage(): String = error
     }
 
     /**
@@ -75,6 +79,32 @@ sealed class Result<out T> {
  */
 inline fun <T, R> Result<T>.map(transform: (T) -> R): Result<R> = when (this) {
     is Result.Success -> Result.Success(transform(data))
-    is Result.Error -> this
+    is Result.Failure -> this
     is Result.Loading -> this
+}
+
+/**
+ * Executes the given block and wraps any thrown exception into a [Result.Failure].
+ *
+ * This helper function automatically catches exceptions and converts them to
+ * Result.Failure with the exception message. If the exception has no message,
+ * a generic error message is used.
+ *
+ * Example:
+ * ```kotlin
+ * suspend fun fetchData(): Result<Data> = catching {
+ *     val data = api.fetch() // might throw
+ *     Result.Success(data)
+ * }
+ * ```
+ *
+ * @param block The block of code to execute that may throw an exception
+ * @return The result from the block, or Result.Failure if an exception was thrown
+ */
+inline fun <T> catching(block: () -> Result<T>): Result<T> {
+    return try {
+        block()
+    } catch (e: Throwable) {
+        Result.Failure(e.message ?: "An error occurred")
+    }
 }
