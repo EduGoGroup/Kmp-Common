@@ -187,6 +187,107 @@ fun <T> Result<T>.getOrNull(): T? = when (this) {
 }
 
 /**
+ * Creates a successful Result with the given value.
+ *
+ * This is a convenience factory function that's cleaner than using Result.Success directly.
+ *
+ * Example:
+ * ```kotlin
+ * fun getDefaultUser(): Result<User> = success(User(id = 0, name = "Guest"))
+ * ```
+ *
+ * @param value The success value
+ * @return A Result.Success containing the value
+ */
+fun <T> success(value: T): Result<T> = Result.Success(value)
+
+/**
+ * Creates a failed Result with the given error message.
+ *
+ * This is a convenience factory function that's cleaner than using Result.Failure directly.
+ *
+ * Example:
+ * ```kotlin
+ * fun validateEmail(email: String): Result<String> {
+ *     return if (email.contains("@")) success(email)
+ *     else failure("Invalid email format")
+ * }
+ * ```
+ *
+ * @param error The error message
+ * @return A Result.Failure with the error message
+ */
+fun <T> failure(error: String): Result<T> = Result.Failure(error)
+
+/**
+ * Combines two Results by applying a transformation function to both success values.
+ *
+ * If both Results are Success, applies the transform. If either is Failure, returns the first Failure.
+ * If either is Loading, returns Loading.
+ *
+ * Example:
+ * ```kotlin
+ * val userResult: Result<User> = fetchUser()
+ * val settingsResult: Result<Settings> = fetchSettings()
+ * val combined: Result<UserProfile> = userResult.zip(settingsResult) { user, settings ->
+ *     UserProfile(user, settings)
+ * }
+ * ```
+ *
+ * @param other The other Result to combine with
+ * @param transform Function to combine both success values
+ * @return A Result with the combined value, or the first error/loading encountered
+ */
+inline fun <A, B, R> Result<A>.zip(
+    other: Result<B>,
+    transform: (A, B) -> R
+): Result<R> = when {
+    this is Result.Loading || other is Result.Loading -> Result.Loading
+    this is Result.Failure -> this
+    other is Result.Failure -> other
+    this is Result.Success && other is Result.Success -> Result.Success(transform(this.data, other.data))
+    else -> Result.Failure("Unexpected state in zip")
+}
+
+/**
+ * Combines multiple Results into a single Result containing a list of all success values.
+ *
+ * Returns Success with a list only if ALL results are Success.
+ * Returns the first Failure encountered if any result is Failure.
+ * Returns Loading if any result is Loading and none are Failure.
+ *
+ * Example:
+ * ```kotlin
+ * val results: List<Result<User>> = listOf(fetchUser1(), fetchUser2(), fetchUser3())
+ * val combined: Result<List<User>> = combine(*results.toTypedArray())
+ * ```
+ *
+ * @param results Variable number of Results to combine
+ * @return A Result containing a list of all values, or the first error/loading encountered
+ */
+fun <T> combine(vararg results: Result<T>): Result<List<T>> {
+    // Check for Failure first (highest priority)
+    results.forEach { result ->
+        if (result is Result.Failure) return result
+    }
+
+    // Check for Loading second
+    results.forEach { result ->
+        if (result is Result.Loading) return Result.Loading
+    }
+
+    // All must be Success at this point
+    val values = results.map { result ->
+        when (result) {
+            is Result.Success -> result.data
+            else -> return Result.Failure("Unexpected state in combine")
+        }
+    }
+
+    return Result.Success(values)
+}
+
+/**
  * Executes the given block and wraps any thrown exception into a [Result.Failure].
  *
  * This helper function automatically catches exceptions and converts them to

@@ -316,4 +316,196 @@ class ResultTest {
             .getOrElse { 0 }
         assertEquals(25, value)
     }
+
+    // Factory functions tests
+    @Test
+    fun success_factoryCreatesSuccessResult() {
+        val result = success("test value")
+        assertIs<Result.Success<String>>(result)
+        assertEquals("test value", result.data)
+    }
+
+    @Test
+    fun success_factoryWorksWithDifferentTypes() {
+        val intResult = success(42)
+        val listResult = success(listOf(1, 2, 3))
+        assertIs<Result.Success<Int>>(intResult)
+        assertIs<Result.Success<List<Int>>>(listResult)
+        assertEquals(42, intResult.data)
+        assertEquals(listOf(1, 2, 3), listResult.data)
+    }
+
+    @Test
+    fun failure_factoryCreatesFailureResult() {
+        val result: Result<String> = failure("test error")
+        assertIs<Result.Failure>(result)
+        assertEquals("test error", result.error)
+    }
+
+    @Test
+    fun failure_factoryCanBeTyped() {
+        val result: Result<Int> = failure("invalid number")
+        assertIs<Result.Failure>(result)
+        assertEquals("invalid number", result.error)
+    }
+
+    // zip tests
+    @Test
+    fun zip_combinesTwoSuccessResults() {
+        val result1: Result<Int> = success(5)
+        val result2: Result<Int> = success(10)
+        val zipped = result1.zip(result2) { a, b -> a + b }
+        assertIs<Result.Success<Int>>(zipped)
+        assertEquals(15, zipped.data)
+    }
+
+    @Test
+    fun zip_returnsFirstFailure() {
+        val result1: Result<Int> = failure("error 1")
+        val result2: Result<Int> = failure("error 2")
+        val zipped = result1.zip(result2) { a, b -> a + b }
+        assertIs<Result.Failure>(zipped)
+        assertEquals("error 1", zipped.error)
+    }
+
+    @Test
+    fun zip_returnsFailureWhenFirstIsFailure() {
+        val result1: Result<Int> = failure("error")
+        val result2: Result<Int> = success(10)
+        val zipped = result1.zip(result2) { a, b -> a + b }
+        assertIs<Result.Failure>(zipped)
+        assertEquals("error", zipped.error)
+    }
+
+    @Test
+    fun zip_returnsFailureWhenSecondIsFailure() {
+        val result1: Result<Int> = success(5)
+        val result2: Result<Int> = failure("error")
+        val zipped = result1.zip(result2) { a, b -> a + b }
+        assertIs<Result.Failure>(zipped)
+        assertEquals("error", zipped.error)
+    }
+
+    @Test
+    fun zip_returnsLoadingWhenEitherIsLoading() {
+        val result1: Result<Int> = Result.Loading
+        val result2: Result<Int> = success(10)
+        val zipped = result1.zip(result2) { a, b -> a + b }
+        assertIs<Result.Loading>(zipped)
+    }
+
+    @Test
+    fun zip_allowsTypeTransformation() {
+        val result1: Result<Int> = success(42)
+        val result2: Result<String> = success("items")
+        val zipped = result1.zip(result2) { count, label -> "$count $label" }
+        assertIs<Result.Success<String>>(zipped)
+        assertEquals("42 items", zipped.data)
+    }
+
+    @Test
+    fun zip_prioritizesLoadingOverSuccess() {
+        val result1: Result<Int> = success(5)
+        val result2: Result<Int> = Result.Loading
+        val zipped = result1.zip(result2) { a, b -> a + b }
+        assertIs<Result.Loading>(zipped)
+    }
+
+    // combine tests
+    @Test
+    fun combine_returnsSuccessWithAllValues() {
+        val result1 = success(1)
+        val result2 = success(2)
+        val result3 = success(3)
+        val combined = combine(result1, result2, result3)
+        assertIs<Result.Success<List<Int>>>(combined)
+        assertEquals(listOf(1, 2, 3), combined.data)
+    }
+
+    @Test
+    fun combine_returnsFirstFailure() {
+        val result1 = success(1)
+        val result2: Result<Int> = failure("error 2")
+        val result3: Result<Int> = failure("error 3")
+        val combined = combine(result1, result2, result3)
+        assertIs<Result.Failure>(combined)
+        assertEquals("error 2", combined.error)
+    }
+
+    @Test
+    fun combine_returnsLoadingWhenAnyIsLoading() {
+        val result1 = success(1)
+        val result2: Result<Int> = Result.Loading
+        val result3 = success(3)
+        val combined = combine(result1, result2, result3)
+        assertIs<Result.Loading>(combined)
+    }
+
+    @Test
+    fun combine_worksWithSingleResult() {
+        val result = success(42)
+        val combined = combine(result)
+        assertIs<Result.Success<List<Int>>>(combined)
+        assertEquals(listOf(42), combined.data)
+    }
+
+    @Test
+    fun combine_worksWithEmptyArray() {
+        val combined = combine<Int>()
+        assertIs<Result.Success<List<Int>>>(combined)
+        assertEquals(emptyList(), combined.data)
+    }
+
+    @Test
+    fun combine_prioritizesFailureOverLoading() {
+        val result1 = success(1)
+        val result2: Result<Int> = failure("error")
+        val result3: Result<Int> = Result.Loading
+        val combined = combine(result1, result2, result3)
+        assertIs<Result.Failure>(combined)
+        assertEquals("error", combined.error)
+    }
+
+    @Test
+    fun combine_worksWithDifferentSuccessValues() {
+        val results = listOf(success(10), success(20), success(30), success(40))
+        val combined = combine(*results.toTypedArray())
+        assertIs<Result.Success<List<Int>>>(combined)
+        assertEquals(listOf(10, 20, 30, 40), combined.data)
+    }
+
+    // Integration tests with factory functions and combinators
+    @Test
+    fun integration_factoryFunctionsWithZip() {
+        val result1 = success(5)
+        val result2 = success(10)
+        val zipped = result1.zip(result2) { a, b -> a * b }
+        assertEquals(50, zipped.getOrElse { 0 })
+    }
+
+    @Test
+    fun integration_combineWithMapAndFold() {
+        val results = listOf(success(1), success(2), success(3))
+        val sum = combine(*results.toTypedArray())
+            .map { list -> list.sum() }
+            .fold(
+                onSuccess = { it },
+                onFailure = { 0 }
+            )
+        assertEquals(6, sum)
+    }
+
+    @Test
+    fun integration_validationWithFactoryFunctions() {
+        fun validatePositive(value: Int): Result<Int> =
+            if (value > 0) success(value) else failure("Value must be positive")
+
+        val valid = validatePositive(10)
+        val invalid = validatePositive(-5)
+
+        assertIs<Result.Success<Int>>(valid)
+        assertIs<Result.Failure>(invalid)
+        assertEquals(10, valid.data)
+        assertEquals("Value must be positive", invalid.error)
+    }
 }
