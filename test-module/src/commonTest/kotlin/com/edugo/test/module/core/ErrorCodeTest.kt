@@ -27,16 +27,7 @@ class ErrorCodeTest {
         }
     }
 
-    @Test
-    fun errorCode_defaultMessageAliasWorks() {
-        ErrorCode.entries.forEach { code ->
-            assertEquals(
-                code.description,
-                code.defaultMessage,
-                "defaultMessage should be an alias for description"
-            )
-        }
-    }
+
 
     // ============================================================================
     // Category range tests
@@ -184,8 +175,11 @@ class ErrorCodeTest {
     @Test
     fun httpStatusCode_mapsCorrectlyForValidationErrors() {
         assertEquals(400, ErrorCode.VALIDATION_INVALID_INPUT.httpStatusCode)
-        assertEquals(400, ErrorCode.VALIDATION_MISSING_FIELD.httpStatusCode)
-        assertEquals(400, ErrorCode.VALIDATION_FORMAT_ERROR.httpStatusCode)
+        assertEquals(422, ErrorCode.VALIDATION_MISSING_FIELD.httpStatusCode)
+        assertEquals(422, ErrorCode.VALIDATION_FORMAT_ERROR.httpStatusCode)
+        assertEquals(422, ErrorCode.VALIDATION_OUT_OF_RANGE.httpStatusCode)
+        assertEquals(422, ErrorCode.VALIDATION_MAX_LENGTH_EXCEEDED.httpStatusCode)
+        assertEquals(422, ErrorCode.VALIDATION_INVALID_EMAIL.httpStatusCode)
         assertEquals(409, ErrorCode.VALIDATION_DUPLICATE_VALUE.httpStatusCode)
     }
 
@@ -206,10 +200,12 @@ class ErrorCodeTest {
     }
 
     @Test
-    fun httpStatusCode_returnsNullForNonHttpNetworkErrors() {
-        assertEquals(null, ErrorCode.NETWORK_NO_CONNECTION.httpStatusCode)
-        assertEquals(null, ErrorCode.NETWORK_DNS_FAILURE.httpStatusCode)
-        assertEquals(null, ErrorCode.NETWORK_SSL_ERROR.httpStatusCode)
+    fun httpStatusCode_returnsMappedForAllNetworkErrors() {
+        assertEquals(503, ErrorCode.NETWORK_NO_CONNECTION.httpStatusCode)
+        assertEquals(503, ErrorCode.NETWORK_DNS_FAILURE.httpStatusCode)
+        assertEquals(495, ErrorCode.NETWORK_SSL_ERROR.httpStatusCode)
+        assertEquals(503, ErrorCode.NETWORK_CONNECTION_RESET.httpStatusCode)
+        assertEquals(499, ErrorCode.NETWORK_REQUEST_CANCELLED.httpStatusCode)
     }
 
     @Test
@@ -240,10 +236,18 @@ class ErrorCodeTest {
     }
 
     @Test
-    fun isClientError_returnsFalseForNonHttpErrors() {
-        assertFalse(ErrorCode.NETWORK_NO_CONNECTION.isClientError())
-        assertFalse(ErrorCode.NETWORK_DNS_FAILURE.isClientError())
-        assertFalse(ErrorCode.NETWORK_SSL_ERROR.isClientError())
+    fun isClientError_returnsFalseForServerSideNetworkErrors() {
+        // Server-side network errors (5xx)
+        assertFalse(ErrorCode.NETWORK_NO_CONNECTION.isClientError()) // 503
+        assertFalse(ErrorCode.NETWORK_DNS_FAILURE.isClientError()) // 503
+        assertFalse(ErrorCode.NETWORK_CONNECTION_RESET.isClientError()) // 503
+    }
+
+    @Test
+    fun isClientError_returnsTrueForNginxClientSideErrors() {
+        // Nginx non-standard 4xx codes (technically client errors)
+        assertTrue(ErrorCode.NETWORK_SSL_ERROR.isClientError()) // 495 (Nginx)
+        assertTrue(ErrorCode.NETWORK_REQUEST_CANCELLED.isClientError()) // 499 (Nginx)
     }
 
     @Test
@@ -267,27 +271,54 @@ class ErrorCodeTest {
 
     @Test
     fun isRetryable_identifiesRetryableErrors() {
+        // Network errors (most are retryable)
         assertTrue(ErrorCode.NETWORK_TIMEOUT.isRetryable())
         assertTrue(ErrorCode.NETWORK_NO_CONNECTION.isRetryable())
         assertTrue(ErrorCode.NETWORK_SERVER_ERROR.isRetryable())
         assertTrue(ErrorCode.NETWORK_DNS_FAILURE.isRetryable())
         assertTrue(ErrorCode.NETWORK_CONNECTION_RESET.isRetryable())
+
+        // Auth errors (only TOKEN_EXPIRED is retryable)
+        assertTrue(ErrorCode.AUTH_TOKEN_EXPIRED.isRetryable())
+
+        // Business errors (only RATE_LIMIT is retryable)
         assertTrue(ErrorCode.BUSINESS_RATE_LIMIT_EXCEEDED.isRetryable())
+
+        // System errors (most are retryable)
+        assertTrue(ErrorCode.SYSTEM_UNKNOWN_ERROR.isRetryable())
         assertTrue(ErrorCode.SYSTEM_SERVICE_UNAVAILABLE.isRetryable())
+        assertTrue(ErrorCode.SYSTEM_DATABASE_ERROR.isRetryable())
         assertTrue(ErrorCode.SYSTEM_EXTERNAL_SERVICE_ERROR.isRetryable())
+        assertTrue(ErrorCode.SYSTEM_INTERNAL_ERROR.isRetryable())
     }
 
     @Test
     fun isRetryable_returnsFalseForNonRetryableErrors() {
+        // Auth errors (except TOKEN_EXPIRED)
         assertFalse(ErrorCode.AUTH_UNAUTHORIZED.isRetryable())
         assertFalse(ErrorCode.AUTH_INVALID_CREDENTIALS.isRetryable())
         assertFalse(ErrorCode.AUTH_FORBIDDEN.isRetryable())
+        assertFalse(ErrorCode.AUTH_ACCOUNT_LOCKED.isRetryable())
+        assertFalse(ErrorCode.AUTH_SESSION_INVALIDATED.isRetryable())
+        assertFalse(ErrorCode.AUTH_REFRESH_TOKEN_INVALID.isRetryable())
+
+        // Validation errors (never retryable)
         assertFalse(ErrorCode.VALIDATION_INVALID_INPUT.isRetryable())
         assertFalse(ErrorCode.VALIDATION_MISSING_FIELD.isRetryable())
+        assertFalse(ErrorCode.VALIDATION_FORMAT_ERROR.isRetryable())
+
+        // Business errors (except RATE_LIMIT)
         assertFalse(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND.isRetryable())
         assertFalse(ErrorCode.BUSINESS_OPERATION_NOT_ALLOWED.isRetryable())
-        assertFalse(ErrorCode.SYSTEM_UNKNOWN_ERROR.isRetryable())
-        assertFalse(ErrorCode.SYSTEM_INTERNAL_ERROR.isRetryable())
+        assertFalse(ErrorCode.BUSINESS_RESOURCE_CONFLICT.isRetryable())
+
+        // Network errors that are not retryable
+        assertFalse(ErrorCode.NETWORK_SSL_ERROR.isRetryable())
+        assertFalse(ErrorCode.NETWORK_REQUEST_CANCELLED.isRetryable())
+
+        // System errors that are not retryable
+        assertFalse(ErrorCode.SYSTEM_CONFIGURATION_ERROR.isRetryable())
+        assertFalse(ErrorCode.SYSTEM_SERIALIZATION_ERROR.isRetryable())
     }
 
     // ============================================================================

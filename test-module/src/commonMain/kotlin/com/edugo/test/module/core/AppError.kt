@@ -156,11 +156,30 @@ class AppError(
     }
 
     /**
+     * Cached list of all causes in the exception chain.
+     *
+     * Computed lazily on first access and cached for performance.
+     * The list contains all causes from immediate to root.
+     */
+    private val _allCauses: List<Throwable> by lazy {
+        val causes = mutableListOf<Throwable>()
+        var current = cause
+        while (current != null) {
+            causes.add(current)
+            current = current.cause
+        }
+        causes.toList()
+    }
+
+    /**
      * Gets all causes in the exception chain, from immediate to root.
      *
-     * Returns a list where the first element is the immediate cause,
+     * Returns a cached list where the first element is the immediate cause,
      * and the last element is the root cause. Returns an empty list
      * if there is no cause.
+     *
+     * **Performance note:** Results are cached on first call. Subsequent
+     * calls return the same list without re-traversing the chain.
      *
      * Example:
      * ```kotlin
@@ -169,17 +188,9 @@ class AppError(
      * }
      * ```
      *
-     * @return List of all causes in order from immediate to root
+     * @return Immutable list of all causes in order from immediate to root
      */
-    fun getAllCauses(): List<Throwable> {
-        val causes = mutableListOf<Throwable>()
-        var current = cause
-        while (current != null) {
-            causes.add(current)
-            current = current.cause
-        }
-        return causes
-    }
+    fun getAllCauses(): List<Throwable> = _allCauses
 
     /**
      * Formats the complete exception stack trace as a string.
@@ -351,7 +362,18 @@ class AppError(
             code: ErrorCode = ErrorCode.SYSTEM_UNKNOWN_ERROR,
             inputDetails: Map<String, Any?> = emptyMap()
         ): AppError {
-            val message = exception.message?.takeIf { it.isNotBlank() } ?: code.defaultMessage
+            val exceptionMessage = exception.message?.takeIf { it.isNotBlank() }
+
+            // Log cuando el mensaje está vacío para ayudar en debugging
+            val message = if (exceptionMessage != null) {
+                exceptionMessage
+            } else {
+                // TODO: Integrar con sistema de logging cuando esté disponible
+                // Logger.debug("Exception without message, using default: ${code.description}")
+                println("⚠️ AppError.fromException: Exception '${exception::class.simpleName}' has blank message, using default: ${code.description}")
+                code.description
+            }
+
             return AppError(
                 code = code,
                 message = message,
@@ -386,7 +408,7 @@ class AppError(
         ): AppError {
             return AppError(
                 code = code,
-                message = customMessage ?: code.defaultMessage,
+                message = customMessage ?: code.description,
                 inputDetails = inputDetails,
                 cause = null
             )
@@ -481,7 +503,7 @@ class AppError(
          * @return A new AppError instance with NETWORK_TIMEOUT code
          */
         fun timeout(
-            message: String = ErrorCode.NETWORK_TIMEOUT.defaultMessage,
+            message: String = ErrorCode.NETWORK_TIMEOUT.description,
             inputDetails: Map<String, Any?> = emptyMap()
         ): AppError {
             return AppError(
@@ -510,7 +532,7 @@ class AppError(
          * @return A new AppError instance with AUTH_UNAUTHORIZED code
          */
         fun unauthorized(
-            message: String = ErrorCode.AUTH_UNAUTHORIZED.defaultMessage,
+            message: String = ErrorCode.AUTH_UNAUTHORIZED.description,
             inputDetails: Map<String, Any?> = emptyMap()
         ): AppError {
             return AppError(
@@ -539,7 +561,7 @@ class AppError(
          * @return A new AppError instance with BUSINESS_RESOURCE_NOT_FOUND code
          */
         fun notFound(
-            message: String = ErrorCode.BUSINESS_RESOURCE_NOT_FOUND.defaultMessage,
+            message: String = ErrorCode.BUSINESS_RESOURCE_NOT_FOUND.description,
             inputDetails: Map<String, Any?> = emptyMap()
         ): AppError {
             return AppError(
@@ -579,7 +601,7 @@ class AppError(
         ): AppError {
             val errorMessage = message
                 ?: cause?.message
-                ?: ErrorCode.SYSTEM_INTERNAL_ERROR.defaultMessage
+                ?: ErrorCode.SYSTEM_INTERNAL_ERROR.description
 
             return AppError(
                 code = ErrorCode.SYSTEM_INTERNAL_ERROR,

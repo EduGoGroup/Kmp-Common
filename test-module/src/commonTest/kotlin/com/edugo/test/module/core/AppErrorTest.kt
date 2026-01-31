@@ -100,7 +100,7 @@ class AppErrorTest {
             code = ErrorCode.NETWORK_NO_CONNECTION
         )
 
-        assertEquals(ErrorCode.NETWORK_NO_CONNECTION.defaultMessage, error.message)
+        assertEquals(ErrorCode.NETWORK_NO_CONNECTION.description, error.message)
     }
 
     @Test
@@ -111,7 +111,7 @@ class AppErrorTest {
             code = ErrorCode.NETWORK_TIMEOUT
         )
 
-        assertEquals(ErrorCode.NETWORK_TIMEOUT.defaultMessage, error.message)
+        assertEquals(ErrorCode.NETWORK_TIMEOUT.description, error.message)
     }
 
     // fromCode tests
@@ -120,7 +120,7 @@ class AppErrorTest {
         val error = AppError.fromCode(ErrorCode.VALIDATION_INVALID_INPUT)
 
         assertEquals(ErrorCode.VALIDATION_INVALID_INPUT, error.code)
-        assertEquals(ErrorCode.VALIDATION_INVALID_INPUT.defaultMessage, error.message)
+        assertEquals(ErrorCode.VALIDATION_INVALID_INPUT.description, error.message)
         assertNull(error.cause)
     }
 
@@ -221,7 +221,7 @@ class AppErrorTest {
         val error = AppError.timeout()
 
         assertEquals(ErrorCode.NETWORK_TIMEOUT, error.code)
-        assertEquals(ErrorCode.NETWORK_TIMEOUT.defaultMessage, error.message)
+        assertEquals(ErrorCode.NETWORK_TIMEOUT.description, error.message)
     }
 
     @Test
@@ -249,7 +249,7 @@ class AppErrorTest {
         val error = AppError.unauthorized()
 
         assertEquals(ErrorCode.AUTH_UNAUTHORIZED, error.code)
-        assertEquals(ErrorCode.AUTH_UNAUTHORIZED.defaultMessage, error.message)
+        assertEquals(ErrorCode.AUTH_UNAUTHORIZED.description, error.message)
     }
 
     @Test
@@ -277,7 +277,7 @@ class AppErrorTest {
         val error = AppError.notFound()
 
         assertEquals(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND, error.code)
-        assertEquals(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND.defaultMessage, error.message)
+        assertEquals(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND.description, error.message)
     }
 
     @Test
@@ -305,7 +305,7 @@ class AppErrorTest {
         val error = AppError.serverError()
 
         assertEquals(ErrorCode.SYSTEM_INTERNAL_ERROR, error.code)
-        assertEquals(ErrorCode.SYSTEM_INTERNAL_ERROR.defaultMessage, error.message)
+        assertEquals(ErrorCode.SYSTEM_INTERNAL_ERROR.description, error.message)
         assertNull(error.cause)
     }
 
