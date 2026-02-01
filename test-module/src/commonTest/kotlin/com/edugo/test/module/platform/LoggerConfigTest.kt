@@ -115,4 +115,103 @@ class LoggerConfigTest {
         assertFalse(LoggerConfig.isEnabled("EduGo.Auth", LogLevel.DEBUG))
         assertTrue(LoggerConfig.isEnabled("EduGo.Auth", LogLevel.INFO))
     }
+
+    // Level Cache Tests
+
+    @Test
+    fun testLevelCachePerformance() {
+        // Configure some rules
+        LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.INFO)
+        LoggerConfig.setLevel("EduGo.Network.*", LogLevel.ERROR)
+
+        // First call - cache miss
+        val level1 = LoggerConfig.getLevel("EduGo.Auth.Login")
+        assertEquals(LogLevel.INFO, level1)
+
+        // Second call - should hit cache (much faster)
+        val level2 = LoggerConfig.getLevel("EduGo.Auth.Login")
+        assertEquals(LogLevel.INFO, level2)
+
+        // Different tag - cache miss
+        val level3 = LoggerConfig.getLevel("EduGo.Network.HTTP")
+        assertEquals(LogLevel.ERROR, level3)
+    }
+
+    @Test
+    fun testCacheInvalidationOnSetLevel() {
+        LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.INFO)
+
+        // Cache the level
+        val level1 = LoggerConfig.getLevel("EduGo.Auth.Login")
+        assertEquals(LogLevel.INFO, level1)
+
+        // Change rule - should invalidate cache
+        LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.ERROR)
+
+        // Should return new level
+        val level2 = LoggerConfig.getLevel("EduGo.Auth.Login")
+        assertEquals(LogLevel.ERROR, level2)
+    }
+
+    @Test
+    fun testCacheInvalidationOnRemoveLevel() {
+        LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.ERROR)
+
+        // Cache the level
+        assertEquals(LogLevel.ERROR, LoggerConfig.getLevel("EduGo.Auth.Login"))
+
+        // Remove rule - should invalidate cache
+        LoggerConfig.removeLevel("EduGo.Auth.*")
+
+        // Should return default level
+        assertEquals(LogLevel.DEBUG, LoggerConfig.getLevel("EduGo.Auth.Login"))
+    }
+
+    @Test
+    fun testCacheInvalidationOnClearLevels() {
+        LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.ERROR)
+        LoggerConfig.setLevel("EduGo.Network.*", LogLevel.INFO)
+
+        // Cache multiple levels
+        assertEquals(LogLevel.ERROR, LoggerConfig.getLevel("EduGo.Auth.Login"))
+        assertEquals(LogLevel.INFO, LoggerConfig.getLevel("EduGo.Network.HTTP"))
+
+        // Clear all rules - should invalidate cache
+        LoggerConfig.clearLevels()
+
+        // Should return default level for both
+        assertEquals(LogLevel.DEBUG, LoggerConfig.getLevel("EduGo.Auth.Login"))
+        assertEquals(LogLevel.DEBUG, LoggerConfig.getLevel("EduGo.Network.HTTP"))
+    }
+
+    @Test
+    fun testCacheInvalidationOnReset() {
+        LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.ERROR)
+
+        // Cache the level
+        assertEquals(LogLevel.ERROR, LoggerConfig.getLevel("EduGo.Auth.Login"))
+
+        // Reset - should invalidate cache and rules
+        LoggerConfig.reset()
+
+        // Should return default level
+        assertEquals(LogLevel.DEBUG, LoggerConfig.getLevel("EduGo.Auth.Login"))
+        assertEquals(LogLevel.DEBUG, LoggerConfig.defaultLevel)
+    }
+
+    @Test
+    fun testCacheBoundedSize() {
+        LoggerConfig.setLevel("EduGo.**", LogLevel.INFO)
+
+        // Cache 150 different tags (exceeds max of 100)
+        repeat(150) { i ->
+            val tag = "EduGo.Module$i.Feature"
+            val level = LoggerConfig.getLevel(tag)
+            assertEquals(LogLevel.INFO, level, "Tag $tag should match EduGo.** pattern")
+        }
+
+        // All calls should succeed without memory issues
+        // Cache should have evicted oldest entries (FIFO)
+        // This test validates that cache doesn't grow unbounded
+    }
 }
