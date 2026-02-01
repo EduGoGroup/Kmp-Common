@@ -1,5 +1,10 @@
 package com.edugo.test.module.platform
 
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -159,82 +164,78 @@ class TaggedLoggerTest {
     // Thread-Safety Tests
 
     @Test
-    fun testConcurrentCacheAccess() {
+    fun testConcurrentCacheAccess() = runTest {
         LoggerCache.clear()
         val tag = "EduGo.Concurrent.Test"
         val results = mutableListOf<TaggedLogger>()
-        val threads = mutableListOf<Thread>()
+        val mutex = Mutex()
 
-        // Create 100 threads that all try to get the same logger
-        repeat(100) { i ->
-            val thread = Thread {
-                val logger = LoggerCache.getOrCreate(tag)
-                synchronized(results) {
-                    results.add(logger)
+        // Launch 100 coroutines that all try to get the same logger
+        coroutineScope {
+            repeat(100) {
+                launch {
+                    val logger = LoggerCache.getOrCreate(tag)
+                    mutex.withLock {
+                        results.add(logger)
+                    }
                 }
             }
-            threads.add(thread)
-            thread.start()
         }
 
-        // Wait for all threads to complete
-        threads.forEach { it.join() }
+        // All coroutines complete before test continues
 
         // All results should be the same instance
-        assertEquals(100, results.size)
+        assertEquals(100, results.size, "Should have 100 logger instances")
         val firstLogger = results[0]
         results.forEach { logger ->
             assertTrue(logger === firstLogger, "All loggers should be the same instance")
         }
 
         // Cache should only have one entry
-        assertEquals(1, LoggerCache.size())
+        assertEquals(1, LoggerCache.size(), "Cache should only have one entry for the tag")
     }
 
     @Test
-    fun testConcurrentMultipleTags() {
+    fun testConcurrentMultipleTags() = runTest {
         LoggerCache.clear()
         val tags = listOf("Tag1", "Tag2", "Tag3", "Tag4", "Tag5")
         val results = mutableMapOf<String, MutableList<TaggedLogger>>()
-        val threads = mutableListOf<Thread>()
+        val mutex = Mutex()
 
         // Initialize results map
         tags.forEach { tag ->
-            synchronized(results) {
-                results[tag] = mutableListOf()
-            }
+            results[tag] = mutableListOf()
         }
 
-        // Create multiple threads per tag
-        tags.forEach { tag ->
-            repeat(20) {
-                val thread = Thread {
-                    val logger = LoggerCache.getOrCreate(tag)
-                    synchronized(results) {
-                        results[tag]?.add(logger)
+        // Launch multiple coroutines per tag (20 per tag = 100 total)
+        coroutineScope {
+            tags.forEach { tag ->
+                repeat(20) {
+                    launch {
+                        val logger = LoggerCache.getOrCreate(tag)
+                        mutex.withLock {
+                            results[tag]?.add(logger)
+                        }
                     }
                 }
-                threads.add(thread)
-                thread.start()
             }
         }
 
-        // Wait for all threads
-        threads.forEach { it.join() }
+        // All coroutines complete before test continues
 
-        // Verify each tag has same instance across all threads
+        // Verify each tag has same instance across all coroutines
         tags.forEach { tag ->
             val loggers = results[tag]
-            assertNotNull(loggers)
-            assertEquals(20, loggers.size)
+            assertNotNull(loggers, "Results for tag $tag should not be null")
+            assertEquals(20, loggers.size, "Should have 20 loggers for tag $tag")
             val first = loggers[0]
             loggers.forEach { logger ->
-                assertTrue(logger === first)
+                assertTrue(logger === first, "All loggers for tag $tag should be the same instance")
             }
         }
 
-        // Cache should have 5 entries
-        assertEquals(5, LoggerCache.size())
+        // Cache should have 5 entries (one per tag)
+        assertEquals(5, LoggerCache.size(), "Cache should have 5 entries (one per tag)")
     }
 
     @Test

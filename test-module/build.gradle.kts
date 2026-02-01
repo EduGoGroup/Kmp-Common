@@ -15,5 +15,10 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
             }
         }
+        val commonTest by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+            }
+        }
     }
 }
