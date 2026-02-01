@@ -75,10 +75,27 @@ fun Logger.fromClass(clazz: KClass<*>): TaggedLogger {
  * Ensures that only one TaggedLogger instance exists per unique tag,
  * reducing memory usage and improving performance.
  *
+ * ## Cache Strategy:
+ * - **Unbounded**: Cache grows indefinitely (no eviction policy)
+ * - **Thread-safe**: All operations synchronized for concurrent access
+ * - **Identity**: Same tag always returns same instance (===)
+ *
  * ## Thread-safety:
- * All operations are synchronized to ensure safe concurrent access.
+ * All operations are synchronized to ensure safe concurrent access from multiple threads/coroutines.
+ *
+ * ## Usage Example:
+ * ```kotlin
+ * // First call creates new instance
+ * val logger1 = LoggerCache.getOrCreate("EduGo.Auth")
+ *
+ * // Second call returns cached instance
+ * val logger2 = LoggerCache.getOrCreate("EduGo.Auth")
+ *
+ * assert(logger1 === logger2) // Same instance
+ * ```
  *
  * @see TaggedLogger
+ * @see LoggerCacheUtils
  */
 internal object LoggerCache {
     /**
@@ -94,13 +111,25 @@ internal object LoggerCache {
     /**
      * Gets or creates a TaggedLogger for the specified tag.
      *
-     * @param tag The hierarchical tag
+     * ## Preconditions:
+     * Tag must be valid (not blank, no leading/trailing dots, no consecutive dots).
+     * Validation is performed by TaggedLogger constructor, which throws IllegalArgumentException
+     * if tag is invalid.
+     *
+     * @param tag The hierarchical tag (must be valid)
      * @return Cached or new TaggedLogger instance
+     * @throws IllegalArgumentException if tag is invalid
+     *
+     * Example:
+     * ```kotlin
+     * val logger = LoggerCache.getOrCreate("EduGo.Auth")  // OK
+     * val invalid = LoggerCache.getOrCreate("")            // Throws
+     * ```
      */
     fun getOrCreate(tag: String): TaggedLogger {
         synchronized(lock) {
             return cache.getOrPut(tag) {
-                TaggedLogger(tag)
+                TaggedLogger(tag)  // Constructor validates tag
             }
         }
     }

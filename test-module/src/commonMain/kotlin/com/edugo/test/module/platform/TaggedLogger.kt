@@ -40,7 +40,7 @@ class TaggedLogger internal constructor(
         require(tag.isNotBlank()) { "Tag cannot be blank" }
         require(!tag.startsWith(".")) { "Tag cannot start with '.'" }
         require(!tag.endsWith(".")) { "Tag cannot end with '.'" }
-        require(!tag.contains("..")) { "Tag cannot contain consecutive dots" }
+        require(!tag.contains("..")) { "Tag cannot contain consecutive dots '..'" }
     }
 
     /**
@@ -95,7 +95,7 @@ class TaggedLogger internal constructor(
      */
     fun withChild(childTag: String): TaggedLogger {
         require(childTag.isNotBlank()) { "Child tag cannot be blank" }
-        require(!childTag.contains(".")) { "Child tag cannot contain dots, use withTag for hierarchical tags" }
+        require(!childTag.contains(".")) { "Child tag cannot contain '.', use withTag() for hierarchical tags" }
         return LoggerCache.getOrCreate("$tag.$childTag")
     }
 
@@ -152,10 +152,44 @@ class TaggedLogger internal constructor(
 }
 
 /**
- * Log levels for filtering.
+ * Log levels for filtering and controlling log output verbosity.
+ *
+ * Levels are ordered by severity: DEBUG < INFO < ERROR.
+ * When a minimum level is set, all logs at that level or higher are shown.
+ *
+ * ## Usage:
+ * ```kotlin
+ * // Set minimum level to INFO (hides DEBUG logs)
+ * LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.INFO)
+ *
+ * // Check if level is enabled before expensive operations
+ * if (LoggerConfig.isEnabled(tag, LogLevel.DEBUG)) {
+ *     logger.debug(expensiveDebugInfo())
+ * }
+ * ```
+ *
+ * @see LoggerConfig
+ * @see TaggedLogger
  */
 enum class LogLevel {
+    /**
+     * Detailed diagnostic information for debugging.
+     * Use for verbose output that helps troubleshoot issues.
+     * Should be disabled in production.
+     */
     DEBUG,
+
+    /**
+     * General informational messages about application flow.
+     * Use for significant events like user actions, state changes.
+     * Safe for production.
+     */
     INFO,
+
+    /**
+     * Error conditions that need attention.
+     * Use for exceptions, failures, and abnormal conditions.
+     * Always logged in production.
+     */
     ERROR
 }

@@ -207,7 +207,7 @@ object TagParser {
      */
     fun buildChildTag(parent: String, childName: String): String {
         require(childName.isNotBlank()) { "Child name cannot be blank" }
-        require(!childName.contains('.')) { "Child name cannot contain dots" }
+        require(!childName.contains('.')) { "Child name cannot contain '.'" }
         return "$parent.$childName"
     }
 

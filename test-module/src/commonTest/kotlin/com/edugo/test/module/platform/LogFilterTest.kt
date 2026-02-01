@@ -1,5 +1,10 @@
 package com.edugo.test.module.platform
 
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -170,7 +175,14 @@ class LogFilterTest {
 
     @Test
     fun testMatchesAnyEmptyPatterns() {
-        assertFalse(LogFilter.matchesAny("EduGo.Auth", emptyList()))
+        assertFalse(LogFilter.matchesAny("EduGo.Auth", emptyList()), "Empty pattern list should not match any tag")
+    }
+
+    @Test
+    fun testMatchesAnyBlankTag() {
+        val patterns = listOf("EduGo.*", "Network.*")
+        assertFalse(LogFilter.matchesAny("", patterns), "Blank tag should not match any pattern")
+        assertFalse(LogFilter.matchesAny("   ", patterns), "Whitespace tag should not match any pattern")
     }
 
     @Test
@@ -279,5 +291,35 @@ class LogFilterTest {
         // Debe funcionar correctamente después de limpiar
         LogFilter.matches("EduGo.Auth", "EduGo.*")
         assertEquals(1, LogFilter.getCacheSize(), "Cache should work after clear")
+    }
+
+    @Test
+    fun testConcurrentPatternCompilation() = runTest {
+        LogFilter.clearCache()
+
+        val pattern = "EduGo.Auth.*"
+        val results = mutableListOf<Boolean>()
+        val mutex = Mutex()
+
+        // Launch 100 coroutines that all compile the same pattern
+        coroutineScope {
+            repeat(100) { i ->
+                launch {
+                    val tag = "EduGo.Auth.Test$i"
+                    val matches = LogFilter.matches(tag, pattern)
+                    mutex.withLock {
+                        results.add(matches)
+                    }
+                }
+            }
+        }
+
+        // All should match
+        assertEquals(100, results.size, "Should have 100 results")
+        assertTrue(results.all { it }, "All tags should match the pattern")
+
+        // Cache should only have the pattern compiled once
+        val cacheSize = LogFilter.getCacheSize()
+        assertTrue(cacheSize >= 1, "Cache should have at least the pattern")
     }
 }

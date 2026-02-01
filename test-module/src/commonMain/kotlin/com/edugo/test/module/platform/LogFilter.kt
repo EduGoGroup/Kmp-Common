@@ -53,6 +53,11 @@ object LogFilter {
      * - `*` matches any sequence within a single tag segment
      * - `**` matches any sequence across multiple segments
      *
+     * ## Performance:
+     * Patterns are compiled to regex and cached (max 100 patterns, FIFO eviction).
+     * - First call for a pattern: O(n) compilation
+     * - Subsequent calls: O(1) cache lookup
+     *
      * @param tag The tag to check (e.g., "EduGo.Auth.Login")
      * @param pattern The pattern to match against (e.g., "EduGo.Auth.*")
      * @return true if the tag matches the pattern, false otherwise

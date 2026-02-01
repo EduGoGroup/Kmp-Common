@@ -26,6 +26,20 @@ package com.edugo.test.module.platform
  * }
  * ```
  *
+ * ## Pattern Precedence:
+ * More specific (longer) patterns take precedence over general ones:
+ * ```kotlin
+ * // Disable all EduGo logs by default
+ * LoggerConfig.setLevel("EduGo.**", LogLevel.ERROR)
+ *
+ * // But enable debug for Auth module (more specific, wins)
+ * LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.DEBUG)
+ *
+ * // Result:
+ * LoggerConfig.getLevel("EduGo.Auth.Login")    // DEBUG (specific rule)
+ * LoggerConfig.getLevel("EduGo.Network.HTTP")  // ERROR (general rule)
+ * ```
+ *
  * @see TaggedLogger
  * @see LogFilter
  */
@@ -132,8 +146,11 @@ object LoggerConfig {
      * Finds the most specific matching pattern (longest pattern length) and returns its level,
      * or the default level if no pattern matches.
      *
-     * Uses a bounded cache (max 100 tags) for performance.
-     * First call for a tag: O(n*m), subsequent calls: O(1).
+     * ## Performance & Caching:
+     * Results are cached (max 100 tags, FIFO eviction when full).
+     * - First call for a tag: O(n*m) pattern matching
+     * - Subsequent calls: O(1) cache lookup
+     * - Cache invalidated when rules change (setLevel, removeLevel, etc.)
      *
      * @param tag The tag to check
      * @return The minimum log level for this tag

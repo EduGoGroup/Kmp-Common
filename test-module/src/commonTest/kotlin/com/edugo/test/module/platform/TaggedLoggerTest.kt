@@ -9,6 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.assertFailsWith
 
@@ -255,8 +256,87 @@ class TaggedLoggerTest {
         val logger1 = TaggedLogger.create("EduGo.Auth")
         val logger2 = logger1.withTag("EduGo.Network")
 
-        assertEquals("EduGo.Auth", logger1.tag)
-        assertEquals("EduGo.Network", logger2.tag)
-        assertFalse(logger1 === logger2)
+        assertEquals("EduGo.Auth", logger1.tag, "Original logger tag should remain unchanged")
+        assertEquals("EduGo.Network", logger2.tag, "New logger should have new tag")
+        assertFalse(logger1 === logger2, "Different tags should create different instances")
+    }
+
+    // LoggerCacheUtils Edge Cases Tests
+
+    @Test
+    fun testRemoveFromCacheNonExistent() {
+        LoggerCacheUtils.clearCache()
+
+        // Removing non-existent tag should return null
+        val removed = LoggerCacheUtils.removeFromCache("NonExistent.Tag")
+        assertNull(removed, "Removing non-existent tag should return null")
+    }
+
+    @Test
+    fun testRemoveFromCacheExistent() {
+        LoggerCacheUtils.clearCache()
+
+        // Add a logger to cache
+        val logger = Logger.withTag("EduGo.Test")
+        assertEquals(1, LoggerCacheUtils.getCacheSize(), "Cache should have one entry")
+
+        // Remove it
+        val removed = LoggerCacheUtils.removeFromCache("EduGo.Test")
+        assertNotNull(removed, "Removing existent tag should return the logger")
+        assertEquals(logger, removed, "Removed logger should be the same instance")
+        assertEquals(0, LoggerCacheUtils.getCacheSize(), "Cache should be empty after removal")
+    }
+
+    @Test
+    fun testIsTagCachedAfterClear() {
+        LoggerCacheUtils.clearCache()
+
+        val tag = "EduGo.Test.Tag"
+        Logger.withTag(tag)
+
+        assertTrue(LoggerCacheUtils.isTagCached(tag), "Tag should be cached after creation")
+
+        LoggerCacheUtils.clearCache()
+
+        assertFalse(LoggerCacheUtils.isTagCached(tag), "Tag should not be cached after clear")
+    }
+
+    @Test
+    fun testGetAllCachedTagsEmpty() {
+        LoggerCacheUtils.clearCache()
+
+        val tags = LoggerCacheUtils.getAllCachedTags()
+        assertTrue(tags.isEmpty(), "Empty cache should return empty set")
+    }
+
+    @Test
+    fun testGetAllCachedTagsMultiple() {
+        LoggerCacheUtils.clearCache()
+
+        Logger.withTag("Tag1")
+        Logger.withTag("Tag2")
+        Logger.withTag("Tag3")
+
+        val tags = LoggerCacheUtils.getAllCachedTags()
+        assertEquals(3, tags.size, "Should return all three tags")
+        assertTrue(tags.contains("Tag1"), "Should contain Tag1")
+        assertTrue(tags.contains("Tag2"), "Should contain Tag2")
+        assertTrue(tags.contains("Tag3"), "Should contain Tag3")
+    }
+
+    @Test
+    fun testRemoveFromCacheDoesNotAffectOthers() {
+        LoggerCacheUtils.clearCache()
+
+        Logger.withTag("Tag1")
+        Logger.withTag("Tag2")
+        Logger.withTag("Tag3")
+
+        LoggerCacheUtils.removeFromCache("Tag2")
+
+        assertEquals(2, LoggerCacheUtils.getCacheSize(), "Cache should have two entries after removing one")
+        assertTrue(LoggerCacheUtils.isTagCached("Tag1"), "Tag1 should still be cached")
+        assertFalse(LoggerCacheUtils.isTagCached("Tag2"), "Tag2 should not be cached")
+        assertTrue(LoggerCacheUtils.isTagCached("Tag3"), "Tag3 should still be cached")
     }
 }
