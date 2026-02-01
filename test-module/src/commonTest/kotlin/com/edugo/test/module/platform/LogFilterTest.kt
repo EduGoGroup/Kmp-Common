@@ -205,4 +205,79 @@ class LogFilterTest {
         assertTrue(LogFilter.matches("EduGo.Network.Login.SSO.Google", pattern))
         assertFalse(LogFilter.matches("EduGo.Auth.Logout.OAuth.Google", pattern))
     }
+
+    // Bounded Cache Tests
+
+    @Test
+    fun testCacheBoundedSize() {
+        // Limpiar cache antes del test
+        LogFilter.clearCache()
+
+        // Crear 150 patterns únicos (excede MAX_CACHE_SIZE de 100)
+        repeat(150) { i ->
+            LogFilter.matches("EduGo.Test", "Pattern$i.*")
+        }
+
+        // El cache no debe exceder el tamaño máximo
+        val cacheSize = LogFilter.getCacheSize()
+        assertTrue(
+            cacheSize <= 100,
+            "Cache size ($cacheSize) should not exceed MAX_CACHE_SIZE (100)"
+        )
+    }
+
+    @Test
+    fun testCacheEvictionFIFO() {
+        LogFilter.clearCache()
+
+        // Agregar primer patrón que será evicted
+        LogFilter.matches("Tag", "FirstPattern")
+        assertEquals(1, LogFilter.getCacheSize(), "Cache should have 1 pattern")
+
+        // Llenar cache hasta el límite (99 más = 100 total)
+        repeat(99) { i ->
+            LogFilter.matches("Tag", "Pattern$i.*")
+        }
+
+        assertEquals(100, LogFilter.getCacheSize(), "Cache should be at max capacity")
+
+        // Agregar uno más - debe evict "FirstPattern" (FIFO)
+        LogFilter.matches("Tag", "NewPattern.*")
+
+        // Cache sigue en 100
+        assertEquals(100, LogFilter.getCacheSize(), "Cache should remain at max capacity after eviction")
+    }
+
+    @Test
+    fun testCacheEvictionMultipleRounds() {
+        LogFilter.clearCache()
+
+        // Agregar 200 patterns (2x el límite)
+        repeat(200) { i ->
+            LogFilter.matches("Tag", "Pattern$i.*")
+        }
+
+        // Solo los últimos 100 deberían estar en cache
+        assertEquals(100, LogFilter.getCacheSize(), "Cache should stabilize at max size")
+    }
+
+    @Test
+    fun testCacheClearResetsSize() {
+        // Llenar cache parcialmente
+        repeat(50) { i ->
+            LogFilter.matches("Tag", "Pattern$i.*")
+        }
+
+        assertTrue(LogFilter.getCacheSize() > 0, "Cache should have entries")
+
+        // Limpiar cache
+        LogFilter.clearCache()
+
+        // Cache debe estar vacío
+        assertEquals(0, LogFilter.getCacheSize(), "Cache should be empty after clear")
+
+        // Debe funcionar correctamente después de limpiar
+        LogFilter.matches("EduGo.Auth", "EduGo.*")
+        assertEquals(1, LogFilter.getCacheSize(), "Cache should work after clear")
+    }
 }

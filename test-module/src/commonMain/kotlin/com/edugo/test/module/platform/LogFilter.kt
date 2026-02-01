@@ -24,13 +24,25 @@ package com.edugo.test.module.platform
  */
 object LogFilter {
     /**
+     * Maximum number of compiled patterns to cache.
+     * Prevents unbounded memory growth with dynamic patterns.
+     */
+    private const val MAX_CACHE_SIZE = 100
+
+    /**
      * Cache of compiled regex patterns for performance.
-     * Lazily initialized when patterns are first used.
+     * Uses FIFO eviction when cache is full.
      */
     private val regexCache: MutableMap<String, Regex> = mutableMapOf()
 
     /**
-     * Lock for thread-safe access to regexCache.
+     * Tracks insertion order for FIFO eviction.
+     * When cache is full, removes the oldest pattern.
+     */
+    private val insertionOrder: MutableList<String> = mutableListOf()
+
+    /**
+     * Lock for thread-safe access to cache and insertion order.
      */
     private val cacheLock = Any()
 
@@ -102,6 +114,7 @@ object LogFilter {
     fun clearCache() {
         synchronized(cacheLock) {
             regexCache.clear()
+            insertionOrder.clear()
         }
     }
 
@@ -119,16 +132,29 @@ object LogFilter {
     /**
      * Gets or compiles a regex pattern from a wildcard pattern.
      *
-     * Results are cached for performance. Thread-safe.
+     * Results are cached for performance with bounded size (max 100 patterns).
+     * Uses FIFO eviction when cache is full. Thread-safe.
      *
      * @param pattern Wildcard pattern (e.g., "EduGo.Auth.*")
      * @return Compiled Regex object
      */
     private fun getOrCompileRegex(pattern: String): Regex {
         synchronized(cacheLock) {
-            return regexCache.getOrPut(pattern) {
-                compileWildcardPattern(pattern)
+            // Check if already cached
+            regexCache[pattern]?.let { return it }
+
+            // Cache is full - evict oldest entry (FIFO)
+            if (regexCache.size >= MAX_CACHE_SIZE) {
+                val oldestKey = insertionOrder.removeAt(0)
+                regexCache.remove(oldestKey)
             }
+
+            // Compile and cache new pattern
+            val compiled = compileWildcardPattern(pattern)
+            regexCache[pattern] = compiled
+            insertionOrder.add(pattern)
+
+            return compiled
         }
     }
 
