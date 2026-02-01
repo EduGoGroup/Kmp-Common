@@ -87,18 +87,18 @@ class LoggerFactoryTest {
 
     @Test
     fun testMultipleModulesCoexist() {
-        LoggerCache.clear()
+        LoggerCacheUtils.clearCache()
 
         val auth = Logger.withTag("EduGo.Auth")
         val network = Logger.withTag("EduGo.Network")
         val data = Logger.withTag("EduGo.Data")
         val ui = Logger.withTag("EduGo.UI")
 
-        assertEquals(4, LoggerCache.size())
-        assertTrue(LoggerCache.contains("EduGo.Auth"))
-        assertTrue(LoggerCache.contains("EduGo.Network"))
-        assertTrue(LoggerCache.contains("EduGo.Data"))
-        assertTrue(LoggerCache.contains("EduGo.UI"))
+        assertEquals(4, LoggerCacheUtils.getCacheSize())
+        assertTrue(LoggerCacheUtils.isTagCached("EduGo.Auth"))
+        assertTrue(LoggerCacheUtils.isTagCached("EduGo.Network"))
+        assertTrue(LoggerCacheUtils.isTagCached("EduGo.Data"))
+        assertTrue(LoggerCacheUtils.isTagCached("EduGo.UI"))
     }
 
     @Test

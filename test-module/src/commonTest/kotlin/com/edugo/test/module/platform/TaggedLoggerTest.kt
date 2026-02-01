@@ -61,29 +61,29 @@ class TaggedLoggerTest {
 
     @Test
     fun testLoggerCache() {
-        LoggerCache.clear()
+        LoggerCacheUtils.clearCache()
 
-        val logger1 = LoggerCache.getOrCreate("EduGo.Auth")
-        val logger2 = LoggerCache.getOrCreate("EduGo.Auth")
+        val logger1 = Logger.withTag("EduGo.Auth")
+        val logger2 = Logger.withTag("EduGo.Auth")
 
         // Same instance should be returned
         assertTrue(logger1 === logger2)
-        assertEquals(1, LoggerCache.size())
+        assertEquals(1, LoggerCacheUtils.getCacheSize())
     }
 
     @Test
     fun testLoggerCacheMultipleTags() {
-        LoggerCache.clear()
+        LoggerCacheUtils.clearCache()
 
-        val logger1 = LoggerCache.getOrCreate("EduGo.Auth")
-        val logger2 = LoggerCache.getOrCreate("EduGo.Network")
-        val logger3 = LoggerCache.getOrCreate("EduGo.Auth") // Same as logger1
+        val logger1 = Logger.withTag("EduGo.Auth")
+        val logger2 = Logger.withTag("EduGo.Network")
+        val logger3 = Logger.withTag("EduGo.Auth") // Same as logger1
 
         assertTrue(logger1 === logger3)
         assertFalse(logger1 === logger2)
-        assertEquals(2, LoggerCache.size())
+        assertEquals(2, LoggerCacheUtils.getCacheSize())
 
-        val tags = LoggerCache.getAllTags()
+        val tags = LoggerCacheUtils.getAllCachedTags()
         assertTrue(tags.contains("EduGo.Auth"))
         assertTrue(tags.contains("EduGo.Network"))
     }
@@ -165,7 +165,7 @@ class TaggedLoggerTest {
 
     @Test
     fun testConcurrentCacheAccess() = runTest {
-        LoggerCache.clear()
+        LoggerCacheUtils.clearCache()
         val tag = "EduGo.Concurrent.Test"
         val results = mutableListOf<TaggedLogger>()
         val mutex = Mutex()
@@ -174,7 +174,7 @@ class TaggedLoggerTest {
         coroutineScope {
             repeat(100) {
                 launch {
-                    val logger = LoggerCache.getOrCreate(tag)
+                    val logger = Logger.withTag(tag)
                     mutex.withLock {
                         results.add(logger)
                     }
@@ -192,12 +192,12 @@ class TaggedLoggerTest {
         }
 
         // Cache should only have one entry
-        assertEquals(1, LoggerCache.size(), "Cache should only have one entry for the tag")
+        assertEquals(1, LoggerCacheUtils.getCacheSize(), "Cache should only have one entry for the tag")
     }
 
     @Test
     fun testConcurrentMultipleTags() = runTest {
-        LoggerCache.clear()
+        LoggerCacheUtils.clearCache()
         val tags = listOf("Tag1", "Tag2", "Tag3", "Tag4", "Tag5")
         val results = mutableMapOf<String, MutableList<TaggedLogger>>()
         val mutex = Mutex()
@@ -212,7 +212,7 @@ class TaggedLoggerTest {
             tags.forEach { tag ->
                 repeat(20) {
                     launch {
-                        val logger = LoggerCache.getOrCreate(tag)
+                        val logger = Logger.withTag(tag)
                         mutex.withLock {
                             results[tag]?.add(logger)
                         }
@@ -235,7 +235,7 @@ class TaggedLoggerTest {
         }
 
         // Cache should have 5 entries (one per tag)
-        assertEquals(5, LoggerCache.size(), "Cache should have 5 entries (one per tag)")
+        assertEquals(5, LoggerCacheUtils.getCacheSize(), "Cache should have 5 entries (one per tag)")
     }
 
     @Test
