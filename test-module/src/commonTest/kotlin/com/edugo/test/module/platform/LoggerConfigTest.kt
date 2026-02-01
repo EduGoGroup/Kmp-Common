@@ -5,11 +5,18 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.test.BeforeTest
+import kotlin.test.AfterTest
 
 class LoggerConfigTest {
 
     @BeforeTest
     fun setup() {
+        LoggerConfig.reset()
+    }
+
+    @AfterTest
+    fun teardown() {
+        // Ensure clean state even if test fails
         LoggerConfig.reset()
     }
 
