@@ -27,7 +27,7 @@ object LogFilter {
      * Maximum number of compiled patterns to cache.
      * Prevents unbounded memory growth with dynamic patterns.
      */
-    private const val MAX_CACHE_SIZE = 100
+    private const val MAX_CACHE_SIZE = CacheConfig.MAX_CACHE_SIZE
 
     /**
      * Cache of compiled regex patterns for performance.

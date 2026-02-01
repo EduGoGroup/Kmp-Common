@@ -6,6 +6,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.test.BeforeTest
 import kotlin.test.AfterTest
+import kotlin.test.assertFailsWith
 
 class LoggerConfigTest {
 
@@ -220,5 +221,22 @@ class LoggerConfigTest {
         // All calls should succeed without memory issues
         // Cache should have evicted oldest entries (FIFO)
         // This test validates that cache doesn't grow unbounded
+    }
+
+    @Test
+    fun testSetLevelValidatesPattern() {
+        // Valid patterns should work
+        LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.INFO)
+        LoggerConfig.setLevel("EduGo.**", LogLevel.ERROR)
+        LoggerConfig.setLevel("*", LogLevel.DEBUG)
+
+        // Invalid patterns should throw
+        assertFailsWith<IllegalArgumentException>("Blank pattern should throw") {
+            LoggerConfig.setLevel("", LogLevel.INFO)
+        }
+
+        assertFailsWith<IllegalArgumentException>("Whitespace pattern should throw") {
+            LoggerConfig.setLevel("   ", LogLevel.INFO)
+        }
     }
 }

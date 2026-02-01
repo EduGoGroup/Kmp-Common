@@ -43,7 +43,7 @@ object LoggerConfig {
      * Maximum number of computed levels to cache.
      * Prevents unbounded memory growth with dynamic tags.
      */
-    private const val MAX_LEVEL_CACHE_SIZE = 100
+    private const val MAX_LEVEL_CACHE_SIZE = CacheConfig.MAX_CACHE_SIZE
 
     /**
      * Map of tag patterns to their minimum log levels.
@@ -87,6 +87,7 @@ object LoggerConfig {
      */
     fun setLevel(pattern: String, level: LogLevel) {
         require(pattern.isNotBlank()) { "Pattern cannot be blank" }
+        require(LogFilter.isValidPattern(pattern)) { "Invalid pattern: '$pattern'" }
         synchronized(lock) {
             levelRules[pattern] = level
             // Invalidate cache when rules change
