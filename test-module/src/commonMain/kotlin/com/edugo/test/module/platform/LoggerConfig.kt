@@ -128,7 +128,7 @@ object LoggerConfig {
     /**
      * Gets the effective minimum log level for a tag.
      *
-     * Finds the most specific matching pattern and returns its level,
+     * Finds the most specific matching pattern (longest pattern length) and returns its level,
      * or the default level if no pattern matches.
      *
      * Uses a bounded cache (max 100 tags) for performance.

@@ -22,19 +22,19 @@ class LoggerConfigTest {
 
     @Test
     fun testDefaultLevel() {
-        assertEquals(LogLevel.DEBUG, LoggerConfig.defaultLevel)
-        assertTrue(LoggerConfig.isEnabled("EduGo.Auth", LogLevel.DEBUG))
-        assertTrue(LoggerConfig.isEnabled("EduGo.Auth", LogLevel.INFO))
-        assertTrue(LoggerConfig.isEnabled("EduGo.Auth", LogLevel.ERROR))
+        assertEquals(LogLevel.DEBUG, LoggerConfig.defaultLevel, "Default level should be DEBUG")
+        assertTrue(LoggerConfig.isEnabled("EduGo.Auth", LogLevel.DEBUG), "DEBUG should be enabled by default")
+        assertTrue(LoggerConfig.isEnabled("EduGo.Auth", LogLevel.INFO), "INFO should be enabled by default")
+        assertTrue(LoggerConfig.isEnabled("EduGo.Auth", LogLevel.ERROR), "ERROR should be enabled by default")
     }
 
     @Test
     fun testSetLevel() {
         LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.INFO)
 
-        assertFalse(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.DEBUG))
-        assertTrue(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.INFO))
-        assertTrue(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.ERROR))
+        assertFalse(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.DEBUG), "DEBUG should be disabled when level is INFO")
+        assertTrue(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.INFO), "INFO should be enabled when level is INFO")
+        assertTrue(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.ERROR), "ERROR should be enabled when level is INFO")
     }
 
     @Test
@@ -69,17 +69,17 @@ class LoggerConfigTest {
     fun testGetLevel() {
         LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.INFO)
 
-        assertEquals(LogLevel.INFO, LoggerConfig.getLevel("EduGo.Auth.Login"))
-        assertEquals(LogLevel.DEBUG, LoggerConfig.getLevel("EduGo.Network.HTTP")) // default
+        assertEquals(LogLevel.INFO, LoggerConfig.getLevel("EduGo.Auth.Login"), "Should return configured level for matching pattern")
+        assertEquals(LogLevel.DEBUG, LoggerConfig.getLevel("EduGo.Network.HTTP"), "Should return default level for non-matching pattern")
     }
 
     @Test
     fun testRemoveLevel() {
         LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.INFO)
-        assertFalse(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.DEBUG))
+        assertFalse(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.DEBUG), "DEBUG should be disabled with INFO level")
 
         LoggerConfig.removeLevel("EduGo.Auth.*")
-        assertTrue(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.DEBUG)) // back to default
+        assertTrue(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.DEBUG), "Should revert to default level after removal")
     }
 
     @Test
@@ -89,8 +89,8 @@ class LoggerConfigTest {
 
         LoggerConfig.clearLevels()
 
-        assertTrue(LoggerConfig.getAllRules().isEmpty())
-        assertTrue(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.DEBUG))
+        assertTrue(LoggerConfig.getAllRules().isEmpty(), "All rules should be cleared")
+        assertTrue(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.DEBUG), "Should revert to default level after clearing")
     }
 
     @Test
@@ -99,9 +99,9 @@ class LoggerConfigTest {
         LoggerConfig.setLevel("EduGo.Network.*", LogLevel.ERROR)
 
         val rules = LoggerConfig.getAllRules()
-        assertEquals(2, rules.size)
-        assertEquals(LogLevel.INFO, rules["EduGo.Auth.*"])
-        assertEquals(LogLevel.ERROR, rules["EduGo.Network.*"])
+        assertEquals(2, rules.size, "Should return all configured rules")
+        assertEquals(LogLevel.INFO, rules["EduGo.Auth.*"], "Auth pattern should have INFO level")
+        assertEquals(LogLevel.ERROR, rules["EduGo.Network.*"], "Network pattern should have ERROR level")
     }
 
     @Test

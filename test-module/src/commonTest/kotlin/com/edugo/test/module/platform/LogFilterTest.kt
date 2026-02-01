@@ -9,8 +9,8 @@ class LogFilterTest {
 
     @Test
     fun testExactMatch() {
-        assertTrue(LogFilter.matches("EduGo.Auth.Login", "EduGo.Auth.Login"))
-        assertFalse(LogFilter.matches("EduGo.Auth.Login", "EduGo.Auth.Logout"))
+        assertTrue(LogFilter.matches("EduGo.Auth.Login", "EduGo.Auth.Login"), "Exact match should return true")
+        assertFalse(LogFilter.matches("EduGo.Auth.Login", "EduGo.Auth.Logout"), "Different tags should not match")
     }
 
     @Test
@@ -62,24 +62,24 @@ class LogFilterTest {
         )
 
         val authTags = LogFilter.filter(tags, "EduGo.Auth.*")
-        assertEquals(2, authTags.size)
-        assertTrue(authTags.contains("EduGo.Auth.Login"))
-        assertTrue(authTags.contains("EduGo.Auth.Logout"))
+        assertEquals(2, authTags.size, "Should filter two Auth tags")
+        assertTrue(authTags.contains("EduGo.Auth.Login"), "Should contain Login tag")
+        assertTrue(authTags.contains("EduGo.Auth.Logout"), "Should contain Logout tag")
 
         val networkTags = LogFilter.filter(tags, "EduGo.Network.*")
-        assertEquals(2, networkTags.size)
+        assertEquals(2, networkTags.size, "Should filter two Network tags")
     }
 
     @Test
     fun testCacheSize() {
         LogFilter.clearCache()
-        assertEquals(0, LogFilter.getCacheSize())
+        assertEquals(0, LogFilter.getCacheSize(), "Cache should be empty after clear")
 
         LogFilter.matches("EduGo.Auth.Login", "EduGo.Auth.*")
-        assertTrue(LogFilter.getCacheSize() > 0)
+        assertTrue(LogFilter.getCacheSize() > 0, "Cache should contain entries after pattern match")
 
         LogFilter.clearCache()
-        assertEquals(0, LogFilter.getCacheSize())
+        assertEquals(0, LogFilter.getCacheSize(), "Cache should be empty after second clear")
     }
 
     @Test
@@ -189,7 +189,7 @@ class LogFilterTest {
         LogFilter.matches(tag, pattern)
 
         // Cache size should not change
-        assertEquals(sizeAfterFirst, LogFilter.getCacheSize())
+        assertEquals(sizeAfterFirst, LogFilter.getCacheSize(), "Cache size should remain constant for same pattern")
     }
 
     @Test
