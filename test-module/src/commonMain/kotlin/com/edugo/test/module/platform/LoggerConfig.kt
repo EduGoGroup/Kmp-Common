@@ -7,7 +7,7 @@ package com.edugo.test.module.platform
  * enabling fine-grained control over logging output.
  *
  * ## Features:
- * - **Pattern-based filtering**: Use wildcards to match multiple tags
+ * - **Pattern-based filtering**: Use wildcards or regex (prefix `regex:`) to match multiple tags
  * - **Hierarchical rules**: More specific patterns override general ones
  * - **Thread-safe**: Configuration can be safely modified at runtime
  * - **Default level**: Configurable fallback for unmatched tags
@@ -16,6 +16,7 @@ package com.edugo.test.module.platform
  * ```kotlin
  * // Set minimum level for all Auth logs
  * LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.DEBUG)
+ * LoggerConfig.setLevel("regex:^EduGo\\.(Auth|Network)\\..*$", LogLevel.INFO)
  *
  * // Disable debug logs for Network
  * LoggerConfig.setLevel("EduGo.Network.*", LogLevel.INFO)
@@ -87,7 +88,7 @@ object LoggerConfig {
      *
      * Invalidates the level cache to ensure new rules take effect.
      *
-     * @param pattern Tag pattern to match (supports wildcards: "EduGo.Auth.*")
+     * @param pattern Tag pattern to match (supports wildcards: "EduGo.Auth.*" or regex with prefix "regex:")
      * @param level Minimum log level for matching tags
      *
      * Example:
@@ -97,6 +98,7 @@ object LoggerConfig {
      *
      * // Only show errors for third-party libraries
      * LoggerConfig.setLevel("com.thirdparty.*", LogLevel.ERROR)
+     * LoggerConfig.setLevel("regex:^com\\.thirdparty\\..*$", LogLevel.ERROR)
      * ```
      */
     fun setLevel(pattern: String, level: LogLevel) {

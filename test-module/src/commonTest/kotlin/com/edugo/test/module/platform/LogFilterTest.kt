@@ -93,6 +93,7 @@ class LogFilterTest {
         assertTrue(LogFilter.isValidPattern("EduGo.**"))
         assertTrue(LogFilter.isValidPattern("*"))
         assertTrue(LogFilter.isValidPattern("EduGo.Auth.Login"))
+        assertTrue(LogFilter.isValidPattern("regex:^EduGo\\.(Auth|Network)\\..*$"))
     }
 
     @Test
@@ -104,6 +105,22 @@ class LogFilterTest {
 
         // Multiple wildcards
         assertTrue(LogFilter.matches("EduGo.Auth.Login.OAuth", "EduGo.*.*.*"))
+    }
+
+    @Test
+    fun testRegexPatternMatching() {
+        val pattern = "regex:^EduGo\\.(Auth|Network)\\..*$"
+
+        assertTrue(LogFilter.matches("EduGo.Auth.Login", pattern))
+        assertTrue(LogFilter.matches("EduGo.Network.HTTP", pattern))
+        assertFalse(LogFilter.matches("EduGo.Data.Cache", pattern))
+    }
+
+    @Test
+    fun testRegexPatternValidation() {
+        assertFalse(LogFilter.isValidPattern("regex:"))
+        assertFalse(LogFilter.isValidPattern("regex:["))
+        assertFalse(LogFilter.matches("EduGo.Auth.Login", "regex:["))
     }
 
     // Edge Cases Tests

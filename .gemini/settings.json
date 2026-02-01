@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "MCPEco": {
+      "command": "/Users/jhoanmedina/source/GeneratorEco/MCPEco/bin/mcp-server",
+      "args": [],
+      "env": {},
+      "transport": "stdio",
+      "enabled": true
+    }
+  }
+}

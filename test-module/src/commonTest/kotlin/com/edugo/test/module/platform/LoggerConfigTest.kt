@@ -67,6 +67,17 @@ class LoggerConfigTest {
     }
 
     @Test
+    fun testRegexPatternRule() {
+        LoggerConfig.setLevel("regex:^EduGo\\.Auth\\..*$", LogLevel.INFO)
+
+        assertFalse(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.DEBUG))
+        assertTrue(LoggerConfig.isEnabled("EduGo.Auth.Login", LogLevel.INFO))
+
+        // Non-matching tag should use default level (DEBUG)
+        assertTrue(LoggerConfig.isEnabled("EduGo.Network.HTTP", LogLevel.DEBUG))
+    }
+
+    @Test
     fun testGetLevel() {
         LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.INFO)
 
@@ -229,6 +240,7 @@ class LoggerConfigTest {
         LoggerConfig.setLevel("EduGo.Auth.*", LogLevel.INFO)
         LoggerConfig.setLevel("EduGo.**", LogLevel.ERROR)
         LoggerConfig.setLevel("*", LogLevel.DEBUG)
+        LoggerConfig.setLevel("regex:^EduGo\\..*$", LogLevel.DEBUG)
 
         // Invalid patterns should throw
         assertFailsWith<IllegalArgumentException>("Blank pattern should throw") {
@@ -237,6 +249,10 @@ class LoggerConfigTest {
 
         assertFailsWith<IllegalArgumentException>("Whitespace pattern should throw") {
             LoggerConfig.setLevel("   ", LogLevel.INFO)
+        }
+
+        assertFailsWith<IllegalArgumentException>("Invalid regex pattern should throw") {
+            LoggerConfig.setLevel("regex:[", LogLevel.INFO)
         }
     }
 }

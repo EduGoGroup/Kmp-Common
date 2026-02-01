@@ -1,0 +1,4 @@
+[mcp_servers.MCPEco]
+command = "/Users/jhoanmedina/source/GeneratorEco/MCPEco/bin/mcp-server"
+args = []
+cwd = "/Users/jhoanmedina/source/GeneratorEco/MCPEco"

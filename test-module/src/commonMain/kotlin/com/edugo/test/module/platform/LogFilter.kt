@@ -4,12 +4,16 @@ package com.edugo.test.module.platform
  * Filtering utilities for hierarchical log tags.
  *
  * Supports both wildcard patterns (e.g., "EduGo.Auth.*") and regex patterns
- * for flexible tag matching.
+ * (prefix with "regex:") for flexible tag matching.
  *
  * ## Wildcard Patterns:
  * - `*` matches any sequence within a single segment
  * - `**` matches any sequence across multiple segments
  * - `.` is treated as a literal separator
+ *
+ * ## Regex Patterns:
+ * - Prefix with `regex:` to indicate a raw regex pattern
+ * - Example: `regex:^EduGo\\.(Auth|Network)\\..*$`
  *
  * ## Examples:
  * ```kotlin
@@ -23,6 +27,11 @@ package com.edugo.test.module.platform
  * @see TaggedLogger
  */
 object LogFilter {
+    /**
+     * Prefix used to mark regex patterns explicitly.
+     */
+    private const val REGEX_PREFIX = "regex:"
+
     /**
      * Maximum number of compiled patterns to cache.
      * Prevents unbounded memory growth with dynamic patterns.
@@ -70,15 +79,21 @@ object LogFilter {
      * ```
      */
     fun matches(tag: String, pattern: String): Boolean {
+        if (pattern.isBlank()) return false
+
         // Exact match optimization
-        if (tag == pattern) return true
+        if (!isRegexPattern(pattern) && tag == pattern) return true
 
         // Single wildcard optimization
-        if (pattern == "*" || pattern == "**") return true
+        if (!isRegexPattern(pattern) && (pattern == "*" || pattern == "**")) return true
 
         // Convert wildcard pattern to regex and match
-        val regex = getOrCompileRegex(pattern)
-        return regex.matches(tag)
+        return try {
+            val regex = getOrCompileRegex(pattern)
+            regex.matches(tag)
+        } catch (e: IllegalArgumentException) {
+            false
+        }
     }
 
     /**
@@ -155,12 +170,45 @@ object LogFilter {
             }
 
             // Compile and cache new pattern
-            val compiled = compileWildcardPattern(pattern)
+            val compiled = compilePattern(pattern)
             regexCache[pattern] = compiled
             insertionOrder.add(pattern)
 
             return compiled
         }
+    }
+
+    /**
+     * Determines whether a pattern should be treated as regex.
+     */
+    private fun isRegexPattern(pattern: String): Boolean = pattern.startsWith(REGEX_PREFIX)
+
+    /**
+     * Removes regex prefix from pattern.
+     */
+    private fun stripRegexPrefix(pattern: String): String = pattern.removePrefix(REGEX_PREFIX)
+
+    /**
+     * Compiles a pattern into a Regex, using wildcard or regex rules based on prefix.
+     */
+    private fun compilePattern(pattern: String): Regex {
+        return if (isRegexPattern(pattern)) {
+            compileRegexPattern(pattern)
+        } else {
+            compileWildcardPattern(pattern)
+        }
+    }
+
+    /**
+     * Compiles a regex pattern (prefixed with "regex:").
+     *
+     * @param pattern Regex pattern with prefix
+     * @return Compiled Regex object
+     */
+    private fun compileRegexPattern(pattern: String): Regex {
+        val raw = stripRegexPrefix(pattern)
+        require(raw.isNotBlank()) { "Regex pattern cannot be blank" }
+        return Regex(raw)
     }
 
     /**
@@ -221,8 +269,9 @@ object LogFilter {
      * @return true if valid, false otherwise
      */
     fun isValidPattern(pattern: String): Boolean {
+        if (pattern.isBlank()) return false
         return try {
-            compileWildcardPattern(pattern)
+            compilePattern(pattern)
             true
         } catch (e: Exception) {
             false
