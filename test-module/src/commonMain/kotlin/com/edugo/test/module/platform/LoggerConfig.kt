@@ -33,11 +33,11 @@ object LoggerConfig {
     /**
      * Default log level for tags without specific configuration.
      * Default is DEBUG (all logs enabled).
+     *
+     * Thread-safe: Uses @Volatile for visibility across threads.
      */
     @Volatile
     var defaultLevel: LogLevel = LogLevel.DEBUG
-        @Synchronized get
-        @Synchronized set
 
     /**
      * Map of tag patterns to their minimum log levels.
