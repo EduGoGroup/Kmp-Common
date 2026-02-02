@@ -312,3 +312,131 @@ inline fun <T> catching(block: () -> Result<T>): Result<T> {
         Result.Failure(e.message ?: "An error occurred")
     }
 }
+
+/**
+ * Recupera de un error aplicando una función de transformación al mensaje de error.
+ *
+ * Esta función permite intentar recuperarse de un Result.Failure convirtiéndolo
+ * en un Result.Success con un valor por defecto o alternativo.
+ *
+ * **Comportamiento:**
+ * - Si es Success: devuelve el mismo Success
+ * - Si es Failure: aplica la función de recuperación y devuelve su resultado
+ * - Si es Loading: devuelve Loading
+ *
+ * Ejemplo:
+ * ```kotlin
+ * val result: Result<User> = fetchUser()
+ * val recovered = result.recover { error ->
+ *     // Intentar obtener usuario de caché local
+ *     getCachedUser() ?: User.guest()
+ * }
+ * ```
+ *
+ * @param recovery Función que recibe el mensaje de error y retorna un valor de recuperación
+ * @return Result con el valor original si es Success, o el valor recuperado si es Failure
+ */
+inline fun <T> Result<T>.recover(recovery: (String) -> T): Result<T> = when (this) {
+    is Result.Success -> this
+    is Result.Failure -> Result.Success(recovery(this.error))
+    is Result.Loading -> this
+}
+
+/**
+ * Recupera de un error devolviendo un Result alternativo.
+ *
+ * Similar a [recover], pero la función de recuperación devuelve un Result<T>
+ * en lugar de un valor directo, permitiendo que la recuperación también pueda fallar.
+ *
+ * Ejemplo:
+ * ```kotlin
+ * val result: Result<User> = fetchUserFromApi()
+ * val recovered = result.recoverWith { error ->
+ *     // Si falla la API, intentar desde caché (que también puede fallar)
+ *     fetchUserFromCache()
+ * }
+ * ```
+ *
+ * @param recovery Función que recibe el mensaje de error y retorna un Result<T>
+ * @return El Result original si es Success, o el Result de recuperación si es Failure
+ */
+inline fun <T> Result<T>.recoverWith(recovery: (String) -> Result<T>): Result<T> = when (this) {
+    is Result.Success -> this
+    is Result.Failure -> recovery(this.error)
+    is Result.Loading -> this
+}
+
+/**
+ * Convierte un valor nullable en un Result.
+ *
+ * Esta extensión simplifica el patrón común de convertir valores opcionales
+ * en Result, proporcionando un mensaje de error personalizado cuando el valor es null.
+ *
+ * Ejemplo:
+ * ```kotlin
+ * val user: User? = repository.findById(id)
+ * val result: Result<User> = user.toResult("User not found")
+ *
+ * // Equivale a:
+ * val result = if (user != null) {
+ *     Result.Success(user)
+ * } else {
+ *     Result.Failure("User not found")
+ * }
+ * ```
+ *
+ * @param errorMessage Mensaje de error a usar si el valor es null
+ * @return Result.Success si el valor no es null, Result.Failure si es null
+ */
+fun <T : Any> T?.toResult(errorMessage: String): Result<T> {
+    return if (this != null) {
+        Result.Success(this)
+    } else {
+        Result.Failure(errorMessage)
+    }
+}
+
+/**
+ * Convierte un valor nullable en un Result usando un lambda para generar el error.
+ *
+ * Variante de [toResult] que permite crear el mensaje de error de forma lazy,
+ * útil cuando el mensaje es costoso de construir.
+ *
+ * Ejemplo:
+ * ```kotlin
+ * val user: User? = repository.findById(userId)
+ * val result = user.toResultOrElse {
+ *     "User with ID $userId not found in database"
+ * }
+ * ```
+ *
+ * @param errorProvider Función que genera el mensaje de error si el valor es null
+ * @return Result.Success si el valor no es null, Result.Failure si es null
+ */
+inline fun <T : Any> T?.toResultOrElse(errorProvider: () -> String): Result<T> {
+    return if (this != null) {
+        Result.Success(this)
+    } else {
+        Result.Failure(errorProvider())
+    }
+}
+
+/**
+ * Transforma un Result<Result<T>> (nested) en Result<T> (flattened).
+ *
+ * Esta función es útil cuando tienes operaciones que retornan Result<Result<T>>
+ * y quieres aplanar la estructura.
+ *
+ * Ejemplo:
+ * ```kotlin
+ * val nested: Result<Result<User>> = Result.Success(fetchUser())
+ * val flattened: Result<User> = nested.flatten()
+ * ```
+ *
+ * @return Result<T> aplanado
+ */
+fun <T> Result<Result<T>>.flatten(): Result<T> = when (this) {
+    is Result.Success -> this.data
+    is Result.Failure -> this
+    is Result.Loading -> this
+}

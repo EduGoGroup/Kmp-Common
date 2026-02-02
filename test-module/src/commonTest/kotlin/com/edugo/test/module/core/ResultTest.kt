@@ -867,4 +867,246 @@ class ResultTest {
         assertIs<Result.Success<Int>>(flattened)
         assertEquals(42, flattened.data)
     }
+
+    // ========================================================================
+    // TESTS: recover
+    // ========================================================================
+
+    @Test
+    fun recover_returnsOriginalValueOnSuccess() {
+        val result: Result<String> = success("original value")
+        val recovered = result.recover { "fallback" }
+
+        assertIs<Result.Success<String>>(recovered)
+        assertEquals("original value", recovered.data)
+    }
+
+    @Test
+    fun recover_recoversFromFailure() {
+        val result: Result<String> = failure("error occurred")
+        val recovered = result.recover { error ->
+            "recovered from: $error"
+        }
+
+        assertIs<Result.Success<String>>(recovered)
+        assertEquals("recovered from: error occurred", recovered.data)
+    }
+
+    @Test
+    fun recover_preservesLoading() {
+        val result: Result<String> = Result.Loading
+        val recovered = result.recover { "fallback" }
+
+        assertIs<Result.Loading>(recovered)
+    }
+
+    @Test
+    fun recover_canProvideDefaultValue() {
+        val result: Result<Int> = failure("parsing failed")
+        val recovered = result.recover { 0 }
+
+        assertIs<Result.Success<Int>>(recovered)
+        assertEquals(0, recovered.data)
+    }
+
+    // ========================================================================
+    // TESTS: recoverWith
+    // ========================================================================
+
+    @Test
+    fun recoverWith_returnsOriginalValueOnSuccess() {
+        val result: Result<String> = success("original")
+        val recovered = result.recoverWith { success("fallback") }
+
+        assertIs<Result.Success<String>>(recovered)
+        assertEquals("original", recovered.data)
+    }
+
+    @Test
+    fun recoverWith_canRecoverSuccessfully() {
+        val result: Result<String> = failure("primary failed")
+        val recovered = result.recoverWith { error ->
+            success("recovered: $error")
+        }
+
+        assertIs<Result.Success<String>>(recovered)
+        assertEquals("recovered: primary failed", recovered.data)
+    }
+
+    @Test
+    fun recoverWith_canAlsoFail() {
+        val result: Result<String> = failure("primary failed")
+        val recovered = result.recoverWith { error ->
+            failure("recovery also failed: $error")
+        }
+
+        assertIs<Result.Failure>(recovered)
+        assertEquals("recovery also failed: primary failed", recovered.error)
+    }
+
+    @Test
+    fun recoverWith_preservesLoading() {
+        val result: Result<String> = Result.Loading
+        val recovered = result.recoverWith { success("fallback") }
+
+        assertIs<Result.Loading>(recovered)
+    }
+
+    // ========================================================================
+    // TESTS: T?.toResult
+    // ========================================================================
+
+    @Test
+    fun toResult_convertsNonNullToSuccess() {
+        val value: String? = "test value"
+        val result = value.toResult("Value is null")
+
+        assertIs<Result.Success<String>>(result)
+        assertEquals("test value", result.data)
+    }
+
+    @Test
+    fun toResult_convertsNullToFailure() {
+        val value: String? = null
+        val result = value.toResult("Value is null")
+
+        assertIs<Result.Failure>(result)
+        assertEquals("Value is null", result.error)
+    }
+
+    @Test
+    fun toResult_worksWithDifferentTypes() {
+        val intValue: Int? = 42
+        val result = intValue.toResult("No value")
+
+        assertIs<Result.Success<Int>>(result)
+        assertEquals(42, result.data)
+    }
+
+    @Test
+    fun toResult_usesCustomErrorMessage() {
+        val value: String? = null
+        val result = value.toResult("Custom error message")
+
+        assertIs<Result.Failure>(result)
+        assertEquals("Custom error message", result.error)
+    }
+
+    // ========================================================================
+    // TESTS: T?.toResultOrElse
+    // ========================================================================
+
+    @Test
+    fun toResultOrElse_convertsNonNullToSuccess() {
+        val value: String? = "test"
+        val result = value.toResultOrElse { "Error message" }
+
+        assertIs<Result.Success<String>>(result)
+        assertEquals("test", result.data)
+    }
+
+    @Test
+    fun toResultOrElse_lazilyEvaluatesError() {
+        val value: String? = "test"
+        var errorCalled = false
+
+        val result = value.toResultOrElse {
+            errorCalled = true
+            "Error"
+        }
+
+        assertIs<Result.Success<String>>(result)
+        assertEquals(false, errorCalled)
+    }
+
+    @Test
+    fun toResultOrElse_evaluatesErrorOnNull() {
+        val value: String? = null
+        var errorCalled = false
+
+        val result = value.toResultOrElse {
+            errorCalled = true
+            "Value was null"
+        }
+
+        assertIs<Result.Failure>(result)
+        assertEquals(true, errorCalled)
+        assertEquals("Value was null", result.error)
+    }
+
+    // ========================================================================
+    // TESTS: flatten
+    // ========================================================================
+
+    @Test
+    fun flatten_flattensNestedSuccess() {
+        val nested: Result<Result<Int>> = success(success(42))
+        val flattened = nested.flatten()
+
+        assertIs<Result.Success<Int>>(flattened)
+        assertEquals(42, flattened.data)
+    }
+
+    @Test
+    fun flatten_preservesOuterFailure() {
+        val nested: Result<Result<Int>> = failure("outer error")
+        val flattened = nested.flatten()
+
+        assertIs<Result.Failure>(flattened)
+        assertEquals("outer error", flattened.error)
+    }
+
+    @Test
+    fun flatten_flattensInnerFailure() {
+        val nested: Result<Result<Int>> = success(failure("inner error"))
+        val flattened = nested.flatten()
+
+        assertIs<Result.Failure>(flattened)
+        assertEquals("inner error", flattened.error)
+    }
+
+    @Test
+    fun flatten_preservesLoading() {
+        val nested: Result<Result<Int>> = Result.Loading
+        val flattened = nested.flatten()
+
+        assertIs<Result.Loading>(flattened)
+    }
+
+    // ========================================================================
+    // TESTS: Integration with new extensions
+    // ========================================================================
+
+    @Test
+    fun integration_recoverWithFallbackChain() {
+        val primary: Result<String> = failure("primary failed")
+        val secondary: Result<String> = failure("secondary failed")
+
+        val result = primary
+            .recoverWith { secondary }
+            .recover { "final fallback" }
+
+        assertIs<Result.Success<String>>(result)
+        assertEquals("final fallback", result.data)
+    }
+
+    @Test
+    fun integration_nullableToResultChain() {
+        val user: String? = null
+        val result = user.toResult("User not found")
+            .recover { "Guest User" }
+
+        assertIs<Result.Success<String>>(result)
+        assertEquals("Guest User", result.data)
+    }
+
+    @Test
+    fun integration_flattenWithRecover() {
+        val nested: Result<Result<Int>> = success(failure("inner error"))
+        val result = nested.flatten()
+            .recover { 0 }
+
+        assertIs<Result.Success<Int>>(result)
+        assertEquals(0, result.data)
+    }
 }
