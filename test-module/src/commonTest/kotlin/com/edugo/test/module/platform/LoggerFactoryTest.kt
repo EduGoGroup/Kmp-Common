@@ -12,13 +12,13 @@ class LoggerFactoryTest {
 
     @Test
     fun testFactoryMethodWithTag() {
-        val logger = Logger.withTag("EduGo.Auth")
+        val logger = DefaultLogger.withTag("EduGo.Auth")
         assertEquals("EduGo.Auth", logger.tag)
     }
 
     @Test
     fun testFactoryMethodFromClass() {
-        val logger = Logger.fromClass(LoggerFactoryTest::class)
+        val logger = DefaultLogger.fromClass(LoggerFactoryTest::class)
         assertNotNull(logger.tag)
         assertTrue(logger.tag.contains("LoggerFactoryTest"))
     }
@@ -26,7 +26,7 @@ class LoggerFactoryTest {
     @Test
     fun testRealWorldUseCaseAuthModule() {
         // Simula uso real en módulo de autenticación
-        val authLogger = Logger.withTag("EduGo.Auth")
+        val authLogger = DefaultLogger.withTag("EduGo.Auth")
         val loginLogger = authLogger.withChild("Login")
         val oauthLogger = loginLogger.withChild("OAuth")
 
@@ -38,7 +38,7 @@ class LoggerFactoryTest {
     @Test
     fun testRealWorldUseCaseNetworkModule() {
         // Simula uso real en módulo de red
-        val networkLogger = Logger.withTag("EduGo.Network")
+        val networkLogger = DefaultLogger.withTag("EduGo.Network")
         val httpLogger = networkLogger.withChild("HTTP")
         val wsLogger = networkLogger.withChild("WebSocket")
 
@@ -50,7 +50,7 @@ class LoggerFactoryTest {
     @Test
     fun testRealWorldUseCaseDataModule() {
         // Simula uso real en módulo de datos
-        val dataLogger = Logger.withTag("EduGo.Data")
+        val dataLogger = DefaultLogger.withTag("EduGo.Data")
         val repositoryLogger = dataLogger.withChild("Repository")
         val cacheLogger = dataLogger.withChild("Cache")
 
@@ -61,8 +61,8 @@ class LoggerFactoryTest {
 
     @Test
     fun testFactoryReturnsConsistentInstances() {
-        val logger1 = Logger.withTag("EduGo.Test")
-        val logger2 = Logger.withTag("EduGo.Test")
+        val logger1 = DefaultLogger.withTag("EduGo.Test")
+        val logger2 = DefaultLogger.withTag("EduGo.Test")
 
         // Should return same cached instance
         assertTrue(logger1 === logger2)
@@ -70,13 +70,13 @@ class LoggerFactoryTest {
 
     @Test
     fun testFactoryWithMultipleLevels() {
-        val logger = Logger.withTag("EduGo.Module.Feature.Component")
+        val logger = DefaultLogger.withTag("EduGo.Module.Feature.Component")
         assertEquals("EduGo.Module.Feature.Component", logger.tag)
     }
 
     @Test
     fun testFactoryWithComplexHierarchy() {
-        val root = Logger.withTag("EduGo")
+        val root = DefaultLogger.withTag("EduGo")
         val l1 = root.withChild("Auth")
         val l2 = l1.withChild("Login")
         val l3 = l2.withChild("OAuth")
@@ -89,10 +89,10 @@ class LoggerFactoryTest {
     fun testMultipleModulesCoexist() {
         LoggerCacheUtils.clearCache()
 
-        val auth = Logger.withTag("EduGo.Auth")
-        val network = Logger.withTag("EduGo.Network")
-        val data = Logger.withTag("EduGo.Data")
-        val ui = Logger.withTag("EduGo.UI")
+        val auth = DefaultLogger.withTag("EduGo.Auth")
+        val network = DefaultLogger.withTag("EduGo.Network")
+        val data = DefaultLogger.withTag("EduGo.Data")
+        val ui = DefaultLogger.withTag("EduGo.UI")
 
         assertEquals(4, LoggerCacheUtils.getCacheSize())
         assertTrue(LoggerCacheUtils.isTagCached("EduGo.Auth"))
@@ -107,9 +107,9 @@ class LoggerFactoryTest {
         class NetworkClient
         class CacheManager
 
-        val logger1 = Logger.fromClass(UserRepository::class)
-        val logger2 = Logger.fromClass(NetworkClient::class)
-        val logger3 = Logger.fromClass(CacheManager::class)
+        val logger1 = DefaultLogger.fromClass(UserRepository::class)
+        val logger2 = DefaultLogger.fromClass(NetworkClient::class)
+        val logger3 = DefaultLogger.fromClass(CacheManager::class)
 
         assertTrue(logger1.tag.contains("UserRepository"))
         assertTrue(logger2.tag.contains("NetworkClient"))

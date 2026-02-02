@@ -6,6 +6,17 @@ package com.edugo.test.module.platform
  * Provides a unified logging API that delegates to platform-specific
  * logging mechanisms while maintaining consistent behavior across targets.
  *
+ * ## BREAKING CHANGE (v2.0)
+ * This interface replaces the previous `expect object Logger`. Migration guide:
+ * ```kotlin
+ * // OLD (v1.x):
+ * Logger.debug("Tag", "message")
+ *
+ * // NEW (v2.0):
+ * val logger = createDefaultLogger()
+ * logger.d("Tag", "message")
+ * ```
+ *
  * ## Platform-specific implementations:
  *
  * ### Android:
@@ -22,7 +33,7 @@ package com.edugo.test.module.platform
  * - Logs appear in Xcode console
  *
  * ### JS:
- * - Uses `console.log`, `console.info`, `console.error`
+ * - Uses `console.log`, `console.info`, `console.warn`, `console.error`
  * - Logs appear in browser/Node.js console
  *
  * ## Tag naming conventions:
@@ -30,9 +41,14 @@ package com.edugo.test.module.platform
  * - Keep it concise (max 23 chars on Android)
  * - Use PascalCase for consistency
  *
+ * @see createDefaultLogger
+ * @see TaggedLogger
  * @see [Android Logging Best Practices](https://developer.android.com/studio/debug/am-logcat)
  */
-expect object Logger {
+interface Logger {
+
+    // ==================== DEBUG ====================
+
     /**
      * Logs a debug message.
      *
@@ -41,24 +57,46 @@ expect object Logger {
      * - Verbose diagnostics
      * - Flow tracing
      *
-     * **⚠️ Note**: Debug logs are typically stripped in release builds.
-     * Don't rely on debug logs being available in production.
+     * **Note**: Debug logs are typically stripped in release builds.
      *
      * @param tag Identifier for the log source (usually class name)
      * @param message The message to log
      *
      * Example:
      * ```kotlin
-     * Logger.debug("NetworkClient", "Sending GET request to /api/users")
-     * Logger.debug("UserRepository", "Cache hit for user ID: 123")
+     * logger.d("NetworkClient", "Sending GET request to /api/users")
      * ```
-     *
-     * **Platform output:**
-     * - Android: `Log.d(tag, message)`
-     * - iOS: `os_log(.debug, "%{public}s: %{public}s", tag, message)`
-     * - JVM: `println("[DEBUG] $tag: $message")`
      */
-    fun debug(tag: String, message: String)
+    fun d(tag: String, message: String)
+
+    /**
+     * Logs a debug message with lazy evaluation.
+     *
+     * The message lambda is only evaluated if debug logging is enabled,
+     * avoiding string concatenation overhead in production.
+     *
+     * @param tag Identifier for the log source
+     * @param message Lambda that produces the message (evaluated lazily)
+     *
+     * Example:
+     * ```kotlin
+     * logger.d("Cache") { "Stored ${items.size} items in ${duration}ms" }
+     * ```
+     */
+    fun d(tag: String, message: () -> String) {
+        d(tag, message())
+    }
+
+    /**
+     * Logs a debug message with throwable.
+     *
+     * @param tag Identifier for the log source
+     * @param message The message to log
+     * @param throwable The exception to log
+     */
+    fun d(tag: String, message: String, throwable: Throwable)
+
+    // ==================== INFO ====================
 
     /**
      * Logs an informational message.
@@ -68,68 +106,211 @@ expect object Logger {
      * - Application lifecycle events
      * - Successful operations
      *
-     * **Characteristics:**
-     * - Visible in production builds (if enabled)
-     * - Lower volume than debug logs
-     * - Important for monitoring app behavior
+     * @param tag Identifier for the log source (usually class name)
+     * @param message The message to log
+     *
+     * Example:
+     * ```kotlin
+     * logger.i("AuthManager", "User logged in successfully")
+     * ```
+     */
+    fun i(tag: String, message: String)
+
+    /**
+     * Logs an informational message with lazy evaluation.
+     *
+     * @param tag Identifier for the log source
+     * @param message Lambda that produces the message (evaluated lazily)
+     */
+    fun i(tag: String, message: () -> String) {
+        i(tag, message())
+    }
+
+    /**
+     * Logs an informational message with throwable.
+     *
+     * @param tag Identifier for the log source
+     * @param message The message to log
+     * @param throwable The exception to log
+     */
+    fun i(tag: String, message: String, throwable: Throwable)
+
+    // ==================== WARNING ====================
+
+    /**
+     * Logs a warning message.
+     *
+     * **Use for:**
+     * - Potentially harmful situations
+     * - Deprecated API usage
+     * - Recoverable issues
      *
      * @param tag Identifier for the log source (usually class name)
      * @param message The message to log
      *
      * Example:
      * ```kotlin
-     * Logger.info("AuthManager", "User logged in successfully")
-     * Logger.info("AppDelegate", "Application entered foreground")
+     * logger.w("ConfigLoader", "Config file not found, using defaults")
      * ```
-     *
-     * **Platform output:**
-     * - Android: `Log.i(tag, message)`
-     * - iOS: `os_log(.info, "%{public}s: %{public}s", tag, message)`
-     * - JVM: `println("[INFO] $tag: $message")`
      */
-    fun info(tag: String, message: String)
+    fun w(tag: String, message: String)
 
     /**
-     * Logs an error message with optional exception.
+     * Logs a warning message with lazy evaluation.
+     *
+     * @param tag Identifier for the log source
+     * @param message Lambda that produces the message (evaluated lazily)
+     */
+    fun w(tag: String, message: () -> String) {
+        w(tag, message())
+    }
+
+    /**
+     * Logs a warning message with throwable.
+     *
+     * @param tag Identifier for the log source
+     * @param message The message to log
+     * @param throwable The exception to log
+     */
+    fun w(tag: String, message: String, throwable: Throwable)
+
+    // ==================== ERROR ====================
+
+    /**
+     * Logs an error message.
      *
      * **Use for:**
      * - Unexpected errors
-     * - Exception handling
      * - Failed operations
      * - Critical issues
      *
-     * **Characteristics:**
-     * - Always visible in production
-     * - Includes stack trace if throwable provided
-     * - Should be monitored in production
-     *
      * @param tag Identifier for the log source (usually class name)
      * @param message The error message to log
-     * @param throwable Optional exception/error to include with stack trace.
-     *                  Default is `null`. When provided, the full exception details
-     *                  and stack trace are logged to aid in debugging.
      *
      * Example:
      * ```kotlin
-     * // Simple error message
-     * Logger.error("NetworkClient", "Failed to connect to server")
+     * logger.e("NetworkClient", "Failed to connect to server")
+     * ```
+     */
+    fun e(tag: String, message: String)
+
+    /**
+     * Logs an error message with lazy evaluation.
      *
-     * // Error with exception
+     * @param tag Identifier for the log source
+     * @param message Lambda that produces the message (evaluated lazily)
+     */
+    fun e(tag: String, message: () -> String) {
+        e(tag, message())
+    }
+
+    /**
+     * Logs an error message with throwable.
+     *
+     * **Use for:**
+     * - Exception handling
+     * - Failures with stack traces
+     *
+     * @param tag Identifier for the log source
+     * @param message The error message to log
+     * @param throwable The exception to log with stack trace
+     *
+     * Example:
+     * ```kotlin
      * try {
      *     riskyOperation()
      * } catch (e: Exception) {
-     *     Logger.error("UserRepository", "Failed to save user", e)
+     *     logger.e("UserRepository", "Failed to save user", e)
      * }
      * ```
-     *
-     * **Platform output:**
-     * - Android: `Log.e(tag, message, throwable)`
-     * - iOS: `os_log(.error, "%{public}s: %{public}s", tag, message)` + stack trace
-     * - JVM: `println("[ERROR] $tag: $message")` + `throwable.printStackTrace()`
-     *
-     * **Note on default parameter**: The `throwable = null` default is handled at
-     * the call site. Actual implementations receive an explicit null value when
-     * the parameter is omitted.
      */
-    fun error(tag: String, message: String, throwable: Throwable? = null)
+    fun e(tag: String, message: String, throwable: Throwable)
+
+    // ==================== LEGACY COMPATIBILITY ====================
+
+    /**
+     * Logs a debug message (legacy compatibility).
+     *
+     * @deprecated Use [d] instead. Will be removed in v3.0.
+     */
+    @Deprecated("Use d() instead", ReplaceWith("d(tag, message)"))
+    fun debug(tag: String, message: String) = d(tag, message)
+
+    /**
+     * Logs an informational message (legacy compatibility).
+     *
+     * @deprecated Use [i] instead. Will be removed in v3.0.
+     */
+    @Deprecated("Use i() instead", ReplaceWith("i(tag, message)"))
+    fun info(tag: String, message: String) = i(tag, message)
+
+    /**
+     * Logs an error message with optional throwable (legacy compatibility).
+     *
+     * @deprecated Use [e] instead. Will be removed in v3.0.
+     */
+    @Deprecated("Use e() instead", ReplaceWith("e(tag, message)"))
+    fun error(tag: String, message: String, throwable: Throwable? = null) {
+        if (throwable != null) {
+            e(tag, message, throwable)
+        } else {
+            e(tag, message)
+        }
+    }
+}
+
+/**
+ * Creates the default platform-specific Logger instance.
+ *
+ * This is the recommended way to obtain a Logger instance. Each platform
+ * provides its own implementation:
+ * - Android: Uses android.util.Log
+ * - JVM/Desktop: Uses println with formatting
+ * - iOS: Uses os_log (future)
+ * - JS: Uses console (future)
+ *
+ * ## Usage:
+ * ```kotlin
+ * // In common code
+ * val logger = createDefaultLogger()
+ * logger.d("MyClass", "Debug message")
+ *
+ * // Or use with TaggedLogger
+ * val taggedLogger = createDefaultLogger().withTag("MyClass")
+ * taggedLogger.d("Debug message")
+ * ```
+ *
+ * @return Platform-specific Logger implementation
+ * @see Logger
+ * @see TaggedLogger
+ */
+expect fun createDefaultLogger(): Logger
+
+/**
+ * Global default logger instance for convenience.
+ *
+ * This is a lazily-initialized singleton that uses [createDefaultLogger].
+ * Use this when you don't need dependency injection or custom logger instances.
+ *
+ * ## Usage:
+ * ```kotlin
+ * DefaultLogger.d("QuickLog", "Simple debug message")
+ * ```
+ *
+ * For production code, prefer injecting Logger instances for better testability.
+ */
+object DefaultLogger : Logger {
+    private val delegate: Logger by lazy { createDefaultLogger() }
+
+    override fun d(tag: String, message: String) = delegate.d(tag, message)
+    override fun d(tag: String, message: String, throwable: Throwable) = delegate.d(tag, message, throwable)
+
+    override fun i(tag: String, message: String) = delegate.i(tag, message)
+    override fun i(tag: String, message: String, throwable: Throwable) = delegate.i(tag, message, throwable)
+
+    override fun w(tag: String, message: String) = delegate.w(tag, message)
+    override fun w(tag: String, message: String, throwable: Throwable) = delegate.w(tag, message, throwable)
+
+    override fun e(tag: String, message: String) = delegate.e(tag, message)
+    override fun e(tag: String, message: String, throwable: Throwable) = delegate.e(tag, message, throwable)
 }

@@ -1,25 +1,33 @@
 package com.edugo.test.module.platform
 
+import com.edugo.test.module.core.AppError
+import com.edugo.test.module.core.Result
 import kotlin.reflect.KClass
 
 /**
- * Extension functions for the Logger object to create tagged loggers.
+ * Extension functions for the Logger interface to create tagged loggers
+ * and convenient logging utilities.
  *
- * Provides convenient factory methods for creating TaggedLogger instances
- * with hierarchical tag support.
+ * Provides factory methods for creating TaggedLogger instances
+ * with hierarchical tag support, plus extensions for Result and AppError logging.
  *
  * ## Usage:
  * ```kotlin
  * // Create from tag string
- * val logger = Logger.withTag("EduGo.Auth")
+ * val logger = DefaultLogger.withTag("EduGo.Auth")
  *
  * // Create from class
  * class UserRepository {
- *     private val logger = Logger.fromClass(this::class)
+ *     private val logger = DefaultLogger.fromClass(this::class)
  * }
  *
- * // Create inline
- * Logger.withTag("EduGo.Network").info("Request sent")
+ * // Log Result failures
+ * val result: Result<User> = fetchUser()
+ * result.logOnFailure("UserRepo", DefaultLogger)
+ *
+ * // Log AppError
+ * val error = AppError.notFound("User not found")
+ * error.log("UserRepo", DefaultLogger)
  * ```
  *
  * @see TaggedLogger
@@ -37,15 +45,15 @@ import kotlin.reflect.KClass
  *
  * Example:
  * ```kotlin
- * val authLogger = Logger.withTag("EduGo.Auth")
- * authLogger.info("Authentication started")
+ * val authLogger = DefaultLogger.withTag("EduGo.Auth")
+ * authLogger.i("Authentication started")
  *
- * val loginLogger = Logger.withTag("EduGo.Auth.Login")
- * loginLogger.debug("Login form displayed")
+ * val loginLogger = DefaultLogger.withTag("EduGo.Auth.Login")
+ * loginLogger.d("Login form displayed")
  * ```
  */
 fun Logger.withTag(tag: String): TaggedLogger {
-    return LoggerCache.getOrCreate(tag)
+    return LoggerCache.getOrCreate(tag, this)
 }
 
 /**
@@ -57,17 +65,214 @@ fun Logger.withTag(tag: String): TaggedLogger {
  * Example:
  * ```kotlin
  * class UserRepository {
- *     private val logger = Logger.fromClass(this::class)
+ *     private val logger = DefaultLogger.fromClass(this::class)
  *     // logger.tag == "com.edugo.UserRepository"
  * }
  *
  * // Or statically
- * val logger = Logger.fromClass(UserRepository::class)
+ * val logger = DefaultLogger.fromClass(UserRepository::class)
  * ```
  */
 fun Logger.fromClass(clazz: KClass<*>): TaggedLogger {
-    return TaggedLogger.fromClass(clazz)
+    return TaggedLogger.fromClass(clazz, this)
 }
+
+// ==================== Result Extensions ====================
+
+/**
+ * Logs the failure if this Result is a Failure, then returns the original Result.
+ *
+ * This is useful for chaining with other operations while ensuring failures are logged.
+ * The Result is returned unchanged, allowing for method chaining.
+ *
+ * @param tag The log tag to use
+ * @param logger The Logger instance to use (defaults to DefaultLogger)
+ * @return This Result unchanged
+ *
+ * Example:
+ * ```kotlin
+ * val result = fetchUser()
+ *     .logOnFailure("UserRepo")
+ *     .map { it.name }
+ *
+ * // Or with custom logger
+ * val result = fetchUser()
+ *     .logOnFailure("UserRepo", myLogger)
+ *     .getOrNull()
+ * ```
+ */
+inline fun <T> Result<T>.logOnFailure(
+    tag: String,
+    logger: Logger = DefaultLogger
+): Result<T> {
+    if (this is Result.Failure) {
+        logger.e(tag, "Operation failed: $error")
+    }
+    return this
+}
+
+/**
+ * Logs the failure with a custom message prefix if this Result is a Failure.
+ *
+ * @param tag The log tag to use
+ * @param messagePrefix Custom prefix for the error message
+ * @param logger The Logger instance to use (defaults to DefaultLogger)
+ * @return This Result unchanged
+ *
+ * Example:
+ * ```kotlin
+ * val result = fetchUser()
+ *     .logOnFailure("UserRepo", "Failed to fetch user")
+ *     .getOrNull()
+ * ```
+ */
+inline fun <T> Result<T>.logOnFailure(
+    tag: String,
+    messagePrefix: String,
+    logger: Logger = DefaultLogger
+): Result<T> {
+    if (this is Result.Failure) {
+        logger.e(tag, "$messagePrefix: $error")
+    }
+    return this
+}
+
+/**
+ * Logs the success if this Result is a Success, then returns the original Result.
+ *
+ * Useful for debugging successful operations in the pipeline.
+ *
+ * @param tag The log tag to use
+ * @param logger The Logger instance to use (defaults to DefaultLogger)
+ * @param message Lambda that produces the success message from the data
+ * @return This Result unchanged
+ *
+ * Example:
+ * ```kotlin
+ * val result = fetchUser()
+ *     .logOnSuccess("UserRepo") { user -> "Fetched user: ${user.name}" }
+ *     .map { it.name }
+ * ```
+ */
+inline fun <T> Result<T>.logOnSuccess(
+    tag: String,
+    logger: Logger = DefaultLogger,
+    message: (T) -> String
+): Result<T> {
+    if (this is Result.Success) {
+        logger.d(tag, message(data))
+    }
+    return this
+}
+
+// ==================== AppError Extensions ====================
+
+/**
+ * Logs this AppError with appropriate severity based on the error code.
+ *
+ * - Network errors and retryable errors are logged at WARNING level
+ * - All other errors are logged at ERROR level
+ * - Includes the cause throwable if present
+ *
+ * @param tag The log tag to use
+ * @param logger The Logger instance to use (defaults to DefaultLogger)
+ *
+ * Example:
+ * ```kotlin
+ * try {
+ *     performOperation()
+ * } catch (e: Exception) {
+ *     val error = AppError.fromException(e)
+ *     error.log("MyClass", myLogger)
+ * }
+ * ```
+ */
+fun AppError.log(tag: String, logger: Logger = DefaultLogger) {
+    val formattedMessage = buildString {
+        append("[${code.name}] $message")
+        if (details.isNotEmpty()) {
+            append(" | details: ")
+            append(details.entries.take(5).joinToString(", ") { "${it.key}=${it.value}" })
+            if (details.size > 5) {
+                append(", ... (+${details.size - 5} more)")
+            }
+        }
+    }
+
+    when {
+        isRetryable() || code.isNetworkError() -> {
+            if (cause != null) {
+                logger.w(tag, formattedMessage, cause)
+            } else {
+                logger.w(tag, formattedMessage)
+            }
+        }
+        else -> {
+            if (cause != null) {
+                logger.e(tag, formattedMessage, cause)
+            } else {
+                logger.e(tag, formattedMessage)
+            }
+        }
+    }
+}
+
+/**
+ * Logs this AppError at DEBUG level (for non-critical errors).
+ *
+ * @param tag The log tag to use
+ * @param logger The Logger instance to use (defaults to DefaultLogger)
+ */
+fun AppError.logDebug(tag: String, logger: Logger = DefaultLogger) {
+    val formattedMessage = "[${code.name}] $message"
+    if (cause != null) {
+        logger.d(tag, formattedMessage, cause)
+    } else {
+        logger.d(tag, formattedMessage)
+    }
+}
+
+/**
+ * Logs this AppError at INFO level.
+ *
+ * @param tag The log tag to use
+ * @param logger The Logger instance to use (defaults to DefaultLogger)
+ */
+fun AppError.logInfo(tag: String, logger: Logger = DefaultLogger) {
+    val formattedMessage = "[${code.name}] $message"
+    if (cause != null) {
+        logger.i(tag, formattedMessage, cause)
+    } else {
+        logger.i(tag, formattedMessage)
+    }
+}
+
+/**
+ * Logs this AppError at WARNING level.
+ *
+ * @param tag The log tag to use
+ * @param logger The Logger instance to use (defaults to DefaultLogger)
+ */
+fun AppError.logWarning(tag: String, logger: Logger = DefaultLogger) {
+    val formattedMessage = "[${code.name}] $message"
+    if (cause != null) {
+        logger.w(tag, formattedMessage, cause)
+    } else {
+        logger.w(tag, formattedMessage)
+    }
+}
+
+/**
+ * Logs this AppError at ERROR level with full details.
+ *
+ * @param tag The log tag to use
+ * @param logger The Logger instance to use (defaults to DefaultLogger)
+ */
+fun AppError.logError(tag: String, logger: Logger = DefaultLogger) {
+    log(tag, logger)
+}
+
+// ==================== LoggerCache ====================
 
 /**
  * Thread-safe cache of TaggedLogger instances.
@@ -117,6 +322,7 @@ internal object LoggerCache {
      * if tag is invalid.
      *
      * @param tag The hierarchical tag (must be valid)
+     * @param logger The Logger implementation to use (defaults to DefaultLogger)
      * @return Cached or new TaggedLogger instance
      * @throws IllegalArgumentException if tag is invalid
      *
@@ -126,10 +332,10 @@ internal object LoggerCache {
      * val invalid = LoggerCache.getOrCreate("")            // Throws
      * ```
      */
-    fun getOrCreate(tag: String): TaggedLogger {
+    fun getOrCreate(tag: String, logger: Logger = DefaultLogger): TaggedLogger {
         synchronized(lock) {
             return cache.getOrPut(tag) {
-                TaggedLogger(tag)  // Constructor validates tag
+                TaggedLogger(tag, logger)  // Constructor validates tag
             }
         }
     }

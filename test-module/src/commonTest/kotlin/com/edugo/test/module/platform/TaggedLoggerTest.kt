@@ -64,8 +64,8 @@ class TaggedLoggerTest {
     fun testLoggerCache() {
         LoggerCacheUtils.clearCache()
 
-        val logger1 = Logger.withTag("EduGo.Auth")
-        val logger2 = Logger.withTag("EduGo.Auth")
+        val logger1 = DefaultLogger.withTag("EduGo.Auth")
+        val logger2 = DefaultLogger.withTag("EduGo.Auth")
 
         // Same instance should be returned
         assertTrue(logger1 === logger2, "Same tag should return cached instance")
@@ -76,9 +76,9 @@ class TaggedLoggerTest {
     fun testLoggerCacheMultipleTags() {
         LoggerCacheUtils.clearCache()
 
-        val logger1 = Logger.withTag("EduGo.Auth")
-        val logger2 = Logger.withTag("EduGo.Network")
-        val logger3 = Logger.withTag("EduGo.Auth") // Same as logger1
+        val logger1 = DefaultLogger.withTag("EduGo.Auth")
+        val logger2 = DefaultLogger.withTag("EduGo.Network")
+        val logger3 = DefaultLogger.withTag("EduGo.Auth") // Same as logger1
 
         assertTrue(logger1 === logger3, "Same tag should return same cached instance")
         assertFalse(logger1 === logger2, "Different tags should return different instances")
@@ -91,7 +91,7 @@ class TaggedLoggerTest {
 
     @Test
     fun testLoggerExtensions() {
-        val logger = Logger.withTag("EduGo.Test")
+        val logger = DefaultLogger.withTag("EduGo.Test")
         assertEquals("EduGo.Test", logger.tag, "Extension should create logger with correct tag")
     }
 
@@ -175,7 +175,7 @@ class TaggedLoggerTest {
         coroutineScope {
             repeat(100) {
                 launch {
-                    val logger = Logger.withTag(tag)
+                    val logger = DefaultLogger.withTag(tag)
                     mutex.withLock {
                         results.add(logger)
                     }
@@ -213,7 +213,7 @@ class TaggedLoggerTest {
             tags.forEach { tag ->
                 repeat(20) {
                     launch {
-                        val logger = Logger.withTag(tag)
+                        val logger = DefaultLogger.withTag(tag)
                         mutex.withLock {
                             results[tag]?.add(logger)
                         }
@@ -277,7 +277,7 @@ class TaggedLoggerTest {
         LoggerCacheUtils.clearCache()
 
         // Add a logger to cache
-        val logger = Logger.withTag("EduGo.Test")
+        val logger = DefaultLogger.withTag("EduGo.Test")
         assertEquals(1, LoggerCacheUtils.getCacheSize(), "Cache should have one entry")
 
         // Remove it
@@ -292,7 +292,7 @@ class TaggedLoggerTest {
         LoggerCacheUtils.clearCache()
 
         val tag = "EduGo.Test.Tag"
-        Logger.withTag(tag)
+        DefaultLogger.withTag(tag)
 
         assertTrue(LoggerCacheUtils.isTagCached(tag), "Tag should be cached after creation")
 
@@ -313,9 +313,9 @@ class TaggedLoggerTest {
     fun testGetAllCachedTagsMultiple() {
         LoggerCacheUtils.clearCache()
 
-        Logger.withTag("Tag1")
-        Logger.withTag("Tag2")
-        Logger.withTag("Tag3")
+        DefaultLogger.withTag("Tag1")
+        DefaultLogger.withTag("Tag2")
+        DefaultLogger.withTag("Tag3")
 
         val tags = LoggerCacheUtils.getAllCachedTags()
         assertEquals(3, tags.size, "Should return all three tags")
@@ -328,9 +328,9 @@ class TaggedLoggerTest {
     fun testRemoveFromCacheDoesNotAffectOthers() {
         LoggerCacheUtils.clearCache()
 
-        Logger.withTag("Tag1")
-        Logger.withTag("Tag2")
-        Logger.withTag("Tag3")
+        DefaultLogger.withTag("Tag1")
+        DefaultLogger.withTag("Tag2")
+        DefaultLogger.withTag("Tag3")
 
         LoggerCacheUtils.removeFromCache("Tag2")
 
