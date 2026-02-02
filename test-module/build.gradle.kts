@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 EduGo Project
+ * Licensed under the MIT License
+ */
+
 plugins {
     id("kmp.android")
     id("kover")
@@ -16,21 +21,25 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                // Dependencias de prueba
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+                // DateTime utilities
+                implementation(libs.kotlinx.datetime)
 
                 // Serialization
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+                implementation(libs.kotlinx.serialization.core)
+                implementation(libs.kotlinx.serialization.json)
 
-                // Logging - Kermit 2.0.4
+                // Logging
                 implementation(libs.kermit)
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+                // Coroutines test utilities
+                implementation(libs.kotlinx.coroutines.test)
             }
         }
     }
 }
+
+// Configure explicit API mode for library projects
+kotlin.explicitApi()
