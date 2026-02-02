@@ -17,7 +17,7 @@ class AppErrorTest {
         val error = AppError(
             code = ErrorCode.VALIDATION_INVALID_INPUT,
             message = "Test error",
-            inputDetails = mapOf("field" to "email"),
+            details = mapOf("field" to "email"),
             cause = IllegalArgumentException("Invalid email")
         )
 
@@ -87,10 +87,10 @@ class AppErrorTest {
         val error = AppError.fromException(
             exception = exception,
             code = ErrorCode.SYSTEM_INTERNAL_ERROR,
-            inputDetails = mapOf("endpoint" to "/api/users", "status" to 500)
+            details = mapOf("endpoint" to "/api/users", "status" to "500")
         )
 
-        assertEquals(mapOf("endpoint" to "/api/users", "status" to 500), error.details)
+        assertEquals(mapOf("endpoint" to "/api/users", "status" to "500"), error.details)
     }
 
     @Test
@@ -141,10 +141,10 @@ class AppErrorTest {
         val error = AppError.fromCode(
             code = ErrorCode.BUSINESS_RESOURCE_CONFLICT,
             customMessage = "Resource already exists",
-            inputDetails = mapOf("resourceId" to 456)
+            details = mapOf("resourceId" to "456")
         )
 
-        assertEquals(mapOf("resourceId" to 456), error.details)
+        assertEquals(mapOf("resourceId" to "456"), error.details)
     }
 
     // validation tests
@@ -175,11 +175,11 @@ class AppErrorTest {
         val error = AppError.validation(
             message = "Value out of range",
             field = "age",
-            inputDetails = mapOf("min" to 18, "max" to 120, "actual" to 150)
+            details = mapOf("min" to "18", "max" to "120", "actual" to "150")
         )
 
         assertEquals(
-            mapOf("field" to "age", "min" to 18, "max" to 120, "actual" to 150),
+            mapOf("field" to "age", "min" to "18", "max" to "120", "actual" to "150"),
             error.details
         )
     }
@@ -188,10 +188,10 @@ class AppErrorTest {
     fun validation_worksWithoutField() {
         val error = AppError.validation(
             message = "General validation error",
-            inputDetails = mapOf("errors" to 5)
+            details = mapOf("errors" to "5")
         )
 
-        assertEquals(mapOf("errors" to 5), error.details)
+        assertEquals(mapOf("errors" to "5"), error.details)
     }
 
     // network tests
@@ -210,10 +210,10 @@ class AppErrorTest {
         val exception = RuntimeException("Timeout")
         val error = AppError.network(
             cause = exception,
-            inputDetails = mapOf("url" to "https://api.example.com", "timeout" to 30)
+            details = mapOf("url" to "https://api.example.com", "timeout" to "30")
         )
 
-        assertEquals(mapOf("url" to "https://api.example.com", "timeout" to 30), error.details)
+        assertEquals(mapOf("url" to "https://api.example.com", "timeout" to "30"), error.details)
     }
 
     // timeout tests
@@ -238,7 +238,7 @@ class AppErrorTest {
     fun timeout_includesDetails() {
         val error = AppError.timeout(
             message = "Operation timed out",
-            inputDetails = mapOf("timeout" to "30s", "operation" to "fetchData")
+            details = mapOf("timeout" to "30s", "operation" to "fetchData")
         )
 
         assertEquals(mapOf("timeout" to "30s", "operation" to "fetchData"), error.details)
@@ -266,10 +266,10 @@ class AppErrorTest {
     fun unauthorized_includesDetails() {
         val error = AppError.unauthorized(
             message = "Invalid credentials",
-            inputDetails = mapOf("loginAttempts" to 3)
+            details = mapOf("loginAttempts" to "3")
         )
 
-        assertEquals(mapOf("loginAttempts" to 3), error.details)
+        assertEquals(mapOf("loginAttempts" to "3"), error.details)
     }
 
     // notFound tests
@@ -294,10 +294,10 @@ class AppErrorTest {
     fun notFound_includesDetails() {
         val error = AppError.notFound(
             message = "Resource not found",
-            inputDetails = mapOf("userId" to 123, "resource" to "User")
+            details = mapOf("userId" to "123", "resource" to "User")
         )
 
-        assertEquals(mapOf("userId" to 123, "resource" to "User"), error.details)
+        assertEquals(mapOf("userId" to "123", "resource" to "User"), error.details)
     }
 
     // serverError tests
@@ -344,7 +344,7 @@ class AppErrorTest {
     fun serverError_includesDetails() {
         val error = AppError.serverError(
             message = "Server error",
-            inputDetails = mapOf("errorId" to "ERR-123")
+            details = mapOf("errorId" to "ERR-123")
         )
 
         assertEquals(mapOf("errorId" to "ERR-123"), error.details)
@@ -471,9 +471,9 @@ class AppErrorTest {
     @Test
     fun withDetails_addsNewDetails() {
         val error = AppError.fromCode(ErrorCode.BUSINESS_RESOURCE_NOT_FOUND)
-        val enriched = error.withDetails("userId" to 123, "resource" to "User")
+        val enriched = error.withDetails("userId" to "123", "resource" to "User")
 
-        assertEquals(mapOf("userId" to 123, "resource" to "User"), enriched.details)
+        assertEquals(mapOf("userId" to "123", "resource" to "User"), enriched.details)
         assertEquals(error.code, enriched.code)
         assertEquals(error.message, enriched.message)
     }
@@ -482,7 +482,7 @@ class AppErrorTest {
     fun withDetails_mergesWithExistingDetails() {
         val error = AppError.fromCode(
             code = ErrorCode.VALIDATION_INVALID_INPUT,
-            inputDetails = mapOf("field" to "email")
+            details = mapOf("field" to "email")
         )
         val enriched = error.withDetails("constraint" to "format", "pattern" to ".*@.*")
 
@@ -496,23 +496,23 @@ class AppErrorTest {
     fun withDetails_overwritesExistingKeys() {
         val error = AppError.fromCode(
             code = ErrorCode.BUSINESS_RESOURCE_CONFLICT,
-            inputDetails = mapOf("resourceId" to 1)
+            details = mapOf("resourceId" to "1")
         )
-        val enriched = error.withDetails("resourceId" to 2, "version" to 1)
+        val enriched = error.withDetails("resourceId" to "2", "version" to "1")
 
-        assertEquals(mapOf("resourceId" to 2, "version" to 1), enriched.details)
+        assertEquals(mapOf("resourceId" to "2", "version" to "1"), enriched.details)
     }
 
     @Test
     fun withDetails_preservesImmutability() {
         val error = AppError.fromCode(
             code = ErrorCode.NETWORK_NO_CONNECTION,
-            inputDetails = mapOf("attempt" to 1)
+            details = mapOf("attempt" to "1")
         )
-        val enriched = error.withDetails("attempt" to 2)
+        val enriched = error.withDetails("attempt" to "2")
 
-        assertEquals(mapOf("attempt" to 1), error.details)
-        assertEquals(mapOf("attempt" to 2), enriched.details)
+        assertEquals(mapOf("attempt" to "1"), error.details)
+        assertEquals(mapOf("attempt" to "2"), enriched.details)
     }
 
     // toUserMessage tests
@@ -585,7 +585,7 @@ class AppErrorTest {
         val error = AppError.fromCode(
             code = ErrorCode.BUSINESS_RESOURCE_NOT_FOUND,
             customMessage = "User not found",
-            inputDetails = mapOf("userId" to 123)
+            details = mapOf("userId" to "123")
         )
         val str = error.toString()
 
@@ -623,7 +623,7 @@ class AppErrorTest {
         val error = AppError(
             code = ErrorCode.VALIDATION_INVALID_INPUT,
             message = "Original message",
-            inputDetails = mapOf("field" to "email")
+            details = mapOf("field" to "email")
         )
 
         val copied = error.copy(message = "Updated message")
@@ -661,7 +661,7 @@ class AppErrorTest {
         val error = AppError(
             code = ErrorCode.SYSTEM_UNKNOWN_ERROR,
             message = "Test",
-            inputDetails = mutableMap
+            details = mutableMap
         )
 
         mutableMap["key"] = "changed"
@@ -677,18 +677,18 @@ class AppErrorTest {
         val error = AppError.fromException(
             exception = originalException,
             code = ErrorCode.VALIDATION_INVALID_INPUT,
-            inputDetails = mapOf("field" to "email")
+            details = mapOf("field" to "email")
         )
 
         val enriched = error.withDetails(
-            "userId" to 123,
-            "attempt" to 1
+            "userId" to "123",
+            "attempt" to "1"
         )
 
         assertEquals(ErrorCode.VALIDATION_INVALID_INPUT, enriched.code)
         assertEquals("Invalid format", enriched.message)
         assertEquals(
-            mapOf("field" to "email", "userId" to 123, "attempt" to 1),
+            mapOf("field" to "email", "userId" to "123", "attempt" to "1"),
             enriched.details
         )
         assertEquals(originalException, enriched.cause)
@@ -706,7 +706,7 @@ class AppErrorTest {
         val error = AppError.fromException(
             exception = top,
             code = ErrorCode.SYSTEM_INTERNAL_ERROR,
-            inputDetails = mapOf("endpoint" to "/api/process")
+            details = mapOf("endpoint" to "/api/process")
         )
 
         assertEquals(root, error.getRootCause())
@@ -723,9 +723,9 @@ class AppErrorTest {
         val errors = listOf(
             AppError.validation("Invalid email", "email"),
             AppError.network(RuntimeException("Connection failed")),
-            AppError.timeout(inputDetails = mapOf("duration" to "30s")),
+            AppError.timeout(details = mapOf("duration" to "30s")),
             AppError.unauthorized("Session expired"),
-            AppError.notFound("User not found", mapOf("userId" to 123)),
+            AppError.notFound("User not found", mapOf("userId" to "123")),
             AppError.serverError(message = "Database error")
         )
 
@@ -774,7 +774,7 @@ class AppErrorTest {
         val mutableInput = mutableMapOf("key1" to "value1")
         val error = AppError.fromCode(
             ErrorCode.VALIDATION_INVALID_INPUT,
-            inputDetails = mutableInput
+            details = mutableInput
         )
 
         // Modificar el mapa original no debe afectar el error

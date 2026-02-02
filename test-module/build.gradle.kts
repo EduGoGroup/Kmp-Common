@@ -1,6 +1,7 @@
 plugins {
     id("kmp.android")
     id("kover")
+    kotlin("plugin.serialization")
 }
 
 android {
@@ -17,6 +18,10 @@ kotlin {
             dependencies {
                 // Dependencias de prueba
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+
+                // Serialization
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 
                 // Logging - Kermit 2.0.4
                 implementation(libs.kermit)

@@ -250,7 +250,7 @@ class LoggerExtensionsTest {
         val error = AppError(
             code = ErrorCode.VALIDATION_INVALID_INPUT,
             message = "Many details",
-            inputDetails = details
+            details = details
         )
 
         error.log("TestTag", mockLogger)

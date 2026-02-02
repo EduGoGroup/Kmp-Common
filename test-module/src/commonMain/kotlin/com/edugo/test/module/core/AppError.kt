@@ -1,7 +1,9 @@
 package com.edugo.test.module.core
 
+import com.edugo.test.module.core.serialization.ThrowableSerializer
 import kotlin.js.JsExport
 import kotlinx.datetime.Clock
+import kotlinx.serialization.Serializable
 
 /**
  * Application-level error representation with comprehensive context and traceability.
@@ -65,21 +67,16 @@ import kotlinx.datetime.Clock
  * @property cause The underlying exception that caused this error, if any
  * @property timestamp When this error was created (milliseconds since epoch)
  */
+@Serializable
 @JsExport
 class AppError(
     val code: ErrorCode,
     val message: String,
-    inputDetails: Map<String, Any?> = emptyMap(),
+    val details: Map<String, String> = emptyMap(),
+    @Serializable(with = ThrowableSerializer::class)
     val cause: Throwable? = null,
     val timestamp: Long = Clock.System.now().toEpochMilliseconds()
 ) {
-    /**
-     * Additional context information as immutable key-value pairs.
-     *
-     * **Performance note:** A defensive copy is created to ensure immutability.
-     * For large maps (>100 entries), consider the performance trade-off vs. safety.
-     */
-    val details: Map<String, Any?> = inputDetails.toMap()
 
     init {
         require(message.isNotBlank()) { "Error message cannot be blank" }
@@ -100,7 +97,7 @@ class AppError(
     fun copy(
         code: ErrorCode = this.code,
         message: String = this.message,
-        details: Map<String, Any?> = this.details,
+        details: Map<String, String> = this.details,
         cause: Throwable? = this.cause,
         timestamp: Long = this.timestamp
     ): AppError = AppError(code, message, details, cause, timestamp)
@@ -292,7 +289,7 @@ class AppError(
      * @param additionalDetails Key-value pairs to add to details
      * @return A new AppError with merged details
      */
-    fun withDetails(vararg additionalDetails: Pair<String, Any?>): AppError {
+    fun withDetails(vararg additionalDetails: Pair<String, String>): AppError {
         return copy(details = details + additionalDetails.toMap())
     }
 
@@ -423,7 +420,7 @@ class AppError(
         fun fromException(
             exception: Throwable,
             code: ErrorCode = ErrorCode.SYSTEM_UNKNOWN_ERROR,
-            inputDetails: Map<String, Any?> = emptyMap()
+            details: Map<String, String> = emptyMap()
         ): AppError {
             val exceptionMessage = exception.message?.takeIf { it.isNotBlank() }
 
@@ -440,7 +437,7 @@ class AppError(
             return AppError(
                 code = code,
                 message = message,
-                inputDetails = inputDetails,
+                details = details,
                 cause = exception
             )
         }
@@ -467,12 +464,12 @@ class AppError(
         fun fromCode(
             code: ErrorCode,
             customMessage: String? = null,
-            inputDetails: Map<String, Any?> = emptyMap()
+            details: Map<String, String> = emptyMap()
         ): AppError {
             return AppError(
                 code = code,
                 message = customMessage ?: code.description,
-                inputDetails = inputDetails,
+                details = details,
                 cause = null
             )
         }
@@ -499,18 +496,18 @@ class AppError(
         fun validation(
             message: String,
             field: String? = null,
-            inputDetails: Map<String, Any?> = emptyMap()
+            details: Map<String, String> = emptyMap()
         ): AppError {
             val enrichedDetails = if (field != null) {
-                inputDetails + ("field" to field)
+                details + ("field" to field)
             } else {
-                inputDetails
+                details
             }
 
             return AppError(
                 code = ErrorCode.VALIDATION_INVALID_INPUT,
                 message = message,
-                inputDetails = enrichedDetails,
+                details = enrichedDetails,
                 cause = null
             )
         }
@@ -539,12 +536,12 @@ class AppError(
          */
         fun network(
             cause: Throwable,
-            inputDetails: Map<String, Any?> = emptyMap()
+            details: Map<String, String> = emptyMap()
         ): AppError {
             return fromException(
                 exception = cause,
                 code = ErrorCode.NETWORK_NO_CONNECTION,
-                inputDetails = inputDetails
+                details = details
             )
         }
 
@@ -567,12 +564,12 @@ class AppError(
          */
         fun timeout(
             message: String = ErrorCode.NETWORK_TIMEOUT.description,
-            inputDetails: Map<String, Any?> = emptyMap()
+            details: Map<String, String> = emptyMap()
         ): AppError {
             return AppError(
                 code = ErrorCode.NETWORK_TIMEOUT,
                 message = message,
-                inputDetails = inputDetails,
+                details = details,
                 cause = null
             )
         }
@@ -596,12 +593,12 @@ class AppError(
          */
         fun unauthorized(
             message: String = ErrorCode.AUTH_UNAUTHORIZED.description,
-            inputDetails: Map<String, Any?> = emptyMap()
+            details: Map<String, String> = emptyMap()
         ): AppError {
             return AppError(
                 code = ErrorCode.AUTH_UNAUTHORIZED,
                 message = message,
-                inputDetails = inputDetails,
+                details = details,
                 cause = null
             )
         }
@@ -625,12 +622,12 @@ class AppError(
          */
         fun notFound(
             message: String = ErrorCode.BUSINESS_RESOURCE_NOT_FOUND.description,
-            inputDetails: Map<String, Any?> = emptyMap()
+            details: Map<String, String> = emptyMap()
         ): AppError {
             return AppError(
                 code = ErrorCode.BUSINESS_RESOURCE_NOT_FOUND,
                 message = message,
-                inputDetails = inputDetails,
+                details = details,
                 cause = null
             )
         }
@@ -660,7 +657,7 @@ class AppError(
         fun serverError(
             cause: Throwable? = null,
             message: String? = null,
-            inputDetails: Map<String, Any?> = emptyMap()
+            details: Map<String, String> = emptyMap()
         ): AppError {
             val errorMessage = message
                 ?: cause?.message
@@ -669,7 +666,7 @@ class AppError(
             return AppError(
                 code = ErrorCode.SYSTEM_INTERNAL_ERROR,
                 message = errorMessage,
-                inputDetails = inputDetails,
+                details = details,
                 cause = cause
             )
         }
