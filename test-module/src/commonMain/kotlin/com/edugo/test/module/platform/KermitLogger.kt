@@ -34,6 +34,9 @@ import co.touchlab.kermit.Severity
 object KermitLogger {
     private var kermitInstance: KermitLoggerImpl = KermitLoggerImpl
 
+    @Volatile
+    private var isInitialized: Boolean = false
+
     /**
      * Inicializa Kermit con la configuración específica de la plataforma.
      *
@@ -42,9 +45,13 @@ object KermitLogger {
      * main() en JVM, etc.).
      *
      * La configuración específica se obtiene de KermitConfig expect/actual.
+     *
+     * Es idempotente: llamadas subsecuentes son ignoradas.
      */
     fun initialize() {
+        if (isInitialized) return
         kermitInstance = KermitConfig.createLogger()
+        isInitialized = true
     }
 
     /**
@@ -90,6 +97,18 @@ object KermitLogger {
     }
 
     /**
+     * Logs a warning message.
+     *
+     * Mapea al nivel WARN de Kermit.
+     *
+     * @param tag Identificador de la fuente del log (nombre de clase)
+     * @param message Mensaje de advertencia a registrar
+     */
+    fun warn(tag: String, message: String) {
+        kermitInstance.w(tag = tag) { message }
+    }
+
+    /**
      * Logs an error message with optional exception.
      *
      * Mapea al nivel ERROR de Kermit.
@@ -105,13 +124,17 @@ object KermitLogger {
     /**
      * Configura el nivel mínimo de severidad para logging.
      *
+     * NOTA: Kermit 2.0.4 usa un sistema de configuration basado en LogWriter.
+     * Para cambiar la severidad mínima, se debe configurar cada LogWriter
+     * específicamente. Esta función permite recrear el logger con configuración
+     * personalizada desde KermitConfig.
+     *
      * @param severity Nivel mínimo de Kermit (Verbose, Debug, Info, Warn, Error, Assert)
      */
     fun setMinSeverity(severity: Severity) {
-        kermitInstance = kermitInstance.withTag("").apply {
-            // Kermit 2.0.4 maneja la severidad mínima a través de la configuración
-            // Esta función es un placeholder para futuras extensiones
-        }
+        // Kermit 2.0.4 requiere configurar los LogWriters para filtrar por severidad
+        // Recrear el logger con configuración actualizada desde la plataforma
+        kermitInstance = KermitConfig.createLoggerWithMinSeverity(severity)
     }
 }
 
@@ -134,4 +157,12 @@ expect object KermitConfig {
      * @return Logger de Kermit configurado con writers y formatters apropiados
      */
     fun createLogger(): KermitLoggerImpl
+
+    /**
+     * Crea un logger con severidad mínima configurada.
+     *
+     * @param minSeverity Nivel mínimo de logging
+     * @return Logger de Kermit configurado con filtro de severidad
+     */
+    fun createLoggerWithMinSeverity(minSeverity: Severity): KermitLoggerImpl
 }

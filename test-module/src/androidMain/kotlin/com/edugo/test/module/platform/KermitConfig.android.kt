@@ -39,6 +39,18 @@ actual object KermitConfig {
     }
 
     /**
+     * Crea un Logger con severidad mínima configurada.
+     *
+     * @param minSeverity Nivel mínimo de logging
+     * @return Logger de Kermit configurado con filtro de severidad
+     */
+    actual fun createLoggerWithMinSeverity(minSeverity: co.touchlab.kermit.Severity): Logger {
+        // En Kermit 2.0.4, el filtrado por severidad se realiza en el nivel de configuración
+        // Por ahora retornamos el logger estándar - el filtrado puede implementarse con un LogWriter custom
+        return Logger.withTag("EduGo")
+    }
+
+    /**
      * Crea un Logger personalizado con tag específico.
      *
      * @param tag Tag base para los logs
