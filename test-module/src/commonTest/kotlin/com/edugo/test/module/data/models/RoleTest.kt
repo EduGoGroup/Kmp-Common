@@ -137,4 +137,92 @@ class RoleTest {
         assertTrue(minimalRole.validate() is Result.Success,
             "Role con solo id y name debe ser válido")
     }
+
+    // ========== Tests adicionales para Task 4 ==========
+
+    @Test
+    fun `validación falla si id está vacío`() {
+        val role = createValidRole().copy(id = "")
+        val result = role.validate()
+        assertTrue(result is Result.Failure, "Validación debe fallar con id vacío")
+    }
+
+    @Test
+    fun `deserialización desde JSON funciona correctamente`() {
+        val json = """
+            {
+                "id": "role-test",
+                "name": "Test Role",
+                "description": "Test description",
+                "permissions": ["users.read", "users.write"],
+                "is_active": true,
+                "created_at": "2024-01-01T12:00:00Z",
+                "updated_at": "2024-01-01T12:00:00Z"
+            }
+        """.trimIndent()
+
+        val role = Json.decodeFromString<Role>(json)
+
+        assertEquals("role-test", role.id)
+        assertEquals("Test Role", role.name)
+        assertEquals("Test description", role.description)
+        assertEquals(setOf("users.read", "users.write"), role.permissions)
+        assertTrue(role.isActive)
+    }
+
+    @Test
+    fun `permissions vacío es válido`() {
+        val roleWithEmptyPermissions = createValidRole().copy(permissions = emptySet())
+        assertTrue(roleWithEmptyPermissions.validate() is Result.Success,
+            "Role con permissions vacío debe ser válido")
+    }
+
+    @Test
+    fun `validación falla con permissions en formato inválido`() {
+        // Permissions debe seguir formato "resource.action"
+        val roleWithInvalidPermissions = createValidRole().copy(
+            permissions = setOf("invalid", "also-invalid", "users.read") // Primeros dos son inválidos
+        )
+        val result = roleWithInvalidPermissions.validate()
+        assertTrue(result is Result.Failure,
+            "Validación debe fallar con permissions en formato inválido")
+    }
+
+    @Test
+    fun `serialización y deserialización preservan todos los campos`() {
+        val original = Role(
+            id = "role-admin",
+            name = "Administrator",
+            description = "Full system access",
+            permissions = setOf("users.read", "users.write", "system.manage"),
+            isActive = false, // Diferente al default para verificar serialización
+            createdAt = Clock.System.now(),
+            updatedAt = Clock.System.now()
+        )
+
+        val json = Json.encodeToString(original)
+        val deserialized = Json.decodeFromString<Role>(json)
+
+        // Verificar que todos los campos se preservan
+        assertEquals(original.id, deserialized.id)
+        assertEquals(original.name, deserialized.name)
+        assertEquals(original.description, deserialized.description)
+        assertEquals(original.permissions, deserialized.permissions)
+        assertEquals(original.isActive, deserialized.isActive)
+        assertEquals(original, deserialized, "Round-trip debe preservar todos los campos")
+    }
+
+    @Test
+    fun `JSON contiene todas las claves esperadas con snake_case`() {
+        val role = createValidRole().copy(isActive = false) // Para forzar serialización de isActive
+        val json = Json.encodeToString(role)
+
+        // Verificar claves en snake_case
+        assertTrue(json.contains("\"id\""), "JSON debe contener 'id'")
+        assertTrue(json.contains("\"name\""), "JSON debe contener 'name'")
+        assertTrue(json.contains("\"description\""), "JSON debe contener 'description'")
+        assertTrue(json.contains("\"permissions\""), "JSON debe contener 'permissions'")
+        assertTrue(json.contains("\"created_at\""), "JSON debe contener 'created_at'")
+        assertTrue(json.contains("\"updated_at\""), "JSON debe contener 'updated_at'")
+    }
 }
