@@ -74,7 +74,7 @@ package com.edugo.test.module.validation
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validateNotBlank(
+public fun validateNotBlank(
     value: String?,
     fieldName: String,
     customMessage: String? = null
@@ -116,7 +116,7 @@ fun validateNotBlank(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validateRange(
+public fun validateRange(
     value: Int,
     min: Int,
     max: Int,
@@ -142,7 +142,7 @@ fun validateRange(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validateRange(
+public fun validateRange(
     value: Long,
     min: Long,
     max: Long,
@@ -168,7 +168,7 @@ fun validateRange(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validateRange(
+public fun validateRange(
     value: Double,
     min: Double,
     max: Double,
@@ -219,7 +219,7 @@ fun validateRange(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validateEmail(
+public fun validateEmail(
     email: String?,
     customMessage: String? = null
 ): String? {
@@ -259,7 +259,7 @@ fun validateEmail(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validateMinLength(
+public fun validateMinLength(
     value: String?,
     minLength: Int,
     fieldName: String,
@@ -292,7 +292,7 @@ fun validateMinLength(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validateMaxLength(
+public fun validateMaxLength(
     value: String?,
     maxLength: Int,
     fieldName: String,
@@ -325,7 +325,7 @@ fun validateMaxLength(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validateLengthRange(
+public fun validateLengthRange(
     value: String?,
     minLength: Int,
     maxLength: Int,
@@ -356,7 +356,7 @@ fun validateLengthRange(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validatePositive(
+public fun validatePositive(
     value: Int,
     fieldName: String,
     customMessage: String? = null
@@ -376,7 +376,7 @@ fun validatePositive(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validatePositive(
+public fun validatePositive(
     value: Double,
     fieldName: String,
     customMessage: String? = null
@@ -404,7 +404,7 @@ fun validatePositive(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validateNonNegative(
+public fun validateNonNegative(
     value: Int,
     fieldName: String,
     customMessage: String? = null
@@ -424,7 +424,7 @@ fun validateNonNegative(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validateNonNegative(
+public fun validateNonNegative(
     value: Double,
     fieldName: String,
     customMessage: String? = null
@@ -452,7 +452,7 @@ fun validateNonNegative(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun validatePattern(
+public fun validatePattern(
     value: String?,
     pattern: Regex,
     fieldName: String,
@@ -482,7 +482,7 @@ fun validatePattern(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun <T> validateIn(
+public fun <T> validateIn(
     value: T,
     allowedValues: Collection<T>,
     fieldName: String,
@@ -511,7 +511,7 @@ fun <T> validateIn(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun <T> validateNotEmpty(
+public fun <T> validateNotEmpty(
     collection: Collection<T>?,
     fieldName: String,
     customMessage: String? = null
@@ -539,7 +539,7 @@ fun <T> validateNotEmpty(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun <T> validateMinSize(
+public fun <T> validateMinSize(
     collection: Collection<T>?,
     minSize: Int,
     fieldName: String,
@@ -568,7 +568,7 @@ fun <T> validateMinSize(
  * @param customMessage Mensaje de error personalizado (opcional)
  * @return null si la validación pasa, mensaje de error si falla
  */
-fun <T> validateMaxSize(
+public fun <T> validateMaxSize(
     collection: Collection<T>?,
     maxSize: Int,
     fieldName: String,

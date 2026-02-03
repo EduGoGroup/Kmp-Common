@@ -169,7 +169,7 @@ import com.edugo.test.module.core.success
  * @see EntityBase Para la interface base de entidades
  * @see AuditableModel Para información de auditoría
  */
-interface ValidatableModel {
+public interface ValidatableModel {
     /**
      * Valida la consistencia e integridad de los datos del modelo.
      *
@@ -215,7 +215,7 @@ interface ValidatableModel {
      * @return [Result.Success] con Unit si todas las validaciones pasan,
      *         [Result.Failure] con mensaje de error si alguna validación falla
      */
-    fun validate(): Result<Unit>
+    public fun validate(): Result<Unit>
 }
 
 /**
@@ -237,7 +237,7 @@ interface ValidatableModel {
  * @param action Acción a ejecutar si la validación pasa
  * @return El resultado de la acción si la validación pasa, o el error de validación
  */
-inline fun <T> ValidatableModel.validateAndThen(action: () -> Result<T>): Result<T> {
+public inline fun <T> ValidatableModel.validateAndThen(action: () -> Result<T>): Result<T> {
     return when (val validationResult = validate()) {
         is Result.Success -> action()
         is Result.Failure -> validationResult
@@ -259,7 +259,7 @@ inline fun <T> ValidatableModel.validateAndThen(action: () -> Result<T>): Result
  *
  * @return Success si todos los modelos pasan la validación, Failure con el primer error encontrado
  */
-fun List<ValidatableModel>.validateAll(): Result<Unit> {
+public fun List<ValidatableModel>.validateAll(): Result<Unit> {
     forEach { model ->
         val result = model.validate()
         if (result is Result.Failure) {

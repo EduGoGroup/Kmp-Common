@@ -6,7 +6,7 @@ package com.edugo.test.module
  * Desktop no tiene IA On-Device nativa disponible.
  * Se recomienda usar Cloud API para funcionalidades de IA.
  */
-actual object AICapabilities {
+public actual object AICapabilities {
 
     actual fun isGeminiNanoAvailable(): Boolean = false
 

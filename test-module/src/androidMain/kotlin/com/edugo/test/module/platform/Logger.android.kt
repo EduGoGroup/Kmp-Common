@@ -25,7 +25,7 @@ import android.util.Log
  * @see Logger
  * @see createDefaultLogger
  */
-class AndroidLogger : Logger {
+public class AndroidLogger : Logger {
 
     override fun d(tag: String, message: String) {
         Log.d(tag, message)
@@ -65,4 +65,4 @@ class AndroidLogger : Logger {
  *
  * @return An [AndroidLogger] instance
  */
-actual fun createDefaultLogger(): Logger = AndroidLogger()
+public actual fun createDefaultLogger(): Logger = AndroidLogger()

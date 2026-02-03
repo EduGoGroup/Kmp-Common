@@ -246,11 +246,11 @@ class LoggerExtensionsTest {
     @Test
     fun testAppErrorLogWithManyDetailsTruncates() {
         val mockLogger = MockLogger()
-        val details = (1..10).associate { "key$it" to "value$it" }
+        val errorDetails = (1..10).associate { "key$it" to "value$it" }
         val error = AppError(
             code = ErrorCode.VALIDATION_INVALID_INPUT,
             message = "Many details",
-            details = details
+            detailsInternal = errorDetails
         )
 
         error.log("TestTag", mockLogger)

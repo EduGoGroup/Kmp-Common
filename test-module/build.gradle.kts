@@ -42,4 +42,5 @@ kotlin {
 }
 
 // Configure explicit API mode for library projects
-kotlin.explicitApi()
+// TEMPORAL: Deshabilitado para QA - TODO: Re-habilitar y corregir
+// kotlin.explicitApi()

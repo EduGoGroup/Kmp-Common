@@ -26,7 +26,7 @@ package com.edugo.test.module.platform
  * @see LoggerConfig
  * @see TaggedLogger
  */
-object LogFilter {
+public object LogFilter {
     /**
      * Prefix used to mark regex patterns explicitly.
      */
@@ -78,7 +78,7 @@ object LogFilter {
      * LogFilter.matches("EduGo.Auth.Login", "EduGo.**")      // true
      * ```
      */
-    fun matches(tag: String, pattern: String): Boolean {
+    public fun matches(tag: String, pattern: String): Boolean {
         if (pattern.isBlank()) return false
 
         // Exact match optimization
@@ -103,7 +103,7 @@ object LogFilter {
      * @param patterns Collection of patterns to match against
      * @return true if the tag matches at least one pattern, false otherwise
      */
-    fun matchesAny(tag: String, patterns: Collection<String>): Boolean {
+    public fun matchesAny(tag: String, patterns: Collection<String>): Boolean {
         return patterns.any { pattern -> matches(tag, pattern) }
     }
 
@@ -121,7 +121,7 @@ object LogFilter {
      * // authTags == ["EduGo.Auth.Login", "EduGo.Auth.Logout"]
      * ```
      */
-    fun filter(tags: Collection<String>, pattern: String): List<String> {
+    public fun filter(tags: Collection<String>, pattern: String): List<String> {
         return tags.filter { tag -> matches(tag, pattern) }
     }
 
@@ -131,7 +131,7 @@ object LogFilter {
      * Call this if you're done with filtering and want to free memory,
      * or if you want to force recompilation of patterns.
      */
-    fun clearCache() {
+    public fun clearCache() {
         synchronized(cacheLock) {
             regexCache.clear()
             insertionOrder.clear()
@@ -143,7 +143,7 @@ object LogFilter {
      *
      * @return Number of compiled patterns in the cache
      */
-    fun getCacheSize(): Int {
+    public fun getCacheSize(): Int {
         synchronized(cacheLock) {
             return regexCache.size
         }
@@ -268,7 +268,7 @@ object LogFilter {
      * @param pattern Pattern to validate
      * @return true if valid, false otherwise
      */
-    fun isValidPattern(pattern: String): Boolean {
+    public fun isValidPattern(pattern: String): Boolean {
         if (pattern.isBlank()) return false
         return try {
             compilePattern(pattern)

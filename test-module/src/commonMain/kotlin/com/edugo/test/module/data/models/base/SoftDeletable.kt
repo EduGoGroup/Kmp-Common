@@ -212,7 +212,7 @@ import kotlinx.datetime.Instant
  * @see EntityBase Para propiedades de entidad base
  * @see AuditableModel Para información de auditoría completa
  */
-interface SoftDeletable {
+public interface SoftDeletable {
     /**
      * Timestamp de cuándo fue eliminada lógicamente la entidad.
      *
@@ -253,14 +253,14 @@ interface SoftDeletable {
  *
  * @return true si deletedAt no es null, false en caso contrario
  */
-fun SoftDeletable.isDeleted(): Boolean = deletedAt != null
+public fun SoftDeletable.isDeleted(): Boolean = deletedAt != null
 
 /**
  * Extension function para verificar si una entidad está activa (no eliminada).
  *
  * @return true si deletedAt es null, false en caso contrario
  */
-fun SoftDeletable.isActive(): Boolean = deletedAt == null
+public fun SoftDeletable.isActive(): Boolean = deletedAt == null
 
 /**
  * Extension function para marcar una entidad como eliminada.
@@ -280,7 +280,7 @@ fun SoftDeletable.isActive(): Boolean = deletedAt == null
  *
  * @return Map con los campos a actualizar (deletedAt, updatedAt)
  */
-fun SoftDeletable.markAsDeleted(): Map<String, Instant> {
+public fun SoftDeletable.markAsDeleted(): Map<String, Instant> {
     val now = kotlinx.datetime.Clock.System.now()
     return mapOf(
         "deletedAt" to now,
@@ -305,7 +305,7 @@ fun SoftDeletable.markAsDeleted(): Map<String, Instant> {
  *
  * @return Map con los campos a actualizar (deletedAt = null, updatedAt)
  */
-fun SoftDeletable.restore(): Map<String, Instant?> {
+public fun SoftDeletable.restore(): Map<String, Instant?> {
     return mapOf(
         "deletedAt" to null,
         "updatedAt" to kotlinx.datetime.Clock.System.now()
@@ -323,7 +323,7 @@ fun SoftDeletable.restore(): Map<String, Instant?> {
  *
  * @return Lista conteniendo solo las entidades con deletedAt == null
  */
-fun <T : SoftDeletable> List<T>.onlyActive(): List<T> = filter { it.isActive() }
+public fun <T : SoftDeletable> List<T>.onlyActive(): List<T> = filter { it.isActive() }
 
 /**
  * Extension function para filtrar solo entidades eliminadas de una lista.
@@ -336,4 +336,4 @@ fun <T : SoftDeletable> List<T>.onlyActive(): List<T> = filter { it.isActive() }
  *
  * @return Lista conteniendo solo las entidades con deletedAt != null
  */
-fun <T : SoftDeletable> List<T>.onlyDeleted(): List<T> = filter { it.isDeleted() }
+public fun <T : SoftDeletable> List<T>.onlyDeleted(): List<T> = filter { it.isDeleted() }

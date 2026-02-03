@@ -17,7 +17,7 @@ internal object LoggerFormatter {
      * @param message The log message
      * @return Formatted string: "[LEVEL] tag: message"
      */
-    fun format(level: String, tag: String, message: String): String {
+    public fun format(level: String, tag: String, message: String): String {
         return "[$level] $tag: $message"
     }
 }

@@ -12,7 +12,7 @@ import android.os.Build
  * NOTA: Implementación simplificada para Sprint 1 (Setup Base KMP - Sourcesets)
  * Ver Documents_Analisys/SOURCESETS-ARCHITECTURE.md para detalles de arquitectura.
  */
-actual object AICapabilities {
+public actual object AICapabilities {
 
     // API level mínimo para Gemini Nano (Android 14)
     private const val GEMINI_NANO_MIN_API = 34

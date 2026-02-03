@@ -44,7 +44,7 @@ package com.edugo.test.module.platform
  * @see TaggedLogger
  * @see LogFilter
  */
-object LoggerConfig {
+public object LoggerConfig {
     /**
      * Default log level for tags without specific configuration.
      * Default is DEBUG (all logs enabled).
@@ -101,7 +101,7 @@ object LoggerConfig {
      * LoggerConfig.setLevel("regex:^com\\.thirdparty\\..*$", LogLevel.ERROR)
      * ```
      */
-    fun setLevel(pattern: String, level: LogLevel) {
+    public fun setLevel(pattern: String, level: LogLevel) {
         require(pattern.isNotBlank()) { "Pattern cannot be blank" }
         require(LogFilter.isValidPattern(pattern)) { "Invalid pattern: '$pattern'" }
         synchronized(lock) {
@@ -119,7 +119,7 @@ object LoggerConfig {
      *
      * @param pattern The pattern to remove
      */
-    fun removeLevel(pattern: String) {
+    public fun removeLevel(pattern: String) {
         synchronized(lock) {
             levelRules.remove(pattern)
             // Invalidate cache when rules change
@@ -133,7 +133,7 @@ object LoggerConfig {
      *
      * Invalidates the level cache to ensure changes take effect.
      */
-    fun clearLevels() {
+    public fun clearLevels() {
         synchronized(lock) {
             levelRules.clear()
             // Invalidate cache when rules change
@@ -157,7 +157,7 @@ object LoggerConfig {
      * @param tag The tag to check
      * @return The minimum log level for this tag
      */
-    fun getLevel(tag: String): LogLevel {
+    public fun getLevel(tag: String): LogLevel {
         synchronized(lock) {
             // Check cache first (fast path)
             levelCache[tag]?.let { return it }
@@ -197,7 +197,7 @@ object LoggerConfig {
      * }
      * ```
      */
-    fun isEnabled(tag: String, level: LogLevel): Boolean {
+    public fun isEnabled(tag: String, level: LogLevel): Boolean {
         val minLevel = getLevel(tag)
         return level.ordinal >= minLevel.ordinal
     }
@@ -207,7 +207,7 @@ object LoggerConfig {
      *
      * @return Map of patterns to levels (defensive copy)
      */
-    fun getAllRules(): Map<String, LogLevel> {
+    public fun getAllRules(): Map<String, LogLevel> {
         synchronized(lock) {
             return levelRules.toMap()
         }
@@ -218,7 +218,7 @@ object LoggerConfig {
      *
      * Clears all rules and cache.
      */
-    fun reset() {
+    public fun reset() {
         synchronized(lock) {
             levelRules.clear()
             levelCache.clear()

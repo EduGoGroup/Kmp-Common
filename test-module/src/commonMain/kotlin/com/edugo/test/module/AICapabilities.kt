@@ -7,30 +7,30 @@ package com.edugo.test.module
  * Android (API 29-33): ML Kit como fallback
  * Desktop/JS: Sin IA On-Device disponible
  */
-expect object AICapabilities {
+public expect object AICapabilities {
     /**
      * Verifica si Gemini Nano esta disponible (Android 14+ con AICore).
      * @return true si Gemini Nano puede ser usado
      */
-    fun isGeminiNanoAvailable(): Boolean
+    public fun isGeminiNanoAvailable(): Boolean
 
     /**
      * Verifica si ML Kit esta disponible como fallback.
      * @return true si ML Kit puede ser usado
      */
-    fun isMLKitAvailable(): Boolean
+    public fun isMLKitAvailable(): Boolean
 
     /**
      * Obtiene el proveedor de IA preferido segun la plataforma.
      * @return AIProvider indicando la mejor opcion disponible
      */
-    fun getPreferredAIProvider(): AIProvider
+    public fun getPreferredAIProvider(): AIProvider
 }
 
 /**
  * Proveedores de IA disponibles.
  */
-enum class AIProvider {
+public enum class AIProvider {
     /** Google Gemini Nano via AICore (Android 14+) */
     GEMINI_NANO,
     /** Google ML Kit (Android 5+) */

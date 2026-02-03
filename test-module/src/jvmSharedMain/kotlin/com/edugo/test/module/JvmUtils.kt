@@ -22,7 +22,7 @@ import java.net.URL
  *    |-- desktopMain
  * ```
  */
-object JvmUtils {
+public object JvmUtils {
     /**
      * Lee el contenido de un archivo como String.
      *
@@ -30,7 +30,7 @@ object JvmUtils {
      * @return Contenido del archivo como String
      * @throws java.io.FileNotFoundException si el archivo no existe
      */
-    fun readFileAsString(path: String): String = File(path).readText()
+    public fun readFileAsString(path: String): String = File(path).readText()
 
     /**
      * Obtiene el contenido de una URL como String.
@@ -39,7 +39,7 @@ object JvmUtils {
      * @return Contenido de la respuesta como String
      * @throws java.io.IOException si hay un error de red
      */
-    fun fetchUrl(url: String): String = URL(url).readText()
+    public fun fetchUrl(url: String): String = URL(url).readText()
 
     /**
      * Verifica si un archivo existe.
@@ -47,12 +47,12 @@ object JvmUtils {
      * @param path Ruta al archivo
      * @return true si el archivo existe, false en caso contrario
      */
-    fun fileExists(path: String): Boolean = File(path).exists()
+    public fun fileExists(path: String): Boolean = File(path).exists()
 
     /**
      * Obtiene el directorio temporal del sistema.
      *
      * @return Ruta al directorio temporal
      */
-    fun getTempDirectory(): String = System.getProperty("java.io.tmpdir") ?: "/tmp"
+    public fun getTempDirectory(): String = System.getProperty("java.io.tmpdir") ?: "/tmp"
 }

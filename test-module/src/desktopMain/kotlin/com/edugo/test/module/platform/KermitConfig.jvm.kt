@@ -30,7 +30,7 @@ import co.touchlab.kermit.Severity
  * }
  * ```
  */
-actual object KermitConfig {
+public actual object KermitConfig {
     // Códigos ANSI para colores
     private const val ANSI_RESET = "\u001B[0m"
     private const val ANSI_CYAN = "\u001B[36m"    // DEBUG

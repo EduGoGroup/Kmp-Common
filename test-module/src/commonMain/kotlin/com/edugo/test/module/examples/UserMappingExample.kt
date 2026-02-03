@@ -67,7 +67,7 @@ import kotlinx.serialization.Serializable
  * ```
  */
 @Serializable
-data class UserDto(
+public data class UserDto(
     /**
      * Email del usuario.
      * Debe ser un email válido según las reglas de negocio.
@@ -121,7 +121,7 @@ data class UserDto(
  * }
  * ```
  */
-data class User(
+public data class User(
     val email: String,
     val age: Int,
     val username: String
@@ -152,22 +152,22 @@ data class User(
         /**
          * Edad mínima permitida para usuarios.
          */
-        const val MIN_AGE = 18
+        public const val MIN_AGE = 18
 
         /**
          * Edad máxima permitida para usuarios.
          */
-        const val MAX_AGE = 120
+        public const val MAX_AGE = 120
 
         /**
          * Longitud mínima del username.
          */
-        const val USERNAME_MIN_LENGTH = 3
+        public const val USERNAME_MIN_LENGTH = 3
 
         /**
          * Longitud máxima del username.
          */
-        const val USERNAME_MAX_LENGTH = 30
+        public const val USERNAME_MAX_LENGTH = 30
     }
 }
 
@@ -226,7 +226,7 @@ data class User(
  * // Retorna: "Invalid email format; Age must be between 18 and 120; Username must be between 3 and 30 characters"
  * ```
  */
-object UserMapper : DomainMapper<UserDto, User> {
+public object UserMapper : DomainMapper<UserDto, User> {
 
     /**
      * Convierte UserDto a User con validación acumulativa.
@@ -327,12 +327,12 @@ object UserMapper : DomainMapper<UserDto, User> {
  * - Conversión Domain → DTO
  * - Uso con extension functions
  */
-object UserMappingUsageExample {
+public object UserMappingUsageExample {
 
     /**
      * Ejemplo de conversión exitosa.
      */
-    fun successfulConversion() {
+    public fun successfulConversion() {
         val dto = UserDto(
             email = "john.doe@example.com",
             age = 25,
@@ -359,7 +359,7 @@ object UserMappingUsageExample {
     /**
      * Ejemplo de conversión con un error.
      */
-    fun singleErrorConversion() {
+    public fun singleErrorConversion() {
         val dto = UserDto(
             email = "invalid-email",  // ✗ No contiene @
             age = 25,                 // ✓ Válido
@@ -383,7 +383,7 @@ object UserMappingUsageExample {
     /**
      * Ejemplo de conversión con múltiples errores.
      */
-    fun multipleErrorsConversion() {
+    public fun multipleErrorsConversion() {
         val dto = UserDto(
             email = "no-at-sign",     // ✗ No contiene @
             age = 15,                 // ✗ Menor que 18
@@ -408,7 +408,7 @@ object UserMappingUsageExample {
     /**
      * Ejemplo de conversión Domain → DTO.
      */
-    fun domainToDtoConversion() {
+    public fun domainToDtoConversion() {
         val user = User(
             email = "jane.smith@example.com",
             age = 30,
@@ -425,7 +425,7 @@ object UserMappingUsageExample {
     /**
      * Ejemplo usando extension functions.
      */
-    fun usingExtensionFunctions() {
+    public fun usingExtensionFunctions() {
         val dto = UserDto(
             email = "test@example.com",
             age = 25,

@@ -40,7 +40,7 @@ package com.edugo.test.module.core
  * @property code Unique numeric identifier for this error (used for logging and tracking)
  * @property description Human-readable description of the error condition
  */
-enum class ErrorCode(
+public enum class ErrorCode(
     val code: Int,
     val description: String,
     val retryable: Boolean = false
@@ -291,39 +291,39 @@ enum class ErrorCode(
     /**
      * Checks if this is a network-related error (1000-1999 range).
      */
-    fun isNetworkError(): Boolean = code in 1000..1999
+    public fun isNetworkError(): Boolean = code in 1000..1999
 
     /**
      * Checks if this is an authentication/authorization error (2000-2999 range).
      */
-    fun isAuthError(): Boolean = code in 2000..2999
+    public fun isAuthError(): Boolean = code in 2000..2999
 
     /**
      * Checks if this is a validation error (3000-3999 range).
      */
-    fun isValidationError(): Boolean = code in 3000..3999
+    public fun isValidationError(): Boolean = code in 3000..3999
 
     /**
      * Checks if this is a business logic error (4000-4999 range).
      */
-    fun isBusinessError(): Boolean = code in 4000..4999
+    public fun isBusinessError(): Boolean = code in 4000..4999
 
     /**
      * Checks if this is a system error (5000-5999 range).
      */
-    fun isSystemError(): Boolean = code in 5000..5999
+    public fun isSystemError(): Boolean = code in 5000..5999
 
     /**
      * Checks if this error code represents a client-side error.
      * Client errors typically have HTTP status codes in the 4xx range.
      */
-    fun isClientError(): Boolean = httpStatusCode in 400..499
+    public fun isClientError(): Boolean = httpStatusCode in 400..499
 
     /**
      * Checks if this error code represents a server-side error.
      * Server errors typically have HTTP status codes in the 5xx range.
      */
-    fun isServerError(): Boolean = httpStatusCode in 500..599
+    public fun isServerError(): Boolean = httpStatusCode in 500..599
 
     /**
      * Checks if this error code is retryable.
@@ -336,7 +336,7 @@ enum class ErrorCode(
      *
      * @return true if the error condition might be resolved by retrying the operation
      */
-    fun isRetryable(): Boolean = retryable
+    public fun isRetryable(): Boolean = retryable
 
     companion object {
         /**
@@ -396,7 +396,7 @@ enum class ErrorCode(
          * @param code The numeric error code
          * @return The matching ErrorCode or SYSTEM_UNKNOWN_ERROR
          */
-        fun fromCode(code: Int): ErrorCode {
+        public fun fromCode(code: Int): ErrorCode {
             return entries.firstOrNull { it.code == code } ?: SYSTEM_UNKNOWN_ERROR
         }
 
@@ -407,7 +407,7 @@ enum class ErrorCode(
          * @param statusCode The HTTP status code
          * @return The matching ErrorCode or SYSTEM_UNKNOWN_ERROR
          */
-        fun fromHttpStatus(statusCode: Int): ErrorCode {
+        public fun fromHttpStatus(statusCode: Int): ErrorCode {
             return when (statusCode) {
                 400 -> VALIDATION_INVALID_INPUT
                 401 -> AUTH_UNAUTHORIZED
@@ -432,7 +432,7 @@ enum class ErrorCode(
          * @param category The category prefix (e.g., "NETWORK", "AUTH")
          * @return List of error codes in that category
          */
-        fun getByCategory(category: String): List<ErrorCode> {
+        public fun getByCategory(category: String): List<ErrorCode> {
             val prefix = category.uppercase() + "_"
             return entries.filter { it.name.startsWith(prefix) }
         }
@@ -440,26 +440,26 @@ enum class ErrorCode(
         /**
          * Gets all network error codes (1000-1999).
          */
-        fun networkErrors(): List<ErrorCode> = entries.filter { it.isNetworkError() }
+        public fun networkErrors(): List<ErrorCode> = entries.filter { it.isNetworkError() }
 
         /**
          * Gets all authentication error codes (2000-2999).
          */
-        fun authErrors(): List<ErrorCode> = entries.filter { it.isAuthError() }
+        public fun authErrors(): List<ErrorCode> = entries.filter { it.isAuthError() }
 
         /**
          * Gets all validation error codes (3000-3999).
          */
-        fun validationErrors(): List<ErrorCode> = entries.filter { it.isValidationError() }
+        public fun validationErrors(): List<ErrorCode> = entries.filter { it.isValidationError() }
 
         /**
          * Gets all business error codes (4000-4999).
          */
-        fun businessErrors(): List<ErrorCode> = entries.filter { it.isBusinessError() }
+        public fun businessErrors(): List<ErrorCode> = entries.filter { it.isBusinessError() }
 
         /**
          * Gets all system error codes (5000-5999).
          */
-        fun systemErrors(): List<ErrorCode> = entries.filter { it.isSystemError() }
+        public fun systemErrors(): List<ErrorCode> = entries.filter { it.isSystemError() }
     }
 }

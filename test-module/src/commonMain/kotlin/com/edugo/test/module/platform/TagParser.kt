@@ -13,7 +13,7 @@ package com.edugo.test.module.platform
  *
  * @see TaggedLogger
  */
-object TagParser {
+public object TagParser {
     /**
      * Extracts the root module from a hierarchical tag.
      *
@@ -28,7 +28,7 @@ object TagParser {
      * TagParser.getModule("UserRepository")    // "UserRepository"
      * ```
      */
-    fun getModule(tag: String): String {
+    public fun getModule(tag: String): String {
         val dotIndex = tag.indexOf('.')
         return if (dotIndex > 0) {
             tag.substring(0, dotIndex)
@@ -53,7 +53,7 @@ object TagParser {
      * TagParser.getFeature("EduGo")                  // null
      * ```
      */
-    fun getFeature(tag: String): String? {
+    public fun getFeature(tag: String): String? {
         val segments = tag.split('.')
         return if (segments.size >= 2) segments[1] else null
     }
@@ -72,7 +72,7 @@ object TagParser {
      * TagParser.getComponent("UserRepository")       // "UserRepository"
      * ```
      */
-    fun getComponent(tag: String): String {
+    public fun getComponent(tag: String): String {
         val lastDotIndex = tag.lastIndexOf('.')
         return if (lastDotIndex > 0 && lastDotIndex < tag.length - 1) {
             tag.substring(lastDotIndex + 1)
@@ -94,7 +94,7 @@ object TagParser {
      * TagParser.getParent("EduGo")             // null
      * ```
      */
-    fun getParent(tag: String): String? {
+    public fun getParent(tag: String): String? {
         val lastDotIndex = tag.lastIndexOf('.')
         return if (lastDotIndex > 0) {
             tag.substring(0, lastDotIndex)
@@ -115,7 +115,7 @@ object TagParser {
      * // ["EduGo", "Auth", "Login"]
      * ```
      */
-    fun getSegments(tag: String): List<String> {
+    public fun getSegments(tag: String): List<String> {
         return tag.split('.')
     }
 
@@ -131,7 +131,7 @@ object TagParser {
      * // ["EduGo.Auth.Login", "EduGo.Auth", "EduGo"]
      * ```
      */
-    fun getAncestors(tag: String): List<String> {
+    public fun getAncestors(tag: String): List<String> {
         val ancestors = mutableListOf<String>()
         var current = tag
         while (true) {
@@ -154,7 +154,7 @@ object TagParser {
      * TagParser.getDepth("EduGo")             // 1
      * ```
      */
-    fun getDepth(tag: String): Int {
+    public fun getDepth(tag: String): Int {
         return getSegments(tag).size
     }
 
@@ -172,7 +172,7 @@ object TagParser {
      * TagParser.isChildOf("EduGo.Auth", "EduGo.Network")       // false
      * ```
      */
-    fun isChildOf(tag: String, parent: String): Boolean {
+    public fun isChildOf(tag: String, parent: String): Boolean {
         return tag.startsWith("$parent.")
     }
 
@@ -189,7 +189,7 @@ object TagParser {
      * TagParser.isDirectChildOf("EduGo.Auth.Login", "EduGo")       // false
      * ```
      */
-    fun isDirectChildOf(tag: String, parent: String): Boolean {
+    public fun isDirectChildOf(tag: String, parent: String): Boolean {
         return getParent(tag) == parent
     }
 
@@ -205,7 +205,7 @@ object TagParser {
      * TagParser.buildChildTag("EduGo.Auth", "Login")  // "EduGo.Auth.Login"
      * ```
      */
-    fun buildChildTag(parent: String, childName: String): String {
+    public fun buildChildTag(parent: String, childName: String): String {
         require(childName.isNotBlank()) { "Child name cannot be blank" }
         require(!childName.contains('.')) { "Child name cannot contain '.'" }
         return "$parent.$childName"
@@ -223,7 +223,7 @@ object TagParser {
      * TagParser.normalize(".EduGo.Auth.")           // "EduGo.Auth"
      * ```
      */
-    fun normalize(tag: String): String {
+    public fun normalize(tag: String): String {
         return tag.trim()
             .split('.')
             .filter { it.isNotBlank() }
@@ -249,7 +249,7 @@ object TagParser {
      * TagParser.isValid("EduGo..Auth")       // false (consecutive dots)
      * ```
      */
-    fun isValid(tag: String): Boolean {
+    public fun isValid(tag: String): Boolean {
         if (tag.isBlank()) return false
         if (tag.startsWith('.') || tag.endsWith('.')) return false
         if (tag.contains("..")) return false
@@ -273,7 +273,7 @@ object TagParser {
      * // null (not related)
      * ```
      */
-    fun getRelativePath(fromTag: String, toTag: String): String? {
+    public fun getRelativePath(fromTag: String, toTag: String): String? {
         return if (toTag.startsWith("$fromTag.")) {
             toTag.substring(fromTag.length + 1)
         } else {

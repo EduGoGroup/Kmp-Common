@@ -19,16 +19,16 @@ package com.edugo.test.module
  *    |-- desktopMain
  * ```
  */
-object SharedClass {
+public object SharedClass {
     /**
      * Función común accesible desde todos los sourcesets.
      *
      * @return String identificando el origen del código
      */
-    fun commonFunction(): String = "From commonMain"
+    public fun commonFunction(): String = "From commonMain"
 
     /**
      * Constante compartida para validar acceso a propiedades.
      */
-    const val SHARED_CONSTANT = "SharedConstant"
+    public const val SHARED_CONSTANT = "SharedConstant"
 }

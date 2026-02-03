@@ -1,7 +1,7 @@
 package com.edugo.test.module
 
-expect class Platform() {
+public expect class Platform() {
     val name: String
 }
 
-expect fun getPlatformName(): String
+public expect fun getPlatformName(): String

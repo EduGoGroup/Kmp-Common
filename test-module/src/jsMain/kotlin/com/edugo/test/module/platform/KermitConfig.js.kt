@@ -33,7 +33,7 @@ import co.touchlab.kermit.Severity
  * }
  * ```
  */
-actual object KermitConfig {
+public actual object KermitConfig {
     /**
      * Crea un Logger de Kermit configurado para JS con console output.
      *

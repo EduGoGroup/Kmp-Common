@@ -216,7 +216,7 @@ fun Result.Failure.toAppErrorWithCause(
     return AppError(
         code = code,
         message = this.error,
-        details = details,
+        detailsInternal = details,
         cause = cause
     )
 }

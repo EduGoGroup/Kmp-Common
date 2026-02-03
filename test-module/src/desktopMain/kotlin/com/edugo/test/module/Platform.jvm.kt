@@ -1,7 +1,7 @@
 package com.edugo.test.module
 
-actual class Platform actual constructor() {
+public actual class Platform actual constructor() {
     actual val name: String = "JVM"
 }
 
-actual fun getPlatformName(): String = "JVM"
+public actual fun getPlatformName(): String = "JVM"

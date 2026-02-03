@@ -24,13 +24,13 @@ package com.edugo.test.module.core
  * }
  * ```
  */
-sealed class Result<out T> {
+public sealed class Result<out T> {
     /**
      * Represents a successful operation with resulting data.
      *
      * @property data The successful result value
      */
-    data class Success<T>(val data: T) : Result<T>()
+    public data class Success<T>(val data: T) : Result<T>()
 
     /**
      * Represents a failed operation with error information.
@@ -41,7 +41,7 @@ sealed class Result<out T> {
      *
      * @property error A human-readable error message describing what went wrong
      */
-    data class Failure(val error: String) : Result<Nothing>() {
+    public data class Failure(val error: String) : Result<Nothing>() {
         /**
          * Returns a user-safe error message.
          *
@@ -50,7 +50,7 @@ sealed class Result<out T> {
          *
          * @return The error message
          */
-        fun getSafeMessage(): String = error
+        public fun getSafeMessage(): String = error
     }
 
     /**
@@ -59,7 +59,7 @@ sealed class Result<out T> {
      * Use this state to show loading indicators in the UI or to prevent
      * duplicate operations.
      */
-    object Loading : Result<Nothing>()
+    public object Loading : Result<Nothing>()
 }
 
 /**
@@ -77,7 +77,7 @@ sealed class Result<out T> {
  * @param transform Function to transform the success data
  * @return A new Result with the transformed data, or the original Error/Loading state
  */
-inline fun <T, R> Result<T>.map(transform: (T) -> R): Result<R> = when (this) {
+public inline fun <T, R> Result<T>.map(transform: (T) -> R): Result<R> = when (this) {
     is Result.Success -> Result.Success(transform(data))
     is Result.Failure -> this
     is Result.Loading -> this
@@ -100,7 +100,7 @@ inline fun <T, R> Result<T>.map(transform: (T) -> R): Result<R> = when (this) {
  * @param transform Function that transforms the success data into another Result
  * @return The result from the transform, or the original Failure/Loading state
  */
-inline fun <T, R> Result<T>.flatMap(transform: (T) -> Result<R>): Result<R> = when (this) {
+public inline fun <T, R> Result<T>.flatMap(transform: (T) -> Result<R>): Result<R> = when (this) {
     is Result.Success -> transform(data)
     is Result.Failure -> this
     is Result.Loading -> this
@@ -121,7 +121,7 @@ inline fun <T, R> Result<T>.flatMap(transform: (T) -> Result<R>): Result<R> = wh
  * @param transform Function to transform the error message
  * @return A new Result with the transformed error, or the original Success/Loading state
  */
-inline fun <T> Result<T>.mapError(transform: (String) -> String): Result<T> = when (this) {
+public inline fun <T> Result<T>.mapError(transform: (String) -> String): Result<T> = when (this) {
     is Result.Success -> this
     is Result.Failure -> Result.Failure(transform(error))
     is Result.Loading -> this
@@ -144,7 +144,7 @@ inline fun <T> Result<T>.mapError(transform: (String) -> String): Result<T> = wh
  * @param onFailure Function to apply if this is a Failure
  * @return The result of applying the appropriate function, or null if Loading
  */
-inline fun <T, R> Result<T>.fold(
+public inline fun <T, R> Result<T>.fold(
     onSuccess: (T) -> R,
     onFailure: (String) -> R
 ): R? = when (this) {
@@ -164,7 +164,7 @@ inline fun <T, R> Result<T>.fold(
  * @param default Function that provides the default value
  * @return The success data or the default value
  */
-inline fun <T> Result<T>.getOrElse(default: () -> T): T = when (this) {
+public inline fun <T> Result<T>.getOrElse(default: () -> T): T = when (this) {
     is Result.Success -> data
     is Result.Failure -> default()
     is Result.Loading -> default()
@@ -180,7 +180,7 @@ inline fun <T> Result<T>.getOrElse(default: () -> T): T = when (this) {
  *
  * @return The success data or null
  */
-fun <T> Result<T>.getOrNull(): T? = when (this) {
+public fun <T> Result<T>.getOrNull(): T? = when (this) {
     is Result.Success -> data
     is Result.Failure -> null
     is Result.Loading -> null
@@ -199,7 +199,7 @@ fun <T> Result<T>.getOrNull(): T? = when (this) {
  * @param value The success value
  * @return A Result.Success containing the value
  */
-fun <T> success(value: T): Result<T> = Result.Success(value)
+public fun <T> success(value: T): Result<T> = Result.Success(value)
 
 /**
  * Creates a failed Result with the given error message.
@@ -217,7 +217,7 @@ fun <T> success(value: T): Result<T> = Result.Success(value)
  * @param error The error message
  * @return A Result.Failure with the error message
  */
-fun <T> failure(error: String): Result<T> = Result.Failure(error)
+public fun <T> failure(error: String): Result<T> = Result.Failure(error)
 
 /**
  * Combines two Results by applying a transformation function to both success values.
@@ -238,7 +238,7 @@ fun <T> failure(error: String): Result<T> = Result.Failure(error)
  * @param transform Function to combine both success values
  * @return A Result with the combined value, or the first error/loading encountered
  */
-inline fun <A, B, R> Result<A>.zip(
+public inline fun <A, B, R> Result<A>.zip(
     other: Result<B>,
     transform: (A, B) -> R
 ): Result<R> = when {
@@ -265,7 +265,7 @@ inline fun <A, B, R> Result<A>.zip(
  * @param results Variable number of Results to combine
  * @return A Result containing a list of all values, or the first error/loading encountered
  */
-fun <T> combine(vararg results: Result<T>): Result<List<T>> {
+public fun <T> combine(vararg results: Result<T>): Result<List<T>> {
     // Check for Failure first (highest priority)
     results.forEach { result ->
         if (result is Result.Failure) return result
@@ -305,7 +305,7 @@ fun <T> combine(vararg results: Result<T>): Result<List<T>> {
  * @param block The block of code to execute that may throw an exception
  * @return The result from the block, or Result.Failure if an exception was thrown
  */
-inline fun <T> catching(block: () -> Result<T>): Result<T> {
+public inline fun <T> catching(block: () -> Result<T>): Result<T> {
     return try {
         block()
     } catch (e: Throwable) {
@@ -336,7 +336,7 @@ inline fun <T> catching(block: () -> Result<T>): Result<T> {
  * @param recovery Función que recibe el mensaje de error y retorna un valor de recuperación
  * @return Result con el valor original si es Success, o el valor recuperado si es Failure
  */
-inline fun <T> Result<T>.recover(recovery: (String) -> T): Result<T> = when (this) {
+public inline fun <T> Result<T>.recover(recovery: (String) -> T): Result<T> = when (this) {
     is Result.Success -> this
     is Result.Failure -> Result.Success(recovery(this.error))
     is Result.Loading -> this
@@ -360,7 +360,7 @@ inline fun <T> Result<T>.recover(recovery: (String) -> T): Result<T> = when (thi
  * @param recovery Función que recibe el mensaje de error y retorna un Result<T>
  * @return El Result original si es Success, o el Result de recuperación si es Failure
  */
-inline fun <T> Result<T>.recoverWith(recovery: (String) -> Result<T>): Result<T> = when (this) {
+public inline fun <T> Result<T>.recoverWith(recovery: (String) -> Result<T>): Result<T> = when (this) {
     is Result.Success -> this
     is Result.Failure -> recovery(this.error)
     is Result.Loading -> this
@@ -388,7 +388,7 @@ inline fun <T> Result<T>.recoverWith(recovery: (String) -> Result<T>): Result<T>
  * @param errorMessage Mensaje de error a usar si el valor es null
  * @return Result.Success si el valor no es null, Result.Failure si es null
  */
-fun <T : Any> T?.toResult(errorMessage: String): Result<T> {
+public fun <T : Any> T?.toResult(errorMessage: String): Result<T> {
     return if (this != null) {
         Result.Success(this)
     } else {
@@ -413,7 +413,7 @@ fun <T : Any> T?.toResult(errorMessage: String): Result<T> {
  * @param errorProvider Función que genera el mensaje de error si el valor es null
  * @return Result.Success si el valor no es null, Result.Failure si es null
  */
-inline fun <T : Any> T?.toResultOrElse(errorProvider: () -> String): Result<T> {
+public inline fun <T : Any> T?.toResultOrElse(errorProvider: () -> String): Result<T> {
     return if (this != null) {
         Result.Success(this)
     } else {
@@ -435,7 +435,7 @@ inline fun <T : Any> T?.toResultOrElse(errorProvider: () -> String): Result<T> {
  *
  * @return Result<T> aplanado
  */
-fun <T> Result<Result<T>>.flatten(): Result<T> = when (this) {
+public fun <T> Result<Result<T>>.flatten(): Result<T> = when (this) {
     is Result.Success -> this.data
     is Result.Failure -> this
     is Result.Loading -> this

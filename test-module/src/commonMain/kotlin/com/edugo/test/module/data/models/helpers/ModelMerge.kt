@@ -15,7 +15,7 @@ import kotlinx.datetime.Clock
 /**
  * Estrategia de merge para determinar qué valor usar cuando ambos objetos tienen un valor.
  */
-enum class MergeStrategy {
+public enum class MergeStrategy {
     /**
      * El valor del segundo objeto (other) sobrescribe el del primero (original).
      * Esta es la estrategia por defecto y más común.
@@ -42,7 +42,7 @@ enum class MergeStrategy {
  * @property merged El modelo resultante del merge
  * @property changedFields Lista de nombres de campos que fueron modificados
  */
-data class MergeResult<T>(
+public data class MergeResult<T>(
     val merged: T,
     val changedFields: List<String> = emptyList()
 ) {
@@ -88,7 +88,7 @@ data class MergeResult<T>(
  * @param merger Función que define cómo combinar los dos objetos
  * @return Result con el objeto mergeado si la validación pasa, Failure si falla
  */
-inline fun <T : ValidatableModel> T.mergeWithValidation(
+public inline fun <T : ValidatableModel> T.mergeWithValidation(
     other: T,
     merger: (original: T, other: T) -> T
 ): Result<T> {
@@ -137,7 +137,7 @@ inline fun <T : ValidatableModel> T.mergeWithValidation(
  * @param merger Función que define el merge de los campos específicos del modelo
  * @return El modelo mergeado con EntityBase properties correctamente preservadas
  */
-inline fun <ID, T : EntityBase<ID>> T.mergeEntityBase(
+public inline fun <ID, T : EntityBase<ID>> T.mergeEntityBase(
     other: T,
     crossinline merger: (original: T, other: T) -> T
 ): T {
@@ -181,7 +181,7 @@ inline fun <ID, T : EntityBase<ID>> T.mergeEntityBase(
  * @param fields Pares de nombre de campo a función extractora
  * @return Lista de nombres de campos que cambiaron
  */
-fun <T> detectChanges(
+public fun <T> detectChanges(
     original: T,
     updated: T,
     vararg fields: Pair<String, (T) -> Any?>
@@ -213,7 +213,7 @@ fun <T> detectChanges(
  * @param strategy Estrategia de merge (por defecto PREFER_OTHER)
  * @return Map combinado
  */
-fun <K, V> mergeMaps(
+public fun <K, V> mergeMaps(
     original: Map<K, V>,
     updates: Map<K, V>,
     strategy: MergeStrategy = MergeStrategy.PREFER_OTHER
@@ -253,7 +253,7 @@ fun <K, V> mergeMaps(
  * @param strategy Estrategia de merge
  * @return Lista combinada
  */
-fun <T> mergeLists(
+public fun <T> mergeLists(
     original: List<T>,
     updates: List<T>,
     strategy: MergeStrategy = MergeStrategy.PREFER_OTHER
@@ -282,13 +282,13 @@ fun <T> mergeLists(
  * @param T Tipo del modelo
  * @property current Estado actual del modelo durante el build
  */
-class MergeBuilder<T>(private var current: T) {
+public class MergeBuilder<T>(private var current: T) {
     private val appliedChanges = mutableListOf<String>()
 
     /**
      * Aplica un merge solo si la condición es verdadera.
      */
-    fun mergeIf(condition: Boolean, transform: (T) -> T): MergeBuilder<T> {
+    public fun mergeIf(condition: Boolean, transform: (T) -> T): MergeBuilder<T> {
         if (condition) {
             current = transform(current)
             appliedChanges.add("conditional_merge")
@@ -299,7 +299,7 @@ class MergeBuilder<T>(private var current: T) {
     /**
      * Aplica un merge y registra el nombre del campo cambiado.
      */
-    fun merge(fieldName: String, transform: (T) -> T): MergeBuilder<T> {
+    public fun merge(fieldName: String, transform: (T) -> T): MergeBuilder<T> {
         current = transform(current)
         appliedChanges.add(fieldName)
         return this
@@ -308,7 +308,7 @@ class MergeBuilder<T>(private var current: T) {
     /**
      * Actualiza el timestamp si el modelo es EntityBase.
      */
-    fun updateTimestamp(): MergeBuilder<T> {
+    public fun updateTimestamp(): MergeBuilder<T> {
         // El usuario debe implementar esto en su modelo
         appliedChanges.add("updatedAt")
         return this
@@ -317,7 +317,7 @@ class MergeBuilder<T>(private var current: T) {
     /**
      * Construye el resultado final.
      */
-    fun build(): MergeResult<T> {
+    public fun build(): MergeResult<T> {
         return MergeResult(
             merged = current,
             changedFields = appliedChanges.toList()
@@ -336,4 +336,4 @@ class MergeBuilder<T>(private var current: T) {
  *     .build()
  * ```
  */
-fun <T> T.buildMerge(): MergeBuilder<T> = MergeBuilder(this)
+public fun <T> T.buildMerge(): MergeBuilder<T> = MergeBuilder(this)

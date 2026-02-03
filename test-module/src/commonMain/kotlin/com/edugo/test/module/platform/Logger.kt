@@ -45,7 +45,7 @@ package com.edugo.test.module.platform
  * @see TaggedLogger
  * @see [Android Logging Best Practices](https://developer.android.com/studio/debug/am-logcat)
  */
-interface Logger {
+public interface Logger {
 
     // ==================== DEBUG ====================
 
@@ -67,7 +67,7 @@ interface Logger {
      * logger.d("NetworkClient", "Sending GET request to /api/users")
      * ```
      */
-    fun d(tag: String, message: String)
+    public fun d(tag: String, message: String)
 
     /**
      * Logs a debug message with lazy evaluation.
@@ -83,7 +83,7 @@ interface Logger {
      * logger.d("Cache") { "Stored ${items.size} items in ${duration}ms" }
      * ```
      */
-    fun d(tag: String, message: () -> String) {
+    public fun d(tag: String, message: () -> String) {
         d(tag, message())
     }
 
@@ -94,7 +94,7 @@ interface Logger {
      * @param message The message to log
      * @param throwable The exception to log
      */
-    fun d(tag: String, message: String, throwable: Throwable)
+    public fun d(tag: String, message: String, throwable: Throwable)
 
     // ==================== INFO ====================
 
@@ -114,7 +114,7 @@ interface Logger {
      * logger.i("AuthManager", "User logged in successfully")
      * ```
      */
-    fun i(tag: String, message: String)
+    public fun i(tag: String, message: String)
 
     /**
      * Logs an informational message with lazy evaluation.
@@ -122,7 +122,7 @@ interface Logger {
      * @param tag Identifier for the log source
      * @param message Lambda that produces the message (evaluated lazily)
      */
-    fun i(tag: String, message: () -> String) {
+    public fun i(tag: String, message: () -> String) {
         i(tag, message())
     }
 
@@ -133,7 +133,7 @@ interface Logger {
      * @param message The message to log
      * @param throwable The exception to log
      */
-    fun i(tag: String, message: String, throwable: Throwable)
+    public fun i(tag: String, message: String, throwable: Throwable)
 
     // ==================== WARNING ====================
 
@@ -153,7 +153,7 @@ interface Logger {
      * logger.w("ConfigLoader", "Config file not found, using defaults")
      * ```
      */
-    fun w(tag: String, message: String)
+    public fun w(tag: String, message: String)
 
     /**
      * Logs a warning message with lazy evaluation.
@@ -161,7 +161,7 @@ interface Logger {
      * @param tag Identifier for the log source
      * @param message Lambda that produces the message (evaluated lazily)
      */
-    fun w(tag: String, message: () -> String) {
+    public fun w(tag: String, message: () -> String) {
         w(tag, message())
     }
 
@@ -172,7 +172,7 @@ interface Logger {
      * @param message The message to log
      * @param throwable The exception to log
      */
-    fun w(tag: String, message: String, throwable: Throwable)
+    public fun w(tag: String, message: String, throwable: Throwable)
 
     // ==================== ERROR ====================
 
@@ -192,7 +192,7 @@ interface Logger {
      * logger.e("NetworkClient", "Failed to connect to server")
      * ```
      */
-    fun e(tag: String, message: String)
+    public fun e(tag: String, message: String)
 
     /**
      * Logs an error message with lazy evaluation.
@@ -200,7 +200,7 @@ interface Logger {
      * @param tag Identifier for the log source
      * @param message Lambda that produces the message (evaluated lazily)
      */
-    fun e(tag: String, message: () -> String) {
+    public fun e(tag: String, message: () -> String) {
         e(tag, message())
     }
 
@@ -224,7 +224,7 @@ interface Logger {
      * }
      * ```
      */
-    fun e(tag: String, message: String, throwable: Throwable)
+    public fun e(tag: String, message: String, throwable: Throwable)
 
     // ==================== LEGACY COMPATIBILITY ====================
 
@@ -234,7 +234,7 @@ interface Logger {
      * @deprecated Use [d] instead. Will be removed in v3.0.
      */
     @Deprecated("Use d() instead", ReplaceWith("d(tag, message)"))
-    fun debug(tag: String, message: String) = d(tag, message)
+    public fun debug(tag: String, message: String) = d(tag, message)
 
     /**
      * Logs an informational message (legacy compatibility).
@@ -242,7 +242,7 @@ interface Logger {
      * @deprecated Use [i] instead. Will be removed in v3.0.
      */
     @Deprecated("Use i() instead", ReplaceWith("i(tag, message)"))
-    fun info(tag: String, message: String) = i(tag, message)
+    public fun info(tag: String, message: String) = i(tag, message)
 
     /**
      * Logs an error message with optional throwable (legacy compatibility).
@@ -250,7 +250,7 @@ interface Logger {
      * @deprecated Use [e] instead. Will be removed in v3.0.
      */
     @Deprecated("Use e() instead", ReplaceWith("e(tag, message)"))
-    fun error(tag: String, message: String, throwable: Throwable? = null) {
+    public fun error(tag: String, message: String, throwable: Throwable? = null) {
         if (throwable != null) {
             e(tag, message, throwable)
         } else {
@@ -284,7 +284,7 @@ interface Logger {
  * @see Logger
  * @see TaggedLogger
  */
-expect fun createDefaultLogger(): Logger
+public expect fun createDefaultLogger(): Logger
 
 /**
  * Global default logger instance for convenience.
@@ -299,7 +299,7 @@ expect fun createDefaultLogger(): Logger
  *
  * For production code, prefer injecting Logger instances for better testability.
  */
-object DefaultLogger : Logger {
+public object DefaultLogger : Logger {
     private val delegate: Logger by lazy { createDefaultLogger() }
 
     override fun d(tag: String, message: String) = delegate.d(tag, message)

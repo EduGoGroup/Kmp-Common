@@ -85,7 +85,7 @@ import kotlinx.datetime.Instant
  * @see AuditableModel Para información de auditoría extendida
  * @see SoftDeletable Para soft delete funcionalidad
  */
-interface EntityBase<ID> {
+public interface EntityBase<ID> {
     /**
      * Identificador único de la entidad.
      *

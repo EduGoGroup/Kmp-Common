@@ -1,5 +1,5 @@
 package com.edugo.test.module
 
-class TestClass {
-    fun greeting(): String = "Hello from KMP!"
+public class TestClass {
+    public fun greeting(): String = "Hello from KMP!"
 }

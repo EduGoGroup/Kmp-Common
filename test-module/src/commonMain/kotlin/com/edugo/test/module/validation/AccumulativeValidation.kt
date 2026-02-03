@@ -83,7 +83,7 @@ import com.edugo.test.module.core.success
  * Esta clase proporciona un DSL fluido para agregar errores de validación
  * y construir el resultado final.
  */
-class ValidationErrorAccumulator {
+public class ValidationErrorAccumulator {
     private val errors = mutableListOf<String>()
 
     /**
@@ -94,7 +94,7 @@ class ValidationErrorAccumulator {
      *
      * @param error Mensaje de error o null si la validación pasó
      */
-    fun add(error: String?) {
+    public fun add(error: String?) {
         error?.let { errors.add(it) }
     }
 
@@ -112,7 +112,7 @@ class ValidationErrorAccumulator {
      *
      * @param errors Lista de errores (null entries se ignoran)
      */
-    fun add(errors: List<String?>) {
+    public fun add(errors: List<String?>) {
         errors.forEach { add(it) }
     }
 
@@ -125,7 +125,7 @@ class ValidationErrorAccumulator {
      * @param separator Separador entre errores (default: "; ")
      * @return Result con éxito o todos los errores acumulados
      */
-    fun build(separator: String = "; "): Result<Unit> {
+    public fun build(separator: String = "; "): Result<Unit> {
         return if (errors.isEmpty()) {
             success(Unit)
         } else {
@@ -140,28 +140,28 @@ class ValidationErrorAccumulator {
      *
      * @return Lista inmutable de errores
      */
-    fun getErrors(): List<String> = errors.toList()
+    public fun getErrors(): List<String> = errors.toList()
 
     /**
      * Verifica si hay errores acumulados.
      *
      * @return true si hay al menos un error, false si no hay errores
      */
-    fun hasErrors(): Boolean = errors.isNotEmpty()
+    public fun hasErrors(): Boolean = errors.isNotEmpty()
 
     /**
      * Cuenta cuántos errores se han acumulado.
      *
      * @return Número de errores acumulados
      */
-    fun errorCount(): Int = errors.size
+    public fun errorCount(): Int = errors.size
 
     /**
      * Limpia todos los errores acumulados.
      *
      * Útil si se quiere reutilizar el mismo acumulador.
      */
-    fun clear() {
+    public fun clear() {
         errors.clear()
     }
 }
@@ -205,7 +205,7 @@ class ValidationErrorAccumulator {
  * @param block Bloque de código que agrega validaciones
  * @return Result.Success si no hay errores, Result.Failure con todos los errores si hay
  */
-inline fun accumulateValidationErrors(
+public inline fun accumulateValidationErrors(
     separator: String = "; ",
     block: ValidationErrorAccumulator.() -> Unit
 ): Result<Unit> {
@@ -237,7 +237,7 @@ inline fun accumulateValidationErrors(
  * @param itemPrefix Prefijo para cada item en el error (default: "Item")
  * @return Result.Success si todos son válidos, Result.Failure con todos los errores
  */
-fun List<com.edugo.test.module.data.models.base.ValidatableModel>.validateAllAccumulative(
+public fun List<com.edugo.test.module.data.models.base.ValidatableModel>.validateAllAccumulative(
     separator: String = "; ",
     itemPrefix: String = "Item"
 ): Result<Unit> {
@@ -271,7 +271,7 @@ fun List<com.edugo.test.module.data.models.base.ValidatableModel>.validateAllAcc
  * @param separator Separador entre errores (default: "; ")
  * @return Result.Success si todos son Success, Result.Failure con errores acumulados
  */
-fun combineValidations(
+public fun combineValidations(
     vararg validations: Result<Unit>,
     separator: String = "; "
 ): Result<Unit> {
@@ -306,7 +306,7 @@ fun combineValidations(
  * @param block Bloque de validación con el receptor como contexto
  * @return Result.Success si todas las validaciones pasan, Result.Failure si alguna falla
  */
-inline fun <T> T.validateWith(
+public inline fun <T> T.validateWith(
     separator: String = "; ",
     block: ValidationErrorAccumulator.(T) -> Unit
 ): Result<Unit> {
@@ -338,7 +338,7 @@ inline fun <T> T.validateWith(
  * @param validation Función que retorna el error de validación o null
  * @return Error de validación si la condición es true y la validación falla, null en otro caso
  */
-inline fun validateIf(
+public inline fun validateIf(
     condition: Boolean,
     validation: () -> String?
 ): String? {
@@ -365,7 +365,7 @@ inline fun validateIf(
  * @param validations Lista de funciones de validación
  * @return null si al menos una validación pasa, errorMessage si todas fallan
  */
-fun validateAtLeastOne(
+public fun validateAtLeastOne(
     errorMessage: String,
     vararg validations: () -> String?
 ): String? {
@@ -391,7 +391,7 @@ fun validateAtLeastOne(
  * @param validations Lista de funciones de validación
  * @return Primer error encontrado, o null si todas pasan
  */
-fun validateAll(vararg validations: () -> String?): String? {
+public fun validateAll(vararg validations: () -> String?): String? {
     validations.forEach { validation ->
         validation()?.let { return it }
     }

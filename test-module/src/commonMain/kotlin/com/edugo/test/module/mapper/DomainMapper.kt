@@ -159,7 +159,7 @@ import com.edugo.test.module.core.Result
  * @see Result Para entender el tipo de retorno de toDomain()
  * @see ValidatableModel Para modelos que requieren validación
  */
-interface DomainMapper<DTO, Domain> {
+public interface DomainMapper<DTO, Domain> {
     /**
      * Convierte un DTO a modelo de dominio con validación.
      *
@@ -207,7 +207,7 @@ interface DomainMapper<DTO, Domain> {
      * @return [Result.Success] con el dominio si la validación pasa,
      *         [Result.Failure] con mensaje de error si falla
      */
-    fun toDomain(dto: DTO): Result<Domain>
+    public fun toDomain(dto: DTO): Result<Domain>
 
     /**
      * Convierte un modelo de dominio a DTO.
@@ -233,7 +233,7 @@ interface DomainMapper<DTO, Domain> {
      * @param domain Instancia del modelo de dominio a convertir
      * @return DTO con los datos del dominio
      */
-    fun toDto(domain: Domain): DTO
+    public fun toDto(domain: Domain): DTO
 }
 
 /**
@@ -253,7 +253,7 @@ interface DomainMapper<DTO, Domain> {
  * @param mapper Mapper a usar para la conversión
  * @return Result con el modelo de dominio o error de validación
  */
-fun <DTO, Domain> DTO.toDomain(mapper: DomainMapper<DTO, Domain>): Result<Domain> {
+public fun <DTO, Domain> DTO.toDomain(mapper: DomainMapper<DTO, Domain>): Result<Domain> {
     return mapper.toDomain(this)
 }
 
@@ -274,7 +274,7 @@ fun <DTO, Domain> DTO.toDomain(mapper: DomainMapper<DTO, Domain>): Result<Domain
  * @param mapper Mapper a usar para la conversión
  * @return DTO con los datos del dominio
  */
-fun <DTO, Domain> Domain.toDto(mapper: DomainMapper<DTO, Domain>): DTO {
+public fun <DTO, Domain> Domain.toDto(mapper: DomainMapper<DTO, Domain>): DTO {
     return mapper.toDto(this)
 }
 
@@ -297,7 +297,7 @@ fun <DTO, Domain> Domain.toDto(mapper: DomainMapper<DTO, Domain>): DTO {
  * @param mapper Mapper a usar para cada conversión
  * @return Result con la lista de dominios o el primer error encontrado
  */
-fun <DTO, Domain> List<DTO>.toDomainList(mapper: DomainMapper<DTO, Domain>): Result<List<Domain>> {
+public fun <DTO, Domain> List<DTO>.toDomainList(mapper: DomainMapper<DTO, Domain>): Result<List<Domain>> {
     val domains = mutableListOf<Domain>()
     for (dto in this) {
         when (val result = mapper.toDomain(dto)) {
@@ -322,6 +322,6 @@ fun <DTO, Domain> List<DTO>.toDomainList(mapper: DomainMapper<DTO, Domain>): Res
  * @param mapper Mapper a usar para cada conversión
  * @return Lista de DTOs
  */
-fun <DTO, Domain> List<Domain>.toDtoList(mapper: DomainMapper<DTO, Domain>): List<DTO> {
+public fun <DTO, Domain> List<Domain>.toDtoList(mapper: DomainMapper<DTO, Domain>): List<DTO> {
     return map { mapper.toDto(it) }
 }

@@ -31,7 +31,7 @@ package com.edugo.test.module.platform
  * @see TaggedLogger
  * @see LoggerCache
  */
-object LoggerCacheUtils {
+public object LoggerCacheUtils {
 
     /**
      * Clears all cached logger instances.
@@ -51,7 +51,7 @@ object LoggerCacheUtils {
      * LoggerCacheUtils.clearCache()
      * ```
      */
-    fun clearCache() {
+    public fun clearCache() {
         LoggerCache.clear()
     }
 
@@ -66,7 +66,7 @@ object LoggerCacheUtils {
      * println("Cache contains $size loggers")
      * ```
      */
-    fun getCacheSize(): Int {
+    public fun getCacheSize(): Int {
         return LoggerCache.size()
     }
 
@@ -86,7 +86,7 @@ object LoggerCacheUtils {
      * }
      * ```
      */
-    fun getAllCachedTags(): Set<String> {
+    public fun getAllCachedTags(): Set<String> {
         return LoggerCache.getAllTags()
     }
 
@@ -103,7 +103,7 @@ object LoggerCacheUtils {
      * }
      * ```
      */
-    fun isTagCached(tag: String): Boolean {
+    public fun isTagCached(tag: String): Boolean {
         return LoggerCache.contains(tag)
     }
 
@@ -125,7 +125,7 @@ object LoggerCacheUtils {
      * }
      * ```
      */
-    fun removeFromCache(tag: String): TaggedLogger? {
+    public fun removeFromCache(tag: String): TaggedLogger? {
         return LoggerCache.remove(tag)
     }
 }

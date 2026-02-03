@@ -23,7 +23,7 @@ import kotlinx.serialization.serializer
  * @property stackTrace Stack trace formateado como string
  */
 @Serializable
-data class SerializableThrowable(
+public data class SerializableThrowable(
     val className: String,
     val message: String?,
     val stackTrace: String
@@ -32,7 +32,7 @@ data class SerializableThrowable(
         /**
          * Convierte un Throwable en su representación serializable.
          */
-        fun from(throwable: Throwable): SerializableThrowable {
+        public fun from(throwable: Throwable): SerializableThrowable {
             return SerializableThrowable(
                 className = throwable::class.qualifiedName ?: throwable::class.simpleName ?: "UnknownException",
                 message = throwable.message,
@@ -47,7 +47,7 @@ data class SerializableThrowable(
      * Nota: No puede recrear la excepción original exacta, pero proporciona
      * un RuntimeException con toda la información relevante.
      */
-    fun toThrowable(): Throwable {
+    public fun toThrowable(): Throwable {
         return RuntimeException(
             "[$className] ${message ?: "(no message)"}\n$stackTrace"
         )
@@ -70,7 +70,7 @@ data class SerializableThrowable(
  * )
  * ```
  */
-object ThrowableSerializer : KSerializer<Throwable?> {
+public object ThrowableSerializer : KSerializer<Throwable?> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Throwable") {
         element<String?>("className")
         element<String?>("message")

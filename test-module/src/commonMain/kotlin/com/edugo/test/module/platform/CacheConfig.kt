@@ -14,5 +14,5 @@ internal object CacheConfig {
      *
      * Uses FIFO eviction when capacity is reached.
      */
-    const val MAX_CACHE_SIZE = 100
+    public const val MAX_CACHE_SIZE = 100
 }

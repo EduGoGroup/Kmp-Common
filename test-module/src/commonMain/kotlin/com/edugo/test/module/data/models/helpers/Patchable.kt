@@ -49,7 +49,7 @@ import kotlinx.datetime.Instant
  *
  * @param T El tipo del modelo que implementa esta interface
  */
-interface Patchable<T>
+public interface Patchable<T>
 
 /**
  * Interface marcadora para modelos que soportan operaciones de merge (fusión completa).
@@ -91,7 +91,7 @@ interface Patchable<T>
  *
  * @param T El tipo del modelo que implementa esta interface
  */
-interface Mergeable<T>
+public interface Mergeable<T>
 
 /**
  * Data class genérica para representar operaciones de patch.
@@ -117,31 +117,31 @@ interface Mergeable<T>
  * @param T El tipo del modelo a patchear
  * @property fields Map de nombre de campo a nuevo valor
  */
-data class PatchOperation<T>(
+public data class PatchOperation<T>(
     val fields: Map<String, Any?>
 ) {
     /**
      * Verifica si el patch contiene un campo específico.
      */
-    fun hasField(fieldName: String): Boolean = fields.containsKey(fieldName)
+    public fun hasField(fieldName: String): Boolean = fields.containsKey(fieldName)
 
     /**
      * Obtiene el valor de un campo del patch.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <R> getField(fieldName: String): R? = fields[fieldName] as? R
+    public fun <R> getField(fieldName: String): R? = fields[fieldName] as? R
 
     /**
      * Retorna un nuevo PatchOperation con un campo adicional.
      */
-    fun withField(fieldName: String, value: Any?): PatchOperation<T> {
+    public fun withField(fieldName: String, value: Any?): PatchOperation<T> {
         return copy(fields = fields + (fieldName to value))
     }
 
     /**
      * Retorna un nuevo PatchOperation sin un campo específico.
      */
-    fun withoutField(fieldName: String): PatchOperation<T> {
+    public fun withoutField(fieldName: String): PatchOperation<T> {
         return copy(fields = fields - fieldName)
     }
 
@@ -189,7 +189,7 @@ data class PatchOperation<T>(
  * @param transform Función que aplica el patch y retorna el modelo actualizado
  * @return Result con el modelo actualizado si la validación pasa, Failure si falla
  */
-inline fun <T : ValidatableModel> T.applyPatchWithValidation(
+public inline fun <T : ValidatableModel> T.applyPatchWithValidation(
     transform: (T) -> T
 ): Result<T> {
     val patched = transform(this)
@@ -218,7 +218,7 @@ inline fun <T : ValidatableModel> T.applyPatchWithValidation(
  * @param transforms Vararg de funciones de transformación
  * @return Result con el modelo con todos los patches aplicados, o el primer error
  */
-inline fun <T : ValidatableModel> T.applyPatchesWithValidation(
+public inline fun <T : ValidatableModel> T.applyPatchesWithValidation(
     vararg transforms: (T) -> T
 ): Result<T> {
     var current: T = this
@@ -260,7 +260,7 @@ inline fun <T : ValidatableModel> T.applyPatchesWithValidation(
  * @param pairs Pares de nombre de campo a valor
  * @return PatchOperation con los campos no-null
  */
-fun <T> toPatchOperation(vararg pairs: Pair<String, Any?>): PatchOperation<T> {
+public fun <T> toPatchOperation(vararg pairs: Pair<String, Any?>): PatchOperation<T> {
     return PatchOperation(
         fields = pairs.filter { it.second != null }.toMap()
     )
@@ -280,7 +280,7 @@ fun <T> toPatchOperation(vararg pairs: Pair<String, Any?>): PatchOperation<T> {
  * )
  * ```
  */
-fun preserveCreatedAt(createdAt: Instant): Instant = createdAt
+public fun preserveCreatedAt(createdAt: Instant): Instant = createdAt
 
 /**
  * Helper para generar un nuevo timestamp de actualización.
@@ -293,7 +293,7 @@ fun preserveCreatedAt(createdAt: Instant): Instant = createdAt
  * )
  * ```
  */
-fun updateTimestamp(): Instant = Clock.System.now()
+public fun updateTimestamp(): Instant = Clock.System.now()
 
 /**
  * Extension function para actualizar el updatedAt de un modelo que implementa EntityBase.
@@ -309,6 +309,6 @@ fun updateTimestamp(): Instant = Clock.System.now()
  * )
  * ```
  */
-fun <T> withUpdatedTimestamp(transform: (Instant) -> T): T {
+public fun <T> withUpdatedTimestamp(transform: (Instant) -> T): T {
     return transform(Clock.System.now())
 }

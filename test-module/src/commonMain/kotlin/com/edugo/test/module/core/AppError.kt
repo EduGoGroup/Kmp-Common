@@ -3,6 +3,7 @@ package com.edugo.test.module.core
 import com.edugo.test.module.core.serialization.ThrowableSerializer
 import kotlin.js.JsExport
 import kotlinx.datetime.Clock
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -69,21 +70,24 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 @JsExport
-class AppError(
+class AppError internal constructor(
     val code: ErrorCode,
     val message: String,
-    val details: Map<String, String> = emptyMap(),
+    @SerialName("details")
+    internal val _details: Map<String, String> = emptyMap(),
     @Serializable(with = ThrowableSerializer::class)
     val cause: Throwable? = null,
     val timestamp: Long = Clock.System.now().toEpochMilliseconds()
 ) {
+    // Public immutable view
+    val details: Map<String, String> get() = _details
 
     init {
         require(message.isNotBlank()) { "Error message cannot be blank" }
 
         // Performance warning for large details maps
-        if (details.size > 50) {
-            println("⚠️ AppError created with ${details.size} detail entries. " +
+        if (_details.size > 50) {
+            println("⚠️ AppError created with ${_details.size} detail entries. " +
                     "Consider if all this data is necessary for error context.")
         }
     }
@@ -97,10 +101,10 @@ class AppError(
     fun copy(
         code: ErrorCode = this.code,
         message: String = this.message,
-        details: Map<String, String> = this.details,
+        details: Map<String, String> = this._details,
         cause: Throwable? = this.cause,
         timestamp: Long = this.timestamp
-    ): AppError = AppError(code, message, details, cause, timestamp)
+    ): AppError = AppError(code, message, detailsInternal = details, cause, timestamp)
 
     /**
      * Implements structural equality for AppError instances.
@@ -149,7 +153,7 @@ class AppError(
     override fun hashCode(): Int {
         var result = code.hashCode()
         result = 31 * result + message.hashCode()
-        result = 31 * result + details.hashCode()
+        result = 31 * result + _details.hashCode()
         result = 31 * result + (cause?.hashCode() ?: 0)
         result = 31 * result + timestamp.toInt() // Direct conversion, no hashCode() needed
         return result
@@ -393,6 +397,24 @@ class AppError(
 
     companion object {
         /**
+         * Public factory method that creates an AppError with defensive copy of details.
+         * This acts as the public constructor.
+         */
+        operator fun invoke(
+            code: ErrorCode,
+            message: String,
+            detailsInternal: Map<String, String> = emptyMap(),
+            cause: Throwable? = null,
+            timestamp: Long = Clock.System.now().toEpochMilliseconds()
+        ): AppError = AppError(
+            code = code,
+            message = message,
+            _details = detailsInternal.toMap(), // Defensive copy
+            cause = cause,
+            timestamp = timestamp
+        )
+
+        /**
          * Creates an AppError from an exception.
          *
          * The error message will be extracted from the exception's message,
@@ -437,7 +459,7 @@ class AppError(
             return AppError(
                 code = code,
                 message = message,
-                details = details,
+                detailsInternal = details,
                 cause = exception
             )
         }
@@ -469,7 +491,7 @@ class AppError(
             return AppError(
                 code = code,
                 message = customMessage ?: code.description,
-                details = details,
+                detailsInternal = details,
                 cause = null
             )
         }
@@ -507,7 +529,7 @@ class AppError(
             return AppError(
                 code = ErrorCode.VALIDATION_INVALID_INPUT,
                 message = message,
-                details = enrichedDetails,
+                detailsInternal = enrichedDetails,
                 cause = null
             )
         }
@@ -569,7 +591,7 @@ class AppError(
             return AppError(
                 code = ErrorCode.NETWORK_TIMEOUT,
                 message = message,
-                details = details,
+                detailsInternal = details,
                 cause = null
             )
         }
@@ -598,7 +620,7 @@ class AppError(
             return AppError(
                 code = ErrorCode.AUTH_UNAUTHORIZED,
                 message = message,
-                details = details,
+                detailsInternal = details,
                 cause = null
             )
         }
@@ -627,7 +649,7 @@ class AppError(
             return AppError(
                 code = ErrorCode.BUSINESS_RESOURCE_NOT_FOUND,
                 message = message,
-                details = details,
+                detailsInternal = details,
                 cause = null
             )
         }
@@ -666,7 +688,7 @@ class AppError(
             return AppError(
                 code = ErrorCode.SYSTEM_INTERNAL_ERROR,
                 message = errorMessage,
-                details = details,
+                detailsInternal = details,
                 cause = cause
             )
         }

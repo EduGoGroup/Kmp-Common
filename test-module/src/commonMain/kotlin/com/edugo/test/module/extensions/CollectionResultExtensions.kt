@@ -68,7 +68,7 @@ import com.edugo.test.module.core.Result
  *
  * @return Success con lista de valores si todos son Success, o el primer error encontrado
  */
-fun <T> List<Result<T>>.sequence(): Result<List<T>> {
+public fun <T> List<Result<T>>.sequence(): Result<List<T>> {
     // Chequear Failure primero (fail-fast)
     forEach { result ->
         if (result is Result.Failure) return result
@@ -130,7 +130,7 @@ fun <T> List<Result<T>>.sequence(): Result<List<T>> {
  * @param separator Separador entre mensajes de error (default: "; ")
  * @return Success con lista de valores si todos son Success, o Failure con todos los errores
  */
-fun <T> List<Result<T>>.sequenceCollectingErrors(separator: String = "; "): Result<List<T>> {
+public fun <T> List<Result<T>>.sequenceCollectingErrors(separator: String = "; "): Result<List<T>> {
     val errors = mutableListOf<String>()
     val values = mutableListOf<T>()
     var hasLoading = false
@@ -192,7 +192,7 @@ fun <T> List<Result<T>>.sequenceCollectingErrors(separator: String = "; "): Resu
  * @param transform Función que transforma cada elemento en un Result
  * @return Success con lista de valores transformados, o el primer error encontrado
  */
-inline fun <T, R> List<T>.traverse(transform: (T) -> Result<R>): Result<List<R>> {
+public inline fun <T, R> List<T>.traverse(transform: (T) -> Result<R>): Result<List<R>> {
     val results = mutableListOf<R>()
 
     for (item in this) {
@@ -237,7 +237,7 @@ inline fun <T, R> List<T>.traverse(transform: (T) -> Result<R>): Result<List<R>>
  * @param transform Función que transforma cada elemento en un Result
  * @return Success con lista de valores transformados, o Failure con todos los errores
  */
-inline fun <T, R> List<T>.traverseCollectingErrors(
+public inline fun <T, R> List<T>.traverseCollectingErrors(
     separator: String = "; ",
     includeIndex: Boolean = true,
     transform: (T) -> Result<R>
@@ -290,7 +290,7 @@ inline fun <T, R> List<T>.traverseCollectingErrors(
  * @param transform Función que retorna Result<R> si el elemento debe incluirse, null si debe filtrarse
  * @return Success con lista de valores transformados que pasaron el filtro
  */
-inline fun <T, R> List<T>.filterTraverse(transform: (T) -> Result<R>?): Result<List<R>> {
+public inline fun <T, R> List<T>.filterTraverse(transform: (T) -> Result<R>?): Result<List<R>> {
     val results = mutableListOf<R>()
 
     for (item in this) {
@@ -325,7 +325,7 @@ inline fun <T, R> List<T>.filterTraverse(transform: (T) -> Result<R>?): Result<L
  *
  * @return Par con lista de valores exitosos y lista de mensajes de error
  */
-fun <T> List<Result<T>>.partition(): Pair<List<T>, List<String>> {
+public fun <T> List<Result<T>>.partition(): Pair<List<T>, List<String>> {
     val successes = mutableListOf<T>()
     val failures = mutableListOf<String>()
 
@@ -360,7 +360,7 @@ fun <T> List<Result<T>>.partition(): Pair<List<T>, List<String>> {
  * @param transform Función que transforma cada elemento en un Result
  * @return Par con lista de valores exitosos y lista de mensajes de error
  */
-inline fun <T, R> List<T>.traversePartition(transform: (T) -> Result<R>): Pair<List<R>, List<String>> {
+public inline fun <T, R> List<T>.traversePartition(transform: (T) -> Result<R>): Pair<List<R>, List<String>> {
     val successes = mutableListOf<R>()
     val failures = mutableListOf<String>()
 
@@ -389,7 +389,7 @@ inline fun <T, R> List<T>.traversePartition(transform: (T) -> Result<R>): Pair<L
  *
  * @return Lista con solo los valores de los Results Success
  */
-fun <T> List<Result<T>>.collectSuccesses(): List<T> {
+public fun <T> List<Result<T>>.collectSuccesses(): List<T> {
     return mapNotNull { result ->
         when (result) {
             is Result.Success -> result.data
@@ -410,7 +410,7 @@ fun <T> List<Result<T>>.collectSuccesses(): List<T> {
  *
  * @return Lista con solo los mensajes de error de los Results Failure
  */
-fun <T> List<Result<T>>.collectFailures(): List<String> {
+public fun <T> List<Result<T>>.collectFailures(): List<String> {
     return mapNotNull { result ->
         when (result) {
             is Result.Failure -> result.error
@@ -433,7 +433,7 @@ fun <T> List<Result<T>>.collectFailures(): List<String> {
  *
  * @return true si todos son Success, false en caso contrario
  */
-fun <T> List<Result<T>>.allSuccess(): Boolean {
+public fun <T> List<Result<T>>.allSuccess(): Boolean {
     return all { it is Result.Success }
 }
 
@@ -442,7 +442,7 @@ fun <T> List<Result<T>>.allSuccess(): Boolean {
  *
  * @return true si hay al menos un Failure, false en caso contrario
  */
-fun <T> List<Result<T>>.anyFailure(): Boolean {
+public fun <T> List<Result<T>>.anyFailure(): Boolean {
     return any { it is Result.Failure }
 }
 
@@ -451,7 +451,7 @@ fun <T> List<Result<T>>.anyFailure(): Boolean {
  *
  * @return Número de Results exitosos
  */
-fun <T> List<Result<T>>.countSuccesses(): Int {
+public fun <T> List<Result<T>>.countSuccesses(): Int {
     return count { it is Result.Success }
 }
 
@@ -460,6 +460,6 @@ fun <T> List<Result<T>>.countSuccesses(): Int {
  *
  * @return Número de Results fallidos
  */
-fun <T> List<Result<T>>.countFailures(): Int {
+public fun <T> List<Result<T>>.countFailures(): Int {
     return count { it is Result.Failure }
 }

@@ -25,7 +25,7 @@ import co.touchlab.kermit.Logger
  * }
  * ```
  */
-actual object KermitConfig {
+public actual object KermitConfig {
     /**
      * Crea un Logger de Kermit configurado para Android con LogcatWriter.
      *
@@ -56,7 +56,7 @@ actual object KermitConfig {
      * @param tag Tag base para los logs
      * @return Logger de Kermit configurado
      */
-    fun createCustomLogger(
+    public fun createCustomLogger(
         tag: String = "EduGo"
     ): Logger {
         return Logger.withTag(tag)

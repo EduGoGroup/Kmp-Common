@@ -98,7 +98,7 @@ import kotlinx.serialization.Serializable
  * @throws IllegalArgumentException si page < 0 o pageSize <= 0
  */
 @Serializable
-data class PagedResult<T>(
+public data class PagedResult<T>(
     /**
      * Lista de elementos en esta página.
      *
@@ -267,7 +267,7 @@ data class PagedResult<T>(
  * @param transform Función que transforma cada elemento de tipo T a tipo R
  * @return Nuevo PagedResult con elementos transformados
  */
-inline fun <T, R> PagedResult<T>.map(transform: (T) -> R): PagedResult<R> {
+public inline fun <T, R> PagedResult<T>.map(transform: (T) -> R): PagedResult<R> {
     return PagedResult(
         items = items.map(transform),
         totalCount = totalCount,
@@ -291,7 +291,7 @@ inline fun <T, R> PagedResult<T>.map(transform: (T) -> R): PagedResult<R> {
  * @param transform Función que recibe el índice y el elemento, y retorna el elemento transformado
  * @return Nuevo PagedResult con elementos transformados
  */
-inline fun <T, R> PagedResult<T>.mapIndexed(transform: (index: Int, T) -> R): PagedResult<R> {
+public inline fun <T, R> PagedResult<T>.mapIndexed(transform: (index: Int, T) -> R): PagedResult<R> {
     return PagedResult(
         items = items.mapIndexed(transform),
         totalCount = totalCount,
@@ -317,7 +317,7 @@ inline fun <T, R> PagedResult<T>.mapIndexed(transform: (index: Int, T) -> R): Pa
  * @param predicate Función que determina si un elemento debe incluirse
  * @return Nuevo PagedResult con elementos filtrados (metadatos sin cambios)
  */
-inline fun <T> PagedResult<T>.filter(predicate: (T) -> Boolean): PagedResult<T> {
+public inline fun <T> PagedResult<T>.filter(predicate: (T) -> Boolean): PagedResult<T> {
     return copy(items = items.filter(predicate))
 }
 
@@ -334,7 +334,7 @@ inline fun <T> PagedResult<T>.filter(predicate: (T) -> Boolean): PagedResult<T> 
  * users = loadUsers()
  * ```
  */
-fun <T> emptyPagedResult(): PagedResult<T> {
+public fun <T> emptyPagedResult(): PagedResult<T> {
     return PagedResult(
         items = emptyList(),
         totalCount = 0,

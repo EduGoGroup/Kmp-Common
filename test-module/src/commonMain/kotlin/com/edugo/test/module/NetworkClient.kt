@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ApiResponse(val message: String)
+public data class ApiResponse(val message: String)
 
 /**
  * Cliente de red multiplataforma usando Ktor Client.
@@ -18,13 +18,13 @@ data class ApiResponse(val message: String)
  * - Kotlinx Serialization para JSON
  * - Kotlinx Coroutines con Dispatchers
  */
-class NetworkClient(private val client: HttpClient) {
+public class NetworkClient(private val client: HttpClient) {
     /**
      * Obtiene datos de una URL y retorna el contenido como String.
      *
      * Usa Dispatchers.Default para operaciones de red que no bloquean la UI.
      */
-    suspend fun fetchData(url: String): String = withContext(Dispatchers.Default) {
+    public suspend fun fetchData(url: String): String = withContext(Dispatchers.Default) {
         client.get(url).bodyAsText()
     }
 }

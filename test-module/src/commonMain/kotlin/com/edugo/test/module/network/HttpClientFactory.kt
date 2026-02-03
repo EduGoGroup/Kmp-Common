@@ -22,7 +22,7 @@ import kotlinx.serialization.json.Json
  * val debugClient = HttpClientFactory.createBaseClient(engine, LogLevel.INFO)
  * ```
  */
-object HttpClientFactory {
+public object HttpClientFactory {
 
     /**
      * Internal JSON configuration for HTTP client serialization.
@@ -62,7 +62,7 @@ object HttpClientFactory {
      * **⚠️ Security Warning**: Avoid using [LogLevel.HEADERS] or [LogLevel.BODY] in
      * production as they may log sensitive information (auth tokens, API keys, request bodies).
      */
-    fun createBaseClient(
+    public fun createBaseClient(
         engine: io.ktor.client.engine.HttpClientEngine,
         logLevel: LogLevel = LogLevel.NONE
     ): HttpClient {

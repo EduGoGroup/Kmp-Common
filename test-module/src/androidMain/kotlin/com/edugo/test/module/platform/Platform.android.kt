@@ -8,7 +8,7 @@ import android.os.Build
  * Note: isDebug defaults to false since BuildConfig is disabled by default.
  * Applications should override this or enable buildconfig in their modules.
  */
-actual object Platform {
+public actual object Platform {
     actual val name: String = "Android"
 
     actual val osVersion: String

@@ -31,7 +31,7 @@ import co.touchlab.kermit.Severity
  * @see Logger Interfaz original expect/actual (no modificada)
  * @see KermitConfig Configuración específica por plataforma
  */
-object KermitLogger {
+public object KermitLogger {
     private var kermitInstance: KermitLoggerImpl = KermitLoggerImpl
 
     @Volatile
@@ -48,7 +48,7 @@ object KermitLogger {
      *
      * Es idempotente: llamadas subsecuentes son ignoradas.
      */
-    fun initialize() {
+    public fun initialize() {
         if (isInitialized) return
         kermitInstance = KermitConfig.createLogger()
         isInitialized = true
@@ -61,7 +61,7 @@ object KermitLogger {
      *
      * @param logger Instancia personalizada de Kermit Logger
      */
-    fun setLogger(logger: KermitLoggerImpl) {
+    public fun setLogger(logger: KermitLoggerImpl) {
         kermitInstance = logger
     }
 
@@ -70,7 +70,7 @@ object KermitLogger {
      *
      * @return Instancia de Kermit Logger configurada
      */
-    fun getLogger(): KermitLoggerImpl = kermitInstance
+    public fun getLogger(): KermitLoggerImpl = kermitInstance
 
     /**
      * Logs a debug message.
@@ -80,7 +80,7 @@ object KermitLogger {
      * @param tag Identificador de la fuente del log (nombre de clase)
      * @param message Mensaje a registrar
      */
-    fun debug(tag: String, message: String) {
+    public fun debug(tag: String, message: String) {
         kermitInstance.d(tag = tag) { message }
     }
 
@@ -92,7 +92,7 @@ object KermitLogger {
      * @param tag Identificador de la fuente del log (nombre de clase)
      * @param message Mensaje a registrar
      */
-    fun info(tag: String, message: String) {
+    public fun info(tag: String, message: String) {
         kermitInstance.i(tag = tag) { message }
     }
 
@@ -104,7 +104,7 @@ object KermitLogger {
      * @param tag Identificador de la fuente del log (nombre de clase)
      * @param message Mensaje de advertencia a registrar
      */
-    fun warn(tag: String, message: String) {
+    public fun warn(tag: String, message: String) {
         kermitInstance.w(tag = tag) { message }
     }
 
@@ -117,7 +117,7 @@ object KermitLogger {
      * @param message Mensaje de error a registrar
      * @param throwable Excepción opcional a incluir con stack trace
      */
-    fun error(tag: String, message: String, throwable: Throwable? = null) {
+    public fun error(tag: String, message: String, throwable: Throwable? = null) {
         kermitInstance.e(tag = tag, throwable = throwable) { message }
     }
 
@@ -131,7 +131,7 @@ object KermitLogger {
      *
      * @param severity Nivel mínimo de Kermit (Verbose, Debug, Info, Warn, Error, Assert)
      */
-    fun setMinSeverity(severity: Severity) {
+    public fun setMinSeverity(severity: Severity) {
         // Kermit 2.0.4 requiere configurar los LogWriters para filtrar por severidad
         // Recrear el logger con configuración actualizada desde la plataforma
         kermitInstance = KermitConfig.createLoggerWithMinSeverity(severity)
@@ -150,13 +150,13 @@ object KermitLogger {
  * @see KermitConfig.jvm.kt
  * @see KermitConfig.js.kt
  */
-expect object KermitConfig {
+public expect object KermitConfig {
     /**
      * Crea y configura una instancia de Kermit Logger específica para la plataforma.
      *
      * @return Logger de Kermit configurado con writers y formatters apropiados
      */
-    fun createLogger(): KermitLoggerImpl
+    public fun createLogger(): KermitLoggerImpl
 
     /**
      * Crea un logger con severidad mínima configurada.
@@ -164,5 +164,5 @@ expect object KermitConfig {
      * @param minSeverity Nivel mínimo de logging
      * @return Logger de Kermit configurado con filtro de severidad
      */
-    fun createLoggerWithMinSeverity(minSeverity: Severity): KermitLoggerImpl
+    public fun createLoggerWithMinSeverity(minSeverity: Severity): KermitLoggerImpl
 }

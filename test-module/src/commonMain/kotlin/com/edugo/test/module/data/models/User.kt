@@ -90,7 +90,7 @@ import kotlinx.serialization.Serializable
  * @property deletedAt Timestamp de eliminación (null si no está eliminado)
  */
 @Serializable
-data class User(
+public data class User(
     override val id: String,
     val email: String,
     val username: String,
@@ -241,7 +241,7 @@ data class User(
      * }
      * ```
      */
-    fun hasRole(roleId: String): Boolean {
+    public fun hasRole(roleId: String): Boolean {
         return roleId in roles
     }
 
@@ -255,7 +255,7 @@ data class User(
      * }
      * ```
      */
-    fun hasAnyRole(vararg roleIds: String): Boolean {
+    public fun hasAnyRole(vararg roleIds: String): Boolean {
         return roleIds.any { it in roles }
     }
 
@@ -269,7 +269,7 @@ data class User(
      * }
      * ```
      */
-    fun hasAllRoles(vararg roleIds: String): Boolean {
+    public fun hasAllRoles(vararg roleIds: String): Boolean {
         return roleIds.all { it in roles }
     }
 
@@ -280,7 +280,7 @@ data class User(
      * - Está eliminado (soft delete)
      * - Está inactivo
      */
-    fun canBeModified(): Boolean {
+    public fun canBeModified(): Boolean {
         return isActive && !isDeleted()
     }
 
@@ -289,7 +289,7 @@ data class User(
      *
      * Ejemplo: "User(id=user-123, username=johndoe, email=john@example.com)"
      */
-    fun toLogString(): String {
+    public fun toLogString(): String {
         return "User(id=$id, username=$username, email=$email)"
     }
 
@@ -297,11 +297,11 @@ data class User(
         /**
          * IDs de roles comunes para facilitar referencias.
          */
-        object RoleIds {
-            const val ADMIN = "role-admin"
-            const val USER = "role-user"
-            const val GUEST = "role-guest"
-            const val MODERATOR = "role-moderator"
+        public object RoleIds {
+            public const val ADMIN = "role-admin"
+            public const val USER = "role-user"
+            public const val GUEST = "role-guest"
+            public const val MODERATOR = "role-moderator"
         }
 
         /**
@@ -309,7 +309,7 @@ data class User(
          *
          * Útil para tests y datos de seed.
          */
-        fun createAdmin(
+        public fun createAdmin(
             id: String,
             email: String,
             username: String,
@@ -337,7 +337,7 @@ data class User(
          *
          * Útil para tests y datos de seed.
          */
-        fun createStandardUser(
+        public fun createStandardUser(
             id: String,
             email: String,
             username: String,

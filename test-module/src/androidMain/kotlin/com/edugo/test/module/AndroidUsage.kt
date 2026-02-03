@@ -15,32 +15,32 @@ package com.edugo.test.module
  *
  * @return Resultado de SharedClass.commonFunction()
  */
-fun useSharedFromAndroid(): String = SharedClass.commonFunction()
+public fun useSharedFromAndroid(): String = SharedClass.commonFunction()
 
 /**
  * Valida acceso a constante de commonMain.
  *
  * @return SharedClass.SHARED_CONSTANT
  */
-fun useConstantFromAndroid(): String = SharedClass.SHARED_CONSTANT
+public fun useConstantFromAndroid(): String = SharedClass.SHARED_CONSTANT
 
 /**
  * Valida acceso a jvmSharedMain desde androidMain.
  *
  * @return Resultado de JvmShared.jvmFunction()
  */
-fun useJvmSharedFromAndroid(): String = JvmShared.jvmFunction()
+public fun useJvmSharedFromAndroid(): String = JvmShared.jvmFunction()
 
 /**
  * Valida acceso a JvmUtils (también en jvmSharedMain).
  *
  * @return Directorio temporal del sistema
  */
-fun useJvmUtilsFromAndroid(): String = JvmUtils.getTempDirectory()
+public fun useJvmUtilsFromAndroid(): String = JvmUtils.getTempDirectory()
 
 /**
  * Valida cadena de acceso: androidMain -> jvmSharedMain -> commonMain.
  *
  * @return Resultado de JvmShared.accessCommonFromJvmShared()
  */
-fun validateHierarchyFromAndroid(): String = JvmShared.accessCommonFromJvmShared()
+public fun validateHierarchyFromAndroid(): String = JvmShared.accessCommonFromJvmShared()

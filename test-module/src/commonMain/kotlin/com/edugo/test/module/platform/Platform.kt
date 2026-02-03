@@ -22,7 +22,7 @@ package com.edugo.test.module.platform
  *
  * @see [Kotlin Multiplatform expect/actual](https://kotlinlang.org/docs/multiplatform-expect-actual.html)
  */
-expect object Platform {
+public expect object Platform {
     /**
      * The name of the current platform.
      *
@@ -73,4 +73,4 @@ expect object Platform {
  *
  * @return A formatted string with platform name and OS version
  */
-fun getPlatformDescription(): String = "Running on ${Platform.name} (${Platform.osVersion})"
+public fun getPlatformDescription(): String = "Running on ${Platform.name} (${Platform.osVersion})"

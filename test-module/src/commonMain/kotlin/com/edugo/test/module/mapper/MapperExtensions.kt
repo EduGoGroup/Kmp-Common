@@ -56,7 +56,7 @@ import com.edugo.test.module.core.flatMap
  * @param details Metadata adicional a incluir en el AppError
  * @return Result con el dominio o un Failure con mensaje de AppError
  */
-fun <DTO, Domain> DTO.toDomainWithAppError(
+public fun <DTO, Domain> DTO.toDomainWithAppError(
     mapper: DomainMapper<DTO, Domain>,
     errorCode: ErrorCode = ErrorCode.VALIDATION_INVALID_INPUT,
     details: Map<String, String> = emptyMap()
@@ -67,7 +67,7 @@ fun <DTO, Domain> DTO.toDomainWithAppError(
             val appError = AppError(
                 code = errorCode,
                 message = result.error,
-                details = details,
+                detailsInternal = details,
                 cause = null
             )
             // Generar mensaje detallado manualmente
@@ -102,7 +102,7 @@ fun <DTO, Domain> DTO.toDomainWithAppError(
  * @param includeIndex Si true, agrega el índice del item que falló a los details
  * @return Result con lista de dominios o Failure con AppError
  */
-fun <DTO, Domain> List<DTO>.toDomainListWithAppError(
+public fun <DTO, Domain> List<DTO>.toDomainListWithAppError(
     mapper: DomainMapper<DTO, Domain>,
     errorCode: ErrorCode = ErrorCode.VALIDATION_INVALID_INPUT,
     includeIndex: Boolean = true
@@ -146,7 +146,7 @@ fun <DTO, Domain> List<DTO>.toDomainListWithAppError(
  * @param transform Función de transformación del dominio
  * @return Result con el dominio transformado
  */
-inline fun <Domain, R> Result<Domain>.mapDomain(
+public inline fun <Domain, R> Result<Domain>.mapDomain(
     crossinline transform: (Domain) -> R
 ): Result<R> {
     return when (this) {
@@ -175,7 +175,7 @@ inline fun <Domain, R> Result<Domain>.mapDomain(
  * @param transform Función que transforma el dominio y retorna otro Result
  * @return Result con el resultado de la transformación
  */
-inline fun <Domain, R> Result<Domain>.flatMapDomain(
+public inline fun <Domain, R> Result<Domain>.flatMapDomain(
     crossinline transform: (Domain) -> Result<R>
 ): Result<R> {
     return flatMap { transform(it) }
@@ -204,7 +204,7 @@ inline fun <Domain, R> Result<Domain>.flatMapDomain(
  * @param additionalValidation Validación adicional a aplicar después de la conversión
  * @return Result con el dominio validado o error
  */
-inline fun <DTO, Domain> DTO.toDomainWithValidation(
+public inline fun <DTO, Domain> DTO.toDomainWithValidation(
     mapper: DomainMapper<DTO, Domain>,
     crossinline additionalValidation: (Domain) -> Result<Domain>
 ): Result<Domain> {
@@ -232,7 +232,7 @@ inline fun <DTO, Domain> DTO.toDomainWithValidation(
  * @param fallbackMapper Mapper alternativo si el primero falla
  * @return Result del mapper principal, o del fallback si el primero falla
  */
-fun <DTO, Domain> DTO.toDomainWithFallback(
+public fun <DTO, Domain> DTO.toDomainWithFallback(
     primaryMapper: DomainMapper<DTO, Domain>,
     fallbackMapper: DomainMapper<DTO, Domain>
 ): Result<Domain> {
@@ -265,7 +265,7 @@ fun <DTO, Domain> DTO.toDomainWithFallback(
  * @param mapper Mapper a usar para cada conversión
  * @return Par con lista de éxitos y lista de errores (índice + mensaje)
  */
-fun <DTO, Domain> List<DTO>.toDomainPartial(
+public fun <DTO, Domain> List<DTO>.toDomainPartial(
     mapper: DomainMapper<DTO, Domain>
 ): Pair<List<Domain>, List<Pair<Int, String>>> {
     val successes = mutableListOf<Domain>()
@@ -299,7 +299,7 @@ fun <DTO, Domain> List<DTO>.toDomainPartial(
  * @param mapper Mapper a usar para cada conversión
  * @return Lista de dominios convertidos exitosamente
  */
-fun <DTO, Domain> List<DTO>.toDomainListIgnoreErrors(
+public fun <DTO, Domain> List<DTO>.toDomainListIgnoreErrors(
     mapper: DomainMapper<DTO, Domain>
 ): List<Domain> {
     return mapNotNull { dto ->
@@ -330,7 +330,7 @@ fun <DTO, Domain> List<DTO>.toDomainListIgnoreErrors(
  * @param mapper Mapper a usar para cada conversión
  * @return Par con el resultado y las métricas de conversión
  */
-fun <DTO, Domain> List<DTO>.toDomainListWithMetrics(
+public fun <DTO, Domain> List<DTO>.toDomainListWithMetrics(
     mapper: DomainMapper<DTO, Domain>
 ): Pair<Result<List<Domain>>, ConversionMetrics> {
     val startTime = System.currentTimeMillis()
@@ -365,7 +365,7 @@ fun <DTO, Domain> List<DTO>.toDomainListWithMetrics(
  * @property durationMs Duración de la conversión en milisegundos
  * @property failures Lista de índices y mensajes de error de los items que fallaron
  */
-data class ConversionMetrics(
+public data class ConversionMetrics(
     val total: Int,
     val successCount: Int,
     val failureCount: Int,

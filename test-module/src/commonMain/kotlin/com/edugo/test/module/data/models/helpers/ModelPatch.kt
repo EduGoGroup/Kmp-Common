@@ -20,7 +20,7 @@ import kotlinx.datetime.Instant
  * @property patched El modelo resultante del patch
  * @property appliedFields Lista de nombres de campos que fueron actualizados
  */
-data class PatchResult<T>(
+public data class PatchResult<T>(
     val patched: T,
     val appliedFields: List<String> = emptyList()
 ) {
@@ -71,7 +71,7 @@ data class PatchResult<T>(
  * @param transform Función que aplica el nuevo valor al modelo
  * @return El modelo con el patch aplicado si newValue no es null, o el modelo sin cambios
  */
-inline fun <T, V> T.patchField(newValue: V?, transform: T.(V) -> T): T {
+public inline fun <T, V> T.patchField(newValue: V?, transform: T.(V) -> T): T {
     return if (newValue != null) transform(newValue) else this
 }
 
@@ -95,7 +95,7 @@ inline fun <T, V> T.patchField(newValue: V?, transform: T.(V) -> T): T {
  * @param transform Función que aplica el nuevo valor al modelo
  * @return Result con el modelo patcheado si la validación pasa, Failure si falla
  */
-inline fun <T : ValidatableModel, V> T.patchFieldWithValidation(
+public inline fun <T : ValidatableModel, V> T.patchFieldWithValidation(
     newValue: V?,
     transform: T.(V) -> T
 ): Result<T> {
@@ -137,7 +137,7 @@ inline fun <T : ValidatableModel, V> T.patchFieldWithValidation(
  * @param patcher Función que aplica un patch individual
  * @return El modelo con todos los patches aplicados
  */
-inline fun <T> T.applyPatches(
+public inline fun <T> T.applyPatches(
     vararg patches: Pair<String, Any?>,
     patcher: (model: T, fieldName: String, value: Any) -> T
 ): T {
@@ -170,7 +170,7 @@ inline fun <T> T.applyPatches(
  * @param T Tipo del modelo
  * @property current Estado actual del modelo durante el build
  */
-class PatchBuilder<T>(private var current: T) {
+public class PatchBuilder<T>(private var current: T) {
     private val appliedFields = mutableListOf<String>()
 
     /**
@@ -180,7 +180,7 @@ class PatchBuilder<T>(private var current: T) {
      * @param newValue Nuevo valor (si es null, no se aplica)
      * @param transform Función que aplica el valor
      */
-    fun <V> patch(
+    public fun <V> patch(
         fieldName: String,
         newValue: V?,
         transform: T.(V) -> T
@@ -199,7 +199,7 @@ class PatchBuilder<T>(private var current: T) {
      * @param fieldName Nombre del campo
      * @param transform Función que aplica el cambio
      */
-    fun patchIf(
+    public fun patchIf(
         condition: Boolean,
         fieldName: String,
         transform: T.() -> T
@@ -216,7 +216,7 @@ class PatchBuilder<T>(private var current: T) {
      *
      * Esta función debe ser llamada al final del pipeline de patches.
      */
-    fun updateTimestampIfEntityBase(): PatchBuilder<T> {
+    public fun updateTimestampIfEntityBase(): PatchBuilder<T> {
         // El usuario debe aplicar esto en su copy() específico
         if (appliedFields.isNotEmpty()) {
             appliedFields.add("updatedAt")
@@ -227,7 +227,7 @@ class PatchBuilder<T>(private var current: T) {
     /**
      * Construye el resultado sin validación.
      */
-    fun build(): PatchResult<T> {
+    public fun build(): PatchResult<T> {
         return PatchResult(
             patched = current,
             appliedFields = appliedFields.toList()
@@ -237,7 +237,7 @@ class PatchBuilder<T>(private var current: T) {
     /**
      * Construye el resultado con validación si el modelo implementa ValidatableModel.
      */
-    fun validateAndBuild(): Result<PatchResult<T>> {
+    public fun validateAndBuild(): Result<PatchResult<T>> {
         if (current is ValidatableModel) {
             return when (val validation = (current as ValidatableModel).validate()) {
                 is Result.Success -> Result.Success(build())
@@ -260,7 +260,7 @@ class PatchBuilder<T>(private var current: T) {
  *     .build()
  * ```
  */
-fun <T> T.buildPatch(): PatchBuilder<T> = PatchBuilder(this)
+public fun <T> T.buildPatch(): PatchBuilder<T> = PatchBuilder(this)
 
 /**
  * Extension function para aplicar un patch a EntityBase preservando propiedades inmutables.
@@ -298,7 +298,7 @@ fun <T> T.buildPatch(): PatchBuilder<T> = PatchBuilder(this)
  * @param patcher Función que aplica los patches específicos del modelo
  * @return El modelo patcheado con EntityBase properties correctamente manejadas
  */
-inline fun <ID, T : EntityBase<ID>> T.patchEntityBase(
+public inline fun <ID, T : EntityBase<ID>> T.patchEntityBase(
     crossinline patcher: (T) -> T
 ): T {
     val originalId = this.id
@@ -337,7 +337,7 @@ inline fun <ID, T : EntityBase<ID>> T.patchEntityBase(
  *
  * NOTA: El patcher debe incluir updatedAt en el copy()
  */
-inline fun <ID, T : EntityBase<ID>> T.patchWithTimestamp(
+public inline fun <ID, T : EntityBase<ID>> T.patchWithTimestamp(
     crossinline patcher: (T, Instant) -> T
 ): T {
     return patcher(this, Clock.System.now())
@@ -372,7 +372,7 @@ inline fun <ID, T : EntityBase<ID>> T.patchWithTimestamp(
  * @param patcher Función que aplica un patch individual
  * @return El modelo con los patches permitidos aplicados
  */
-inline fun <T> T.patchAllowedFields(
+public inline fun <T> T.patchAllowedFields(
     patches: Map<String, Any?>,
     allowedFields: Set<String>,
     patcher: (model: T, fieldName: String, value: Any) -> T
@@ -418,7 +418,7 @@ inline fun <T> T.patchAllowedFields(
  * @param patcher Función que aplica un patch individual
  * @return El modelo con los patches aplicados
  */
-inline fun <T> T.applyNullSafePatch(
+public inline fun <T> T.applyNullSafePatch(
     vararg patches: Pair<String, Any?>?,
     patcher: (model: T, fieldName: String, value: Any) -> T
 ): T {

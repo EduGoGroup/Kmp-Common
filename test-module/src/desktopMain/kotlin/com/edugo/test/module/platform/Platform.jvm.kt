@@ -3,7 +3,7 @@ package com.edugo.test.module.platform
 /**
  * JVM implementation of Platform.
  */
-actual object Platform {
+public actual object Platform {
     actual val name: String = "JVM"
 
     actual val osVersion: String

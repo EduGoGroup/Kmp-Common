@@ -69,7 +69,7 @@ import com.edugo.test.module.core.Result
  * @param transform Función que combina los tres valores si todos son Success
  * @return Result con el valor transformado, o el primer error/Loading encontrado
  */
-inline fun <A, B, C, R> zip3(
+public inline fun <A, B, C, R> zip3(
     a: Result<A>,
     b: Result<B>,
     c: Result<C>,
@@ -141,7 +141,7 @@ inline fun <A, B, C, R> zip3(
  * @param transform Función que combina los cuatro valores si todos son Success
  * @return Result con el valor transformado, o el primer error/Loading encontrado
  */
-inline fun <A, B, C, D, R> zip4(
+public inline fun <A, B, C, D, R> zip4(
     a: Result<A>,
     b: Result<B>,
     c: Result<C>,
@@ -215,7 +215,7 @@ inline fun <A, B, C, D, R> zip4(
  * @param transform Función que combina los cinco valores si todos son Success
  * @return Result con el valor transformado, o el primer error/Loading encontrado
  */
-inline fun <A, B, C, D, E, R> zip5(
+public inline fun <A, B, C, D, E, R> zip5(
     a: Result<A>,
     b: Result<B>,
     c: Result<C>,
@@ -269,7 +269,7 @@ inline fun <A, B, C, D, E, R> zip5(
  * @return Result con el valor transformado
  */
 @JvmName("zip3Ext")
-inline fun <A, B, C, R> Result<A>.zip3(
+public inline fun <A, B, C, R> Result<A>.zip3(
     b: Result<B>,
     c: Result<C>,
     transform: (A, B, C) -> R
@@ -286,7 +286,7 @@ inline fun <A, B, C, R> Result<A>.zip3(
  * @return Result con el valor transformado
  */
 @JvmName("zip4Ext")
-inline fun <A, B, C, D, R> Result<A>.zip4(
+public inline fun <A, B, C, D, R> Result<A>.zip4(
     b: Result<B>,
     c: Result<C>,
     d: Result<D>,
@@ -305,7 +305,7 @@ inline fun <A, B, C, D, R> Result<A>.zip4(
  * @return Result con el valor transformado
  */
 @JvmName("zip5Ext")
-inline fun <A, B, C, D, E, R> Result<A>.zip5(
+public inline fun <A, B, C, D, E, R> Result<A>.zip5(
     b: Result<B>,
     c: Result<C>,
     d: Result<D>,

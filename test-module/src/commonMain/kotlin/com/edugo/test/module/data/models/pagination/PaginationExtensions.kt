@@ -39,7 +39,7 @@ package com.edugo.test.module.data.models.pagination
  * @return PagedResult conteniendo los elementos con metadatos de paginación
  * @throws IllegalArgumentException si los parámetros no son válidos
  */
-fun <T> List<T>.toPagedResult(
+public fun <T> List<T>.toPagedResult(
     page: Int,
     pageSize: Int,
     totalCount: Int
@@ -98,7 +98,7 @@ fun <T> List<T>.toPagedResult(
  * @return PagedResult con los elementos de la página solicitada
  * @throws IllegalArgumentException si page < 0 o pageSize <= 0
  */
-fun <T> List<T>.paginate(page: Int, pageSize: Int): PagedResult<T> {
+public fun <T> List<T>.paginate(page: Int, pageSize: Int): PagedResult<T> {
     require(page >= 0) { "Page must be non-negative" }
     require(pageSize > 0) { "Page size must be positive" }
 
@@ -148,7 +148,7 @@ fun <T> List<T>.paginate(page: Int, pageSize: Int): PagedResult<T> {
  *
  * @return Lista de elementos en la página actual
  */
-fun <T> PagedResult<T>.toList(): List<T> = items
+public fun <T> PagedResult<T>.toList(): List<T> = items
 
 /**
  * Combina múltiples PagedResults en uno solo.
@@ -169,7 +169,7 @@ fun <T> PagedResult<T>.toList(): List<T> = items
  *
  * @return PagedResult con todos los items combinados
  */
-fun <T> List<PagedResult<T>>.merge(): PagedResult<T> {
+public fun <T> List<PagedResult<T>>.merge(): PagedResult<T> {
     if (isEmpty()) {
         return emptyPagedResult()
     }
@@ -228,7 +228,7 @@ fun <T> List<PagedResult<T>>.merge(): PagedResult<T> {
  * @param maxVisible Número máximo de páginas a mostrar
  * @return Lista de índices de página a mostrar
  */
-fun calculatePageRange(
+public fun calculatePageRange(
     currentPage: Int,
     totalPages: Int,
     maxVisible: Int = 5
@@ -263,7 +263,7 @@ fun calculatePageRange(
  * @param maxVisible Número máximo de páginas a mostrar (por defecto 5)
  * @return Lista de índices de página a mostrar
  */
-fun <T> PagedResult<T>.visiblePageRange(maxVisible: Int = 5): List<Int> {
+public fun <T> PagedResult<T>.visiblePageRange(maxVisible: Int = 5): List<Int> {
     return calculatePageRange(
         currentPage = page,
         totalPages = totalPages,
@@ -285,7 +285,7 @@ fun <T> PagedResult<T>.visiblePageRange(maxVisible: Int = 5): List<Int> {
  * @param pageIndex Índice de página a verificar
  * @return true si el índice está en el rango [0, totalPages)
  */
-fun <T> PagedResult<T>.isValidPage(pageIndex: Int): Boolean {
+public fun <T> PagedResult<T>.isValidPage(pageIndex: Int): Boolean {
     return pageIndex >= 0 && pageIndex < totalPages
 }
 
@@ -305,7 +305,7 @@ fun <T> PagedResult<T>.isValidPage(pageIndex: Int): Boolean {
  * @param pageSize Tamaño de página
  * @return Índice de la página que contiene el elemento
  */
-fun pageForItem(itemIndex: Int, pageSize: Int): Int {
+public fun pageForItem(itemIndex: Int, pageSize: Int): Int {
     require(itemIndex >= 0) { "Item index must be non-negative" }
     require(pageSize > 0) { "Page size must be positive" }
     return itemIndex / pageSize
@@ -329,7 +329,7 @@ fun pageForItem(itemIndex: Int, pageSize: Int): Int {
  *
  * @return String con resumen de paginación
  */
-fun <T> PagedResult<T>.paginationSummary(): String {
+public fun <T> PagedResult<T>.paginationSummary(): String {
     if (isEmpty) {
         return "No items"
     }

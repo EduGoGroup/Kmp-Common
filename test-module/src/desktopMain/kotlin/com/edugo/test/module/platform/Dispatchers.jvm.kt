@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 /**
  * JVM implementation of AppDispatchers.
  */
-actual object AppDispatchers {
+public actual object AppDispatchers {
     actual val Main: CoroutineDispatcher = Dispatchers.Main
 
     actual val IO: CoroutineDispatcher = Dispatchers.IO

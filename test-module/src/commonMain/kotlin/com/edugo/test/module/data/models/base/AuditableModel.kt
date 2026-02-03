@@ -186,7 +186,7 @@ import kotlinx.datetime.Instant
  * @see EntityBase Para propiedades de entidad base
  * @see ValidatableModel Para agregar validación
  */
-interface AuditableModel {
+public interface AuditableModel {
     /**
      * Identificador del usuario que creó la entidad.
      *
@@ -241,7 +241,7 @@ interface AuditableModel {
  * ```
  */
 @kotlinx.serialization.Serializable
-data class AuditInfo(
+public data class AuditInfo(
     /**
      * Identificador único del usuario
      */
@@ -279,7 +279,7 @@ data class AuditInfo(
  * val auditInfo = currentUser.toAuditInfo()
  * ```
  */
-fun createAuditInfo(
+public fun createAuditInfo(
     userId: String,
     userName: String,
     ipAddress: String? = null,

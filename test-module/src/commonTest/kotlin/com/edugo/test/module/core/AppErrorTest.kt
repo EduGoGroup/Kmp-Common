@@ -17,7 +17,7 @@ class AppErrorTest {
         val error = AppError(
             code = ErrorCode.VALIDATION_INVALID_INPUT,
             message = "Test error",
-            details = mapOf("field" to "email"),
+            detailsInternal = mapOf("field" to "email"),
             cause = IllegalArgumentException("Invalid email")
         )
 
@@ -623,7 +623,7 @@ class AppErrorTest {
         val error = AppError(
             code = ErrorCode.VALIDATION_INVALID_INPUT,
             message = "Original message",
-            details = mapOf("field" to "email")
+            detailsInternal = mapOf("field" to "email")
         )
 
         val copied = error.copy(message = "Updated message")
@@ -661,7 +661,7 @@ class AppErrorTest {
         val error = AppError(
             code = ErrorCode.SYSTEM_UNKNOWN_ERROR,
             message = "Test",
-            details = mutableMap
+            detailsInternal = mutableMap
         )
 
         mutableMap["key"] = "changed"

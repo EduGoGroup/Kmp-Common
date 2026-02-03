@@ -52,7 +52,7 @@ import kotlin.reflect.KClass
  * loginLogger.d("Login form displayed")
  * ```
  */
-fun Logger.withTag(tag: String): TaggedLogger {
+public fun Logger.withTag(tag: String): TaggedLogger {
     return LoggerCache.getOrCreate(tag, this)
 }
 
@@ -73,7 +73,7 @@ fun Logger.withTag(tag: String): TaggedLogger {
  * val logger = DefaultLogger.fromClass(UserRepository::class)
  * ```
  */
-fun Logger.fromClass(clazz: KClass<*>): TaggedLogger {
+public fun Logger.fromClass(clazz: KClass<*>): TaggedLogger {
     return TaggedLogger.fromClass(clazz, this)
 }
 
@@ -101,7 +101,7 @@ fun Logger.fromClass(clazz: KClass<*>): TaggedLogger {
  *     .getOrNull()
  * ```
  */
-inline fun <T> Result<T>.logOnFailure(
+public inline fun <T> Result<T>.logOnFailure(
     tag: String,
     logger: Logger = DefaultLogger
 ): Result<T> {
@@ -126,7 +126,7 @@ inline fun <T> Result<T>.logOnFailure(
  *     .getOrNull()
  * ```
  */
-inline fun <T> Result<T>.logOnFailure(
+public inline fun <T> Result<T>.logOnFailure(
     tag: String,
     messagePrefix: String,
     logger: Logger = DefaultLogger
@@ -154,7 +154,7 @@ inline fun <T> Result<T>.logOnFailure(
  *     .map { it.name }
  * ```
  */
-inline fun <T> Result<T>.logOnSuccess(
+public inline fun <T> Result<T>.logOnSuccess(
     tag: String,
     logger: Logger = DefaultLogger,
     message: (T) -> String
@@ -187,7 +187,7 @@ inline fun <T> Result<T>.logOnSuccess(
  * }
  * ```
  */
-fun AppError.log(tag: String, logger: Logger = DefaultLogger) {
+public fun AppError.log(tag: String, logger: Logger = DefaultLogger) {
     val formattedMessage = buildString {
         append("[${code.name}] $message")
         if (details.isNotEmpty()) {
@@ -223,7 +223,7 @@ fun AppError.log(tag: String, logger: Logger = DefaultLogger) {
  * @param tag The log tag to use
  * @param logger The Logger instance to use (defaults to DefaultLogger)
  */
-fun AppError.logDebug(tag: String, logger: Logger = DefaultLogger) {
+public fun AppError.logDebug(tag: String, logger: Logger = DefaultLogger) {
     val formattedMessage = "[${code.name}] $message"
     if (cause != null) {
         logger.d(tag, formattedMessage, cause)
@@ -238,7 +238,7 @@ fun AppError.logDebug(tag: String, logger: Logger = DefaultLogger) {
  * @param tag The log tag to use
  * @param logger The Logger instance to use (defaults to DefaultLogger)
  */
-fun AppError.logInfo(tag: String, logger: Logger = DefaultLogger) {
+public fun AppError.logInfo(tag: String, logger: Logger = DefaultLogger) {
     val formattedMessage = "[${code.name}] $message"
     if (cause != null) {
         logger.i(tag, formattedMessage, cause)
@@ -253,7 +253,7 @@ fun AppError.logInfo(tag: String, logger: Logger = DefaultLogger) {
  * @param tag The log tag to use
  * @param logger The Logger instance to use (defaults to DefaultLogger)
  */
-fun AppError.logWarning(tag: String, logger: Logger = DefaultLogger) {
+public fun AppError.logWarning(tag: String, logger: Logger = DefaultLogger) {
     val formattedMessage = "[${code.name}] $message"
     if (cause != null) {
         logger.w(tag, formattedMessage, cause)
@@ -268,7 +268,7 @@ fun AppError.logWarning(tag: String, logger: Logger = DefaultLogger) {
  * @param tag The log tag to use
  * @param logger The Logger instance to use (defaults to DefaultLogger)
  */
-fun AppError.logError(tag: String, logger: Logger = DefaultLogger) {
+public fun AppError.logError(tag: String, logger: Logger = DefaultLogger) {
     log(tag, logger)
 }
 
@@ -332,7 +332,7 @@ internal object LoggerCache {
      * val invalid = LoggerCache.getOrCreate("")            // Throws
      * ```
      */
-    fun getOrCreate(tag: String, logger: Logger = DefaultLogger): TaggedLogger {
+    public fun getOrCreate(tag: String, logger: Logger = DefaultLogger): TaggedLogger {
         synchronized(lock) {
             return cache.getOrPut(tag) {
                 TaggedLogger(tag, logger)  // Constructor validates tag
@@ -346,7 +346,7 @@ internal object LoggerCache {
      * @param tag The tag to look up
      * @return The cached logger, or null if not found
      */
-    fun get(tag: String): TaggedLogger? {
+    public fun get(tag: String): TaggedLogger? {
         synchronized(lock) {
             return cache[tag]
         }
@@ -358,7 +358,7 @@ internal object LoggerCache {
      * @param tag The tag to check
      * @return true if cached, false otherwise
      */
-    fun contains(tag: String): Boolean {
+    public fun contains(tag: String): Boolean {
         synchronized(lock) {
             return cache.containsKey(tag)
         }
@@ -370,7 +370,7 @@ internal object LoggerCache {
      * Use this to free memory or reset state in tests.
      * Existing TaggedLogger instances remain valid but won't be cached.
      */
-    fun clear() {
+    public fun clear() {
         synchronized(lock) {
             cache.clear()
         }
@@ -381,7 +381,7 @@ internal object LoggerCache {
      *
      * @return Number of cached loggers
      */
-    fun size(): Int {
+    public fun size(): Int {
         synchronized(lock) {
             return cache.size
         }
@@ -392,7 +392,7 @@ internal object LoggerCache {
      *
      * @return Set of all tags currently in cache (defensive copy)
      */
-    fun getAllTags(): Set<String> {
+    public fun getAllTags(): Set<String> {
         synchronized(lock) {
             return cache.keys.toSet()
         }
@@ -404,7 +404,7 @@ internal object LoggerCache {
      * @param tag The tag to remove
      * @return The removed logger, or null if not found
      */
-    fun remove(tag: String): TaggedLogger? {
+    public fun remove(tag: String): TaggedLogger? {
         synchronized(lock) {
             return cache.remove(tag)
         }

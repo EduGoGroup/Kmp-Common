@@ -81,7 +81,7 @@ import kotlinx.serialization.SerializationException
  * @param block El bloque de código que realiza la serialización/deserialización
  * @return Result.Success<T> si la operación fue exitosa, Result.Failure si hubo error
  */
-inline fun <T> catchSerialization(block: () -> T): Result<T> {
+public inline fun <T> catchSerialization(block: () -> T): Result<T> {
     return try {
         Result.Success(block())
     } catch (e: SerializationException) {
@@ -127,7 +127,7 @@ inline fun <T> catchSerialization(block: () -> T): Result<T> {
  * @param block El bloque de código que realiza la serialización
  * @return Result<T> envuelto, con error tipado si falla
  */
-inline fun <T> catchSerializationAsAppError(
+public inline fun <T> catchSerializationAsAppError(
     details: Map<String, String> = emptyMap(),
     block: () -> T
 ): Result<T> {
@@ -170,7 +170,7 @@ inline fun <T> catchSerializationAsAppError(
  * @param block Bloque de código de serialización
  * @return Result<T>
  */
-inline fun <T> catchSerializationWithDetails(
+public inline fun <T> catchSerializationWithDetails(
     details: Map<String, String>,
     block: () -> T
 ): Result<T> {
@@ -204,7 +204,7 @@ inline fun <T> catchSerializationWithDetails(
  * @param deserializer El deserializador de kotlinx.serialization
  * @return Result<T> con el objeto deserializado o error
  */
-inline fun <reified T> safeDecodeFromString(json: String): Result<T> {
+public inline fun <reified T> safeDecodeFromString(json: String): Result<T> {
     return catchSerialization {
         kotlinx.serialization.json.Json.decodeFromString<T>(json)
     }
@@ -227,7 +227,7 @@ inline fun <reified T> safeDecodeFromString(json: String): Result<T> {
  * @param value El objeto a serializar
  * @return Result<String> con el JSON o error
  */
-inline fun <reified T> safeEncodeToString(value: T): Result<String> {
+public inline fun <reified T> safeEncodeToString(value: T): Result<String> {
     return catchSerialization {
         kotlinx.serialization.json.Json.encodeToString(value)
     }

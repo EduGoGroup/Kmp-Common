@@ -38,7 +38,7 @@ import kotlin.reflect.KClass
  * @see Logger
  * @see LoggerConfig
  */
-class TaggedLogger internal constructor(
+public class TaggedLogger internal constructor(
     val tag: String,
     @PublishedApi internal val logger: Logger = DefaultLogger
 ) {
@@ -56,7 +56,7 @@ class TaggedLogger internal constructor(
      *
      * @param message The message to log
      */
-    fun d(message: String) {
+    public fun d(message: String) {
         if (LoggerConfig.isEnabled(tag, LogLevel.DEBUG)) {
             logger.d(tag, message)
         }
@@ -67,7 +67,7 @@ class TaggedLogger internal constructor(
      *
      * @param message Lambda that produces the message
      */
-    inline fun d(message: () -> String) {
+    public inline fun d(message: () -> String) {
         if (LoggerConfig.isEnabled(tag, LogLevel.DEBUG)) {
             logger.d(tag, message())
         }
@@ -79,7 +79,7 @@ class TaggedLogger internal constructor(
      * @param message The message to log
      * @param throwable The exception to log
      */
-    fun d(message: String, throwable: Throwable) {
+    public fun d(message: String, throwable: Throwable) {
         if (LoggerConfig.isEnabled(tag, LogLevel.DEBUG)) {
             logger.d(tag, message, throwable)
         }
@@ -92,7 +92,7 @@ class TaggedLogger internal constructor(
      *
      * @param message The message to log
      */
-    fun i(message: String) {
+    public fun i(message: String) {
         if (LoggerConfig.isEnabled(tag, LogLevel.INFO)) {
             logger.i(tag, message)
         }
@@ -103,7 +103,7 @@ class TaggedLogger internal constructor(
      *
      * @param message Lambda that produces the message
      */
-    inline fun i(message: () -> String) {
+    public inline fun i(message: () -> String) {
         if (LoggerConfig.isEnabled(tag, LogLevel.INFO)) {
             logger.i(tag, message())
         }
@@ -115,7 +115,7 @@ class TaggedLogger internal constructor(
      * @param message The message to log
      * @param throwable The exception to log
      */
-    fun i(message: String, throwable: Throwable) {
+    public fun i(message: String, throwable: Throwable) {
         if (LoggerConfig.isEnabled(tag, LogLevel.INFO)) {
             logger.i(tag, message, throwable)
         }
@@ -128,7 +128,7 @@ class TaggedLogger internal constructor(
      *
      * @param message The message to log
      */
-    fun w(message: String) {
+    public fun w(message: String) {
         if (LoggerConfig.isEnabled(tag, LogLevel.WARNING)) {
             logger.w(tag, message)
         }
@@ -139,7 +139,7 @@ class TaggedLogger internal constructor(
      *
      * @param message Lambda that produces the message
      */
-    inline fun w(message: () -> String) {
+    public inline fun w(message: () -> String) {
         if (LoggerConfig.isEnabled(tag, LogLevel.WARNING)) {
             logger.w(tag, message())
         }
@@ -151,7 +151,7 @@ class TaggedLogger internal constructor(
      * @param message The message to log
      * @param throwable The exception to log
      */
-    fun w(message: String, throwable: Throwable) {
+    public fun w(message: String, throwable: Throwable) {
         if (LoggerConfig.isEnabled(tag, LogLevel.WARNING)) {
             logger.w(tag, message, throwable)
         }
@@ -164,7 +164,7 @@ class TaggedLogger internal constructor(
      *
      * @param message The error message to log
      */
-    fun e(message: String) {
+    public fun e(message: String) {
         if (LoggerConfig.isEnabled(tag, LogLevel.ERROR)) {
             logger.e(tag, message)
         }
@@ -175,7 +175,7 @@ class TaggedLogger internal constructor(
      *
      * @param message Lambda that produces the message
      */
-    inline fun e(message: () -> String) {
+    public inline fun e(message: () -> String) {
         if (LoggerConfig.isEnabled(tag, LogLevel.ERROR)) {
             logger.e(tag, message())
         }
@@ -187,7 +187,7 @@ class TaggedLogger internal constructor(
      * @param message The error message to log
      * @param throwable The exception to log with stack trace
      */
-    fun e(message: String, throwable: Throwable) {
+    public fun e(message: String, throwable: Throwable) {
         if (LoggerConfig.isEnabled(tag, LogLevel.ERROR)) {
             logger.e(tag, message, throwable)
         }
@@ -201,7 +201,7 @@ class TaggedLogger internal constructor(
      * @deprecated Use [d] instead. Will be removed in v3.0.
      */
     @Deprecated("Use d() instead", ReplaceWith("d(message)"))
-    fun debug(message: String) = d(message)
+    public fun debug(message: String) = d(message)
 
     /**
      * Logs an informational message (legacy compatibility).
@@ -209,7 +209,7 @@ class TaggedLogger internal constructor(
      * @deprecated Use [i] instead. Will be removed in v3.0.
      */
     @Deprecated("Use i() instead", ReplaceWith("i(message)"))
-    fun info(message: String) = i(message)
+    public fun info(message: String) = i(message)
 
     /**
      * Logs an error message with optional throwable (legacy compatibility).
@@ -217,7 +217,7 @@ class TaggedLogger internal constructor(
      * @deprecated Use [e] instead. Will be removed in v3.0.
      */
     @Deprecated("Use e() instead", ReplaceWith("e(message)"))
-    fun error(message: String, throwable: Throwable? = null) {
+    public fun error(message: String, throwable: Throwable? = null) {
         if (throwable != null) {
             e(message, throwable)
         } else {
@@ -240,7 +240,7 @@ class TaggedLogger internal constructor(
      * // child.tag == "EduGo.Auth.Login"
      * ```
      */
-    fun withChild(childTag: String): TaggedLogger {
+    public fun withChild(childTag: String): TaggedLogger {
         require(childTag.isNotBlank()) { "Child tag cannot be blank" }
         require(!childTag.contains(".")) { "Child tag cannot contain '.', use withTag() for hierarchical tags" }
         return LoggerCache.getOrCreate("$tag.$childTag", logger)
@@ -252,7 +252,7 @@ class TaggedLogger internal constructor(
      * @param newTag The new tag to use (can be hierarchical)
      * @return A new TaggedLogger with the specified tag
      */
-    fun withTag(newTag: String): TaggedLogger {
+    public fun withTag(newTag: String): TaggedLogger {
         return LoggerCache.getOrCreate(newTag, logger)
     }
 
@@ -282,7 +282,7 @@ class TaggedLogger internal constructor(
          * // logger.tag == "com.edugo.UserRepository"
          * ```
          */
-        fun fromClass(clazz: KClass<*>, logger: Logger = DefaultLogger): TaggedLogger {
+        public fun fromClass(clazz: KClass<*>, logger: Logger = DefaultLogger): TaggedLogger {
             val className = clazz.qualifiedName ?: clazz.simpleName ?: "Unknown"
             return LoggerCache.getOrCreate(className, logger)
         }
@@ -294,7 +294,7 @@ class TaggedLogger internal constructor(
          * @param logger Optional Logger instance (defaults to DefaultLogger)
          * @return A cached or new TaggedLogger instance
          */
-        fun create(tag: String, logger: Logger = DefaultLogger): TaggedLogger {
+        public fun create(tag: String, logger: Logger = DefaultLogger): TaggedLogger {
             return LoggerCache.getOrCreate(tag, logger)
         }
     }
@@ -320,7 +320,7 @@ class TaggedLogger internal constructor(
  * @see LoggerConfig
  * @see TaggedLogger
  */
-enum class LogLevel {
+public enum class LogLevel {
     /**
      * Detailed diagnostic information for debugging.
      * Use for verbose output that helps troubleshoot issues.

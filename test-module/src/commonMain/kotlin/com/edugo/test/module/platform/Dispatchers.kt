@@ -32,7 +32,7 @@ import kotlinx.coroutines.CoroutineDispatcher
  *
  * @see [Kotlin Coroutines Dispatchers](https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html)
  */
-expect object AppDispatchers {
+public expect object AppDispatchers {
     /**
      * Dispatcher confined to the Main thread (UI thread).
      *
@@ -56,7 +56,7 @@ expect object AppDispatchers {
      * - iOS: Maps to main dispatch queue
      * - Desktop: Maps to Swing EDT or custom UI thread
      */
-    val Main: CoroutineDispatcher
+    public val Main: CoroutineDispatcher
 
     /**
      * Dispatcher optimized for offloading blocking IO operations.
@@ -83,7 +83,7 @@ expect object AppDispatchers {
      * - Android/JVM: Uses `Dispatchers.IO` (64 thread pool)
      * - iOS: Background dispatch queue
      */
-    val IO: CoroutineDispatcher
+    public val IO: CoroutineDispatcher
 
     /**
      * Dispatcher optimized for CPU-intensive operations.
@@ -112,5 +112,5 @@ expect object AppDispatchers {
      * - Thread pool size = number of CPU cores (minimum 2)
      * - Shared across all Default dispatcher users
      */
-    val Default: CoroutineDispatcher
+    public val Default: CoroutineDispatcher
 }

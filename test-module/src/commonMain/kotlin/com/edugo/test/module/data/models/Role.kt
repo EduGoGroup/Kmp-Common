@@ -59,7 +59,7 @@ import kotlinx.serialization.Serializable
  * @property updatedAt Timestamp de última actualización
  */
 @Serializable
-data class Role(
+public data class Role(
     override val id: String,
     val name: String,
     val description: String,
@@ -158,7 +158,7 @@ data class Role(
      * }
      * ```
      */
-    fun hasPermission(permission: String): Boolean {
+    public fun hasPermission(permission: String): Boolean {
         return permission in permissions
     }
 
@@ -172,7 +172,7 @@ data class Role(
      * }
      * ```
      */
-    fun hasAllPermissions(vararg perms: String): Boolean {
+    public fun hasAllPermissions(vararg perms: String): Boolean {
         return perms.all { it in permissions }
     }
 
@@ -186,7 +186,7 @@ data class Role(
      * }
      * ```
      */
-    fun hasAnyPermission(vararg perms: String): Boolean {
+    public fun hasAnyPermission(vararg perms: String): Boolean {
         return perms.any { it in permissions }
     }
 
@@ -194,26 +194,26 @@ data class Role(
         /**
          * Permisos comunes predefinidos.
          */
-        object Permissions {
+        public object Permissions {
             // User management
-            const val USERS_READ = "users.read"
-            const val USERS_WRITE = "users.write"
-            const val USERS_DELETE = "users.delete"
+            public const val USERS_READ = "users.read"
+            public const val USERS_WRITE = "users.write"
+            public const val USERS_DELETE = "users.delete"
 
             // Role management
-            const val ROLES_READ = "roles.read"
-            const val ROLES_WRITE = "roles.write"
-            const val ROLES_DELETE = "roles.delete"
+            public const val ROLES_READ = "roles.read"
+            public const val ROLES_WRITE = "roles.write"
+            public const val ROLES_DELETE = "roles.delete"
 
             // System
-            const val SYSTEM_MANAGE = "system.manage"
-            const val SYSTEM_CONFIGURE = "system.configure"
+            public const val SYSTEM_MANAGE = "system.manage"
+            public const val SYSTEM_CONFIGURE = "system.configure"
         }
 
         /**
          * Roles predefinidos comunes.
          */
-        fun createAdminRole(createdAt: Instant, updatedAt: Instant): Role {
+        public fun createAdminRole(createdAt: Instant, updatedAt: Instant): Role {
             return Role(
                 id = "role-admin",
                 name = "Administrator",
@@ -234,7 +234,7 @@ data class Role(
             )
         }
 
-        fun createUserRole(createdAt: Instant, updatedAt: Instant): Role {
+        public fun createUserRole(createdAt: Instant, updatedAt: Instant): Role {
             return Role(
                 id = "role-user",
                 name = "User",
@@ -248,7 +248,7 @@ data class Role(
             )
         }
 
-        fun createGuestRole(createdAt: Instant, updatedAt: Instant): Role {
+        public fun createGuestRole(createdAt: Instant, updatedAt: Instant): Role {
             return Role(
                 id = "role-guest",
                 name = "Guest",

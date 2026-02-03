@@ -67,4 +67,4 @@ class JvmLogger : Logger {
  *
  * @return A [JvmLogger] instance
  */
-actual fun createDefaultLogger(): Logger = JvmLogger()
+public actual fun createDefaultLogger(): Logger = JvmLogger()
