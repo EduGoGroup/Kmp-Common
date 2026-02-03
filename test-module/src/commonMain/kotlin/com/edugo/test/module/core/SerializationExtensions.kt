@@ -232,3 +232,83 @@ public inline fun <reified T> safeEncodeToString(value: T): Result<String> {
         kotlinx.serialization.json.Json.encodeToString(value)
     }
 }
+
+// ============================================================================
+// EXTENSION FUNCTIONS - Fluent Syntax Sugar
+// These extension functions provide a more natural, fluent API for serialization
+// by using extension function syntax. They are wrappers over the functions above.
+// ============================================================================
+
+/**
+ * Extension function syntax sugar para serialización.
+ *
+ * Wrapper sobre [safeEncodeToString] que proporciona una API más fluida
+ * usando extension function syntax directamente sobre el objeto a serializar.
+ *
+ * Esta función es equivalente a `safeEncodeToString(this)` pero con sintaxis
+ * más natural y encadenable.
+ *
+ * ## Ejemplo
+ *
+ * ```kotlin
+ * @Serializable
+ * data class User(val id: String, val name: String)
+ *
+ * val user = User(id = "123", name = "John")
+ * val jsonResult: Result<String> = user.toJson()
+ *
+ * when (jsonResult) {
+ *     is Result.Success -> println("JSON: ${jsonResult.data}")
+ *     is Result.Failure -> println("Error: ${jsonResult.error}")
+ * }
+ * ```
+ *
+ * ## Uso con encadenamiento
+ *
+ * ```kotlin
+ * val result = user.toJson()
+ *     .map { it.toByteArray() }
+ *     .flatMap { bytes -> sendToServer(bytes) }
+ * ```
+ *
+ * @return Result.Success con el JSON string si la serialización fue exitosa,
+ *         Result.Failure con mensaje de error si falló
+ */
+public inline fun <reified T> T.toJson(): Result<String> = safeEncodeToString(this)
+
+/**
+ * Extension function syntax sugar para deserialización.
+ *
+ * Wrapper sobre [safeDecodeFromString] que proporciona una API más fluida
+ * usando extension function syntax directamente sobre el String JSON.
+ *
+ * Esta función es equivalente a `safeDecodeFromString<T>(this)` pero con
+ * sintaxis más natural y encadenable.
+ *
+ * ## Ejemplo
+ *
+ * ```kotlin
+ * @Serializable
+ * data class User(val id: String, val name: String)
+ *
+ * val json = """{"id":"123","name":"John"}"""
+ * val userResult: Result<User> = json.fromJson()
+ *
+ * when (userResult) {
+ *     is Result.Success -> println("User: ${userResult.data}")
+ *     is Result.Failure -> println("Error: ${userResult.error}")
+ * }
+ * ```
+ *
+ * ## Uso con encadenamiento
+ *
+ * ```kotlin
+ * val result = jsonString.fromJson<User>()
+ *     .flatMap { user -> user.validate() }
+ *     .map { user -> saveToDatabase(user) }
+ * ```
+ *
+ * @return Result.Success con el objeto deserializado si fue exitoso,
+ *         Result.Failure con mensaje de error si el JSON es inválido
+ */
+public inline fun <reified T> String.fromJson(): Result<T> = safeDecodeFromString(this)

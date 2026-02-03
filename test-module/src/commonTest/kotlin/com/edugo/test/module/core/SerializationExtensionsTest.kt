@@ -368,4 +368,132 @@ class SerializationExtensionsTest {
         assertIs<Result.Success<TestUser>>(decodeResult)
         assertEquals("José María 中文", decodeResult.data.name)
     }
+
+    // ========================================================================
+    // TESTS: Extension Functions (.toJson() and .fromJson())
+    // ========================================================================
+
+    @Test
+    fun toJson_extension_serializesObject() {
+        val user = TestUser(id = "123", name = "John Doe", age = 30)
+
+        val result = user.toJson()
+
+        assertIs<Result.Success<String>>(result)
+        assertTrue(result.data.contains("\"id\":\"123\""))
+        assertTrue(result.data.contains("\"name\":\"John Doe\""))
+        assertTrue(result.data.contains("\"age\":30"))
+    }
+
+    @Test
+    fun toJson_extension_equivalentToSafeEncodeToString() {
+        val user = TestUser(id = "123", name = "John", age = 30)
+
+        val extensionResult = user.toJson()
+        val functionResult = safeEncodeToString(user)
+
+        assertIs<Result.Success<String>>(extensionResult)
+        assertIs<Result.Success<String>>(functionResult)
+        assertEquals(extensionResult.data, functionResult.data)
+    }
+
+    @Test
+    fun fromJson_extension_deserializesValidJson() {
+        val json = """{"id": "123", "name": "John Doe", "age": 30}"""
+
+        val result: Result<TestUser> = json.fromJson()
+
+        assertIs<Result.Success<TestUser>>(result)
+        assertEquals("123", result.data.id)
+        assertEquals("John Doe", result.data.name)
+        assertEquals(30, result.data.age)
+    }
+
+    @Test
+    fun fromJson_extension_capturesInvalidJson() {
+        val invalidJson = """{"id": "123"}"""  // Falta campos requeridos
+
+        val result: Result<TestUser> = invalidJson.fromJson()
+
+        assertIs<Result.Failure>(result)
+    }
+
+    @Test
+    fun fromJson_extension_equivalentToSafeDecodeFromString() {
+        val json = """{"id": "123", "name": "John", "age": 30}"""
+
+        val extensionResult: Result<TestUser> = json.fromJson()
+        val functionResult: Result<TestUser> = safeDecodeFromString(json)
+
+        assertIs<Result.Success<TestUser>>(extensionResult)
+        assertIs<Result.Success<TestUser>>(functionResult)
+        assertEquals(extensionResult.data, functionResult.data)
+    }
+
+    @Test
+    fun extensions_roundTrip_serializeAndDeserialize() {
+        val originalUser = TestUser(id = "456", name = "Jane Doe", age = 25)
+
+        val roundTripResult = originalUser.toJson()
+            .flatMap { json -> json.fromJson<TestUser>() }
+
+        assertIs<Result.Success<TestUser>>(roundTripResult)
+        assertEquals(originalUser, roundTripResult.data)
+    }
+
+    @Test
+    fun extensions_canBeChainedWithMap() {
+        val user = TestUser(id = "123", name = "John", age = 30)
+
+        val result = user.toJson()
+            .map { it.length }
+
+        assertIs<Result.Success<Int>>(result)
+        assertTrue(result.data > 0)
+    }
+
+    @Test
+    fun extensions_canBeChainedWithFlatMap() {
+        val json = """{"id": "123", "name": "John Doe", "age": 30}"""
+
+        val result: Result<String> = json.fromJson<TestUser>()
+            .map { user -> user.name.uppercase() }
+
+        assertIs<Result.Success<String>>(result)
+        assertEquals("JOHN DOE", result.data)
+    }
+
+    @Test
+    fun extensions_errorPropagationInChain() {
+        val invalidJson = """{"invalid": "data"}"""
+
+        val result = invalidJson.fromJson<TestUser>()
+            .map { user -> user.name }
+            .flatMap { name -> Result.Success(name.uppercase()) }
+
+        // El error debe propagarse sin ejecutar map ni flatMap
+        assertIs<Result.Failure>(result)
+    }
+
+    @Test
+    fun toJson_extension_worksWithDifferentTypes() {
+        val product = TestProduct(id = "P123", price = 99.99)
+
+        val result = product.toJson()
+
+        assertIs<Result.Success<String>>(result)
+        assertTrue(result.data.contains("P123"))
+        assertTrue(result.data.contains("99.99"))
+    }
+
+    @Test
+    fun fromJson_extension_worksWithDifferentTypes() {
+        val json = """{"id": "P123", "price": 99.99}"""
+
+        val result: Result<TestProduct> = json.fromJson()
+
+        assertIs<Result.Success<TestProduct>>(result)
+        assertEquals("P123", result.data.id)
+        assertEquals(99.99, result.data.price)
+    }
 }

@@ -186,6 +186,18 @@ public enum class ErrorCode(
      */
     VALIDATION_DUPLICATE_VALUE(3006, "Duplicate value not allowed", retryable = false),
 
+    /**
+     * Invalid UUID format.
+     * The provided string is not a valid UUID (v4 format expected).
+     */
+    VALIDATION_INVALID_UUID(3007, "Invalid UUID format", retryable = false),
+
+    /**
+     * Passwords do not match.
+     * The password and confirmation password fields do not match.
+     */
+    VALIDATION_PASSWORD_MISMATCH(3008, "Passwords do not match", retryable = false),
+
     // ============================================================================
     // BUSINESS ERRORS (4000-4999)
     // Business logic, domain rules, and operation errors

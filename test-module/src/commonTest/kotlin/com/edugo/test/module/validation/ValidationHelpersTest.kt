@@ -1,7 +1,9 @@
 package com.edugo.test.module.validation
 
+import com.edugo.test.module.core.map
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -570,5 +572,148 @@ class ValidationHelpersTest {
 
         val result2 = validateMaxSize(listOf("item"), 0, "Items")
         assertEquals("Items cannot contain more than 0 items", result2)
+    }
+
+    // ========== Tests de Extension Functions ==========
+
+    @Test
+    fun `isValidEmail retorna true para email válido`() {
+        assertTrue("user@example.com".isValidEmail())
+    }
+
+    @Test
+    fun `isValidEmail retorna false para email inválido`() {
+        assertFalse("invalid-email".isValidEmail())
+        assertFalse("@example.com".isValidEmail())
+        assertFalse("user@".isValidEmail())
+    }
+
+    @Test
+    fun `validateEmail extension retorna Success para email válido`() {
+        val result = "user@example.com".validateEmail()
+        assertTrue(result is com.edugo.test.module.core.Result.Success)
+        assertEquals("user@example.com", (result as com.edugo.test.module.core.Result.Success).data)
+    }
+
+    @Test
+    fun `validateEmail extension retorna Failure para email inválido`() {
+        val result = "invalid-email".validateEmail()
+        assertTrue(result is com.edugo.test.module.core.Result.Failure)
+    }
+
+    @Test
+    fun `isValidUUID retorna true para UUID v4 válido`() {
+        assertTrue("550e8400-e29b-41d4-a716-446655440000".isValidUUID())
+        assertTrue("123e4567-e89b-42d3-a456-426614174000".isValidUUID())
+    }
+
+    @Test
+    fun `isValidUUID retorna false para UUID inválido`() {
+        assertFalse("not-a-uuid".isValidUUID())
+        assertFalse("550e8400-e29b-31d4-a716-446655440000".isValidUUID()) // versión 3, no 4
+        assertFalse("550e8400e29b41d4a716446655440000".isValidUUID()) // sin guiones
+        assertFalse("".isValidUUID())
+    }
+
+    @Test
+    fun `isValidUUID es case-insensitive`() {
+        assertTrue("550E8400-E29B-41D4-A716-446655440000".isValidUUID())
+        assertTrue("550e8400-E29B-41d4-A716-446655440000".isValidUUID()) // mixed case
+    }
+
+    @Test
+    fun `validateUUID retorna Success para UUID válido`() {
+        val uuid = "550e8400-e29b-41d4-a716-446655440000"
+        val result = uuid.validateUUID()
+        assertTrue(result is com.edugo.test.module.core.Result.Success)
+        assertEquals(uuid, (result as com.edugo.test.module.core.Result.Success).data)
+    }
+
+    @Test
+    fun `validateUUID retorna Failure para UUID inválido`() {
+        val result = "invalid-uuid".validateUUID()
+        assertTrue(result is com.edugo.test.module.core.Result.Failure)
+        assertTrue((result as com.edugo.test.module.core.Result.Failure).error.contains("UUID"))
+    }
+
+    @Test
+    fun `isInRange funciona con Int`() {
+        assertTrue(50.isInRange(0, 100))
+        assertTrue(0.isInRange(0, 100))
+        assertTrue(100.isInRange(0, 100))
+        assertFalse((-1).isInRange(0, 100))
+        assertFalse(101.isInRange(0, 100))
+    }
+
+    @Test
+    fun `isInRange funciona con Double`() {
+        assertTrue(5.5.isInRange(0.0, 10.0))
+        assertTrue(0.0.isInRange(0.0, 10.0))
+        assertTrue(10.0.isInRange(0.0, 10.0))
+        assertFalse((-0.1).isInRange(0.0, 10.0))
+        assertFalse(10.1.isInRange(0.0, 10.0))
+    }
+
+    @Test
+    fun `isInRange funciona con String`() {
+        assertTrue("b".isInRange("a", "c"))
+        assertTrue("a".isInRange("a", "c"))
+        assertTrue("c".isInRange("a", "c"))
+        assertFalse("d".isInRange("a", "c"))
+    }
+
+    @Test
+    fun `matchesPassword retorna true para passwords iguales`() {
+        assertTrue("password123".matchesPassword("password123"))
+    }
+
+    @Test
+    fun `matchesPassword retorna false para passwords diferentes`() {
+        assertFalse("password123".matchesPassword("password456"))
+        assertFalse("password".matchesPassword("Password")) // case sensitive
+    }
+
+    @Test
+    fun `matchesPassword funciona con passwords vacíos`() {
+        assertTrue("".matchesPassword(""))
+        assertFalse("password".matchesPassword(""))
+    }
+
+    @Test
+    fun `validatePasswordMatch retorna Success para passwords iguales`() {
+        val result = "password123".validatePasswordMatch("password123")
+        assertTrue(result is com.edugo.test.module.core.Result.Success)
+    }
+
+    @Test
+    fun `validatePasswordMatch retorna Failure para passwords diferentes`() {
+        val result = "password123".validatePasswordMatch("password456")
+        assertTrue(result is com.edugo.test.module.core.Result.Failure)
+        assertTrue((result as com.edugo.test.module.core.Result.Failure).error.contains("match"))
+    }
+
+    // ========== Tests de Integración con Extension Functions ==========
+
+    @Test
+    fun `extension functions se pueden usar en validación acumulativa`() {
+        val email = "invalid"
+        val uuid = "not-a-uuid"
+        val age = 150
+
+        val errors = listOfNotNull(
+            if (!email.isValidEmail()) "Invalid email" else null,
+            if (!uuid.isValidUUID()) "Invalid UUID" else null,
+            if (!age.isInRange(0, 120)) "Age out of range" else null
+        )
+
+        assertEquals(3, errors.size)
+    }
+
+    @Test
+    fun `extension functions con Result se pueden encadenar`() {
+        val result = "user@example.com".validateEmail().map { email -> email.uppercase() }
+
+        assertTrue(result is com.edugo.test.module.core.Result.Success<*>)
+        assertEquals("USER@EXAMPLE.COM", (result as com.edugo.test.module.core.Result.Success<String>).data)
     }
 }

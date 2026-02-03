@@ -580,3 +580,178 @@ public fun <T> validateMaxSize(
         null
     }
 }
+
+// ============================================================================
+// EXTENSION FUNCTIONS - Convenience API
+// These extension functions provide fluent syntax sugar over the validation helpers above.
+// They come in two flavors:
+// - isValidXxx(): Boolean - Simple boolean checks
+// - validateXxx(): Result<T> - Result-based validation with error details
+// ============================================================================
+
+/**
+ * Extension function que valida si un String es un email válido.
+ *
+ * Wrapper sobre [validateEmail] para API fluida con sintaxis de extension function.
+ *
+ * ## Ejemplo
+ *
+ * ```kotlin
+ * val email = "user@example.com"
+ * if (email.isValidEmail()) {
+ *     println("Email válido")
+ * }
+ * ```
+ *
+ * @return true si el email es válido, false en caso contrario
+ */
+public inline fun String.isValidEmail(): Boolean = validateEmail(this) == null
+
+/**
+ * Extension function que valida un email y retorna Result<String>.
+ *
+ * Versión Result-based de [isValidEmail] que proporciona detalles del error.
+ *
+ * ## Ejemplo
+ *
+ * ```kotlin
+ * val email = "invalid-email"
+ * when (val result = email.validateEmail()) {
+ *     is Result.Success -> println("Email válido: ${result.data}")
+ *     is Result.Failure -> println("Error: ${result.error}")
+ * }
+ * ```
+ *
+ * @return Result.Success con el email si es válido, Result.Failure con mensaje si es inválido
+ */
+public inline fun String.validateEmail(): com.edugo.test.module.core.Result<String> =
+    validateEmail(this)?.let { com.edugo.test.module.core.failure(it) }
+        ?: com.edugo.test.module.core.success(this)
+
+/**
+ * Extension function que valida si un String es un UUID v4 válido.
+ *
+ * Valida que el string cumpla con el formato UUID v4:
+ * - 8 dígitos hexadecimales
+ * - guión
+ * - 4 dígitos hexadecimales
+ * - guión
+ * - "4" seguido de 3 dígitos hexadecimales (versión 4)
+ * - guión
+ * - uno de [89ab] seguido de 3 dígitos hexadecimales (variante RFC 4122)
+ * - guión
+ * - 12 dígitos hexadecimales
+ *
+ * ## Ejemplo
+ *
+ * ```kotlin
+ * val uuid = "550e8400-e29b-41d4-a716-446655440000"
+ * if (uuid.isValidUUID()) {
+ *     println("UUID válido")
+ * }
+ * ```
+ *
+ * @return true si es un UUID v4 válido, false en caso contrario
+ */
+public inline fun String.isValidUUID(): Boolean {
+    val uuidRegex = Regex(
+        "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+        RegexOption.IGNORE_CASE
+    )
+    return this.matches(uuidRegex)
+}
+
+/**
+ * Extension function que valida un UUID y retorna Result<String>.
+ *
+ * Versión Result-based de [isValidUUID] que proporciona detalles del error.
+ *
+ * ## Ejemplo
+ *
+ * ```kotlin
+ * val uuid = "invalid-uuid"
+ * when (val result = uuid.validateUUID()) {
+ *     is Result.Success -> println("UUID válido: ${result.data}")
+ *     is Result.Failure -> println("Error: ${result.error}")
+ * }
+ * ```
+ *
+ * @return Result.Success con el UUID si es válido, Result.Failure con mensaje si es inválido
+ */
+public inline fun String.validateUUID(): com.edugo.test.module.core.Result<String> =
+    if (isValidUUID()) com.edugo.test.module.core.success(this)
+    else com.edugo.test.module.core.failure("Invalid UUID format")
+
+/**
+ * Extension function que valida si un valor Comparable está dentro de un rango.
+ *
+ * Verifica que el valor sea mayor o igual al mínimo y menor o igual al máximo
+ * (inclusivo en ambos extremos).
+ *
+ * ## Ejemplos
+ *
+ * ```kotlin
+ * val age = 25
+ * if (age.isInRange(18, 120)) {
+ *     println("Edad válida")
+ * }
+ *
+ * val price = 99.99
+ * if (price.isInRange(0.0, 1000.0)) {
+ *     println("Precio válido")
+ * }
+ * ```
+ *
+ * @param min Valor mínimo permitido (inclusivo)
+ * @param max Valor máximo permitido (inclusivo)
+ * @return true si el valor está en el rango [min, max], false en caso contrario
+ */
+public inline fun <T : Comparable<T>> T.isInRange(min: T, max: T): Boolean =
+    this >= min && this <= max
+
+/**
+ * Extension function que valida coincidencia de passwords.
+ *
+ * Compara el password con el campo de confirmación para verificar que coincidan.
+ * Útil en formularios de registro o cambio de contraseña.
+ *
+ * ## Ejemplo
+ *
+ * ```kotlin
+ * val password = "secret123"
+ * val confirmation = "secret123"
+ *
+ * if (password.matchesPassword(confirmation)) {
+ *     println("Las contraseñas coinciden")
+ * }
+ * ```
+ *
+ * @param confirmation Password de confirmación a comparar
+ * @return true si ambos passwords coinciden, false en caso contrario
+ */
+public inline fun String.matchesPassword(confirmation: String): Boolean =
+    this == confirmation
+
+/**
+ * Extension function que valida coincidencia de passwords y retorna Result<Unit>.
+ *
+ * Versión Result-based de [matchesPassword] que proporciona detalles del error.
+ *
+ * ## Ejemplo
+ *
+ * ```kotlin
+ * val password = "secret123"
+ * val confirmation = "secret456"
+ *
+ * when (val result = password.validatePasswordMatch(confirmation)) {
+ *     is Result.Success -> println("Contraseñas coinciden")
+ *     is Result.Failure -> println("Error: ${result.error}")
+ * }
+ * ```
+ *
+ * @param confirmation Password de confirmación a comparar
+ * @return Result.Success si coinciden, Result.Failure con mensaje si no coinciden
+ */
+public inline fun String.validatePasswordMatch(confirmation: String): com.edugo.test.module.core.Result<Unit> =
+    if (matchesPassword(confirmation)) com.edugo.test.module.core.success(Unit)
+    else com.edugo.test.module.core.failure("Passwords do not match")
