@@ -5,7 +5,9 @@ import com.edugo.test.module.core.failure
 import com.edugo.test.module.core.success
 import com.edugo.test.module.data.models.base.EntityBase
 import com.edugo.test.module.data.models.base.ValidatableModel
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -20,6 +22,47 @@ import kotlinx.serialization.Serializable
  * Este modelo implementa:
  * - [EntityBase]<String>: Proporciona id, createdAt, updatedAt
  * - [ValidatableModel]: Proporciona método validate() con Result<Unit>
+ * - [RoleMinimal]: Proporciona contrato mínimo (id, name) para uso ligero
+ *
+ * ## Serialización y Compatibilidad con Backend
+ *
+ * Este modelo usa `@SerialName` para mapear entre convenciones de nomenclatura:
+ * - Kotlin: camelCase (`createdAt`, `updatedAt`, `isActive`)
+ * - Backend/JSON: snake_case (`created_at`, `updated_at`, `is_active`)
+ *
+ * ### Serialización Parcial (Modo Ligero)
+ *
+ * Cuando Role viaja dentro de [User.roles], el backend puede enviar solo
+ * las propiedades mínimas de [RoleMinimal]:
+ *
+ * ```json
+ * {
+ *   "id": "role-admin",
+ *   "name": "Administrator"
+ * }
+ * ```
+ *
+ * Role se deserializará correctamente usando valores default para las propiedades opcionales:
+ * - `description = ""`
+ * - `permissions = emptySet()`
+ * - `isActive = true`
+ * - `createdAt/updatedAt = Clock.System.now()`
+ *
+ * ### Serialización Completa
+ *
+ * Cuando se trabaja directamente con roles, el JSON incluye todas las propiedades:
+ *
+ * ```json
+ * {
+ *   "id": "role-admin",
+ *   "name": "Administrator",
+ *   "description": "Full system access",
+ *   "permissions": ["users.read", "users.write"],
+ *   "is_active": true,
+ *   "created_at": "2024-01-01T00:00:00Z",
+ *   "updated_at": "2024-01-01T00:00:00Z"
+ * }
+ * ```
  *
  * ## Ejemplo de Uso
  *
@@ -50,24 +93,51 @@ import kotlinx.serialization.Serializable
  * val restored = Json.decodeFromString<Role>(json)
  * ```
  *
+ * ## Decisión de Diseño: ¿Por qué implementa RoleMinimal?
+ *
+ * Se decidió que Role implemente [RoleMinimal] en lugar de crear una clase
+ * separada `RoleInfo` por las siguientes razones:
+ *
+ * 1. **Sin desincronización**: Una sola fuente de verdad
+ * 2. **Sin duplicación**: No hay dos clases representando el mismo concepto
+ * 3. **Sin conversiones manuales**: Role ya cumple el contrato de RoleMinimal
+ * 4. **Serialización flexible**: El backend decide qué propiedades enviar
+ * 5. **Type-safe**: El compilador garantiza compatibilidad
+ *
  * @property id Identificador único del rol (formato recomendado: "role-{name}")
  * @property name Nombre del rol (ej: "Administrator", "User", "Guest")
- * @property description Descripción detallada del propósito del rol
+ * @property description Descripción detallada del propósito del rol (default: "")
  * @property permissions Set de identificadores de permisos (ej: "users.read", "posts.write")
  * @property isActive Indica si el rol está activo y puede ser asignado
- * @property createdAt Timestamp de creación del rol
- * @property updatedAt Timestamp de última actualización
+ * @property createdAt Timestamp de creación del rol (default: Clock.System.now())
+ * @property updatedAt Timestamp de última actualización (default: Clock.System.now())
+ *
+ * @see RoleMinimal Interface que define el contrato mínimo
+ * @see User Usa List<Role> aprovechando serialización parcial
  */
 @Serializable
 public data class Role(
+    @SerialName("id")
     override val id: String,
-    val name: String,
-    val description: String,
+
+    @SerialName("name")
+    override val name: String,
+
+    @SerialName("description")
+    val description: String = "",
+
+    @SerialName("permissions")
     val permissions: Set<String> = emptySet(),
+
+    @SerialName("is_active")
     val isActive: Boolean = true,
-    override val createdAt: Instant,
-    override val updatedAt: Instant
-) : EntityBase<String>, ValidatableModel {
+
+    @SerialName("created_at")
+    override val createdAt: Instant = Clock.System.now(),
+
+    @SerialName("updated_at")
+    override val updatedAt: Instant = Clock.System.now()
+) : EntityBase<String>, ValidatableModel, RoleMinimal {
 
     /**
      * Valida la consistencia e integridad de los datos del rol.
@@ -76,13 +146,16 @@ public data class Role(
      *
      * 1. **ID**: No puede estar vacío
      * 2. **Name**: No puede estar vacío y debe tener máximo 100 caracteres
-     * 3. **Description**: No puede estar vacía y debe tener máximo 500 caracteres
+     * 3. **Description**: Si no está vacía, debe tener máximo 500 caracteres
      * 4. **Permissions**: Cada permiso debe seguir el formato "resource.action"
+     *
+     * **Nota**: A diferencia de versiones anteriores, `description` puede estar vacía
+     * para soportar serialización parcial cuando Role viaja en User.roles.
      *
      * ## Ejemplos
      *
      * ```kotlin
-     * // Rol válido
+     * // Rol válido completo
      * val valid = Role(
      *     id = "role-user",
      *     name = "User",
@@ -92,6 +165,13 @@ public data class Role(
      *     updatedAt = Clock.System.now()
      * )
      * valid.validate() // Result.Success
+     *
+     * // Rol válido mínimo (para uso en User.roles)
+     * val minimal = Role(
+     *     id = "role-user",
+     *     name = "User"
+     * )
+     * minimal.validate() // Result.Success (description vacía es permitida)
      *
      * // Rol inválido - nombre vacío
      * val invalid = valid.copy(name = "")
@@ -111,9 +191,6 @@ public data class Role(
 
             name.length > 100 ->
                 failure("Role name is too long (max 100 characters)")
-
-            description.isBlank() ->
-                failure("Role description cannot be blank")
 
             description.length > 500 ->
                 failure("Role description is too long (max 500 characters)")
