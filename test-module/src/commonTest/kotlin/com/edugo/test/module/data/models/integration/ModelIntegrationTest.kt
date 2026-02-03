@@ -30,7 +30,7 @@ class ModelIntegrationTest {
         email = "user$id@example.com",
         username = "user$id",
         displayName = "User $id",
-        roles = listOf("role-user"),
+        roles = listOf(Role(id = "role-user", name = "User")),
         isActive = true,
         createdAt = Clock.System.now(),
         updatedAt = Clock.System.now(),

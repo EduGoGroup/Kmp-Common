@@ -17,12 +17,17 @@ import kotlin.test.assertFalse
  */
 class UserTest {
 
+    private fun createValidRole() = Role(
+        id = "role-user",
+        name = "User"
+    )
+
     private fun createValidUser() = User(
         id = "user-123",
         email = "john@example.com",
         username = "johndoe",
         displayName = "John Doe",
-        roles = listOf("role-user"),
+        roles = listOf(createValidRole()),
         isActive = true,
         createdAt = Clock.System.now(),
         updatedAt = Clock.System.now(),

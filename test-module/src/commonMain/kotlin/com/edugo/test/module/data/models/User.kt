@@ -8,7 +8,9 @@ import com.edugo.test.module.data.models.base.EntityBase
 import com.edugo.test.module.data.models.base.SoftDeletable
 import com.edugo.test.module.data.models.base.ValidatableModel
 import com.edugo.test.module.data.models.base.isDeleted
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -29,6 +31,36 @@ import kotlinx.serialization.Serializable
  * Esta composición demuestra el poder de "composition over inheritance"
  * donde el modelo obtiene múltiples capacidades sin jerarquías complejas.
  *
+ * ## Serialización y Compatibilidad con Backend
+ *
+ * Este modelo usa `@SerialName` para mapear entre convenciones de nomenclatura:
+ * - Kotlin: camelCase (`displayName`, `isActive`, `createdAt`, `profileImageUrl`)
+ * - Backend/JSON: snake_case (`display_name`, `is_active`, `created_at`, `profile_image_url`)
+ *
+ * ### Relación con Role (DECISIÓN DE DISEÑO)
+ *
+ * La propiedad `roles` es de tipo `List<Role>` en lugar de `List<String>` por:
+ *
+ * 1. **Escalabilidad**: Permite acceso a propiedades del rol (name, permissions) sin llamadas adicionales
+ * 2. **Type-safety**: Compilador garantiza que solo objetos Role válidos estén en la lista
+ * 3. **Sin desincronización**: No hay conversión Role ↔ String, evita inconsistencias
+ * 4. **Serialización flexible**: Backend puede enviar Role completo o solo RoleMinimal (id, name)
+ *
+ * Gracias a que Role implementa RoleMinimal con propiedades default, el backend puede
+ * enviar versiones ligeras:
+ *
+ * ```json
+ * {
+ *   "id": "user-123",
+ *   "email": "john@example.com",
+ *   "roles": [
+ *     {"id": "role-admin", "name": "Administrator"}
+ *   ]
+ * }
+ * ```
+ *
+ * Y Role se deserializará correctamente con valores default para propiedades opcionales.
+ *
  * ## Ejemplo de Uso Básico
  *
  * ```kotlin
@@ -37,13 +69,14 @@ import kotlinx.serialization.Serializable
  *     email = "john.doe@example.com",
  *     username = "johndoe",
  *     displayName = "John Doe",
- *     roles = listOf("role-user"),
+ *     roles = listOf(
+ *         Role(id = "role-user", name = "User")
+ *     ),
  *     isActive = true,
  *     createdAt = Clock.System.now(),
  *     updatedAt = Clock.System.now(),
  *     createdBy = "system",
- *     updatedBy = "system",
- *     deletedAt = null
+ *     updatedBy = "system"
  * )
  *
  * // Validar antes de guardar
@@ -53,13 +86,17 @@ import kotlinx.serialization.Serializable
  * }
  * ```
  *
- * ## Ejemplo con Roles
+ * ## Ejemplo con Roles y Permisos
  *
  * ```kotlin
- * // Verificar permisos basados en roles
- * suspend fun canEditUsers(user: User, roleRepo: RoleRepository): Boolean {
- *     val roles = user.roles.mapNotNull { roleRepo.findById(it) }
- *     return roles.any { it.hasPermission("users.write") }
+ * // Verificar permisos directamente desde User
+ * if (user.roles.any { it.hasPermission("users.write") }) {
+ *     // Usuario tiene permiso para escribir usuarios
+ * }
+ *
+ * // Verificar por nombre de rol
+ * if (user.hasRole("role-admin")) {
+ *     // Usuario es administrador
  * }
  * ```
  *
@@ -79,30 +116,55 @@ import kotlinx.serialization.Serializable
  * @property email Correo electrónico (debe ser único y válido)
  * @property username Nombre de usuario (debe ser único)
  * @property displayName Nombre para mostrar en la UI
- * @property roles Lista de IDs de roles asignados al usuario
+ * @property roles Lista de roles asignados al usuario (objetos Role completos)
  * @property isActive Indica si la cuenta está activa
  * @property profileImageUrl URL opcional de la imagen de perfil
  * @property metadata Map opcional para datos adicionales personalizados
- * @property createdAt Timestamp de creación
- * @property updatedAt Timestamp de última actualización
- * @property createdBy ID del usuario que creó esta cuenta
- * @property updatedBy ID del usuario que realizó la última actualización
+ * @property createdAt Timestamp de creación (default: Clock.System.now())
+ * @property updatedAt Timestamp de última actualización (default: Clock.System.now())
+ * @property createdBy ID del usuario que creó esta cuenta (default: "system")
+ * @property updatedBy ID del usuario que realizó la última actualización (default: "system")
  * @property deletedAt Timestamp de eliminación (null si no está eliminado)
  */
 @Serializable
 public data class User(
+    @SerialName("id")
     override val id: String,
+
+    @SerialName("email")
     val email: String,
+
+    @SerialName("username")
     val username: String,
+
+    @SerialName("display_name")
     val displayName: String,
-    val roles: List<String> = emptyList(),
+
+    @SerialName("roles")
+    val roles: List<Role> = emptyList(),
+
+    @SerialName("is_active")
     val isActive: Boolean = true,
+
+    @SerialName("profile_image_url")
     val profileImageUrl: String? = null,
+
+    @SerialName("metadata")
     val metadata: Map<String, String> = emptyMap(),
-    override val createdAt: Instant,
-    override val updatedAt: Instant,
-    override val createdBy: String,
-    override val updatedBy: String,
+
+    @SerialName("created_at")
+    override val createdAt: Instant = Clock.System.now(),
+
+    @SerialName("updated_at")
+    override val updatedAt: Instant = Clock.System.now(),
+
+    @SerialName("created_by")
+    override val createdBy: String = "system",
+
+    @SerialName("updated_by")
+    override val updatedBy: String = "system",
+
+    @SerialName("deleted_at")
     override val deletedAt: Instant? = null
 ) : EntityBase<String>, ValidatableModel, AuditableModel, SoftDeletable {
 
@@ -132,11 +194,7 @@ public data class User(
      *     email = "john@example.com",
      *     username = "johndoe",
      *     displayName = "John Doe",
-     *     roles = listOf("role-user"),
-     *     createdAt = Clock.System.now(),
-     *     updatedAt = Clock.System.now(),
-     *     createdBy = "admin",
-     *     updatedBy = "admin"
+     *     roles = listOf(Role(id = "role-user", name = "User"))
      * )
      * valid.validate() // Result.Success
      *
@@ -234,6 +292,9 @@ public data class User(
     /**
      * Verifica si el usuario tiene un rol específico asignado.
      *
+     * DECISIÓN DE DISEÑO: Se compara por role.id para mantener compatibilidad
+     * con código existente que usaba roleId strings.
+     *
      * Ejemplo:
      * ```kotlin
      * if (user.hasRole("role-admin")) {
@@ -242,7 +303,7 @@ public data class User(
      * ```
      */
     public fun hasRole(roleId: String): Boolean {
-        return roleId in roles
+        return roles.any { it.id == roleId }
     }
 
     /**
@@ -256,7 +317,7 @@ public data class User(
      * ```
      */
     public fun hasAnyRole(vararg roleIds: String): Boolean {
-        return roleIds.any { it in roles }
+        return roleIds.any { roleId -> roles.any { it.id == roleId } }
     }
 
     /**
@@ -270,7 +331,7 @@ public data class User(
      * ```
      */
     public fun hasAllRoles(vararg roleIds: String): Boolean {
-        return roleIds.all { it in roles }
+        return roleIds.all { roleId -> roles.any { it.id == roleId } }
     }
 
     /**
@@ -307,6 +368,9 @@ public data class User(
         /**
          * Crea un usuario administrador de ejemplo.
          *
+         * DECISIÓN DE DISEÑO: Usa Role.createAdminRole() del companion object
+         * de Role para crear el rol completo con todos sus permisos.
+         *
          * Útil para tests y datos de seed.
          */
         public fun createAdmin(
@@ -322,7 +386,9 @@ public data class User(
                 email = email,
                 username = username,
                 displayName = username.capitalize(),
-                roles = listOf(RoleIds.ADMIN),
+                roles = listOf(
+                    Role.createAdminRole(createdAt, updatedAt)
+                ),
                 isActive = true,
                 createdAt = createdAt,
                 updatedAt = updatedAt,
@@ -334,6 +400,9 @@ public data class User(
 
         /**
          * Crea un usuario estándar de ejemplo.
+         *
+         * DECISIÓN DE DISEÑO: Usa Role.createUserRole() del companion object
+         * de Role para crear el rol estándar con permisos básicos.
          *
          * Útil para tests y datos de seed.
          */
@@ -350,7 +419,9 @@ public data class User(
                 email = email,
                 username = username,
                 displayName = username.capitalize(),
-                roles = listOf(RoleIds.USER),
+                roles = listOf(
+                    Role.createUserRole(createdAt, updatedAt)
+                ),
                 isActive = true,
                 createdAt = createdAt,
                 updatedAt = updatedAt,
