@@ -175,10 +175,12 @@ public fun validateRange(
     fieldName: String,
     customMessage: String? = null
 ): String? {
-    return if (value < min || value > max) {
-        customMessage ?: "$fieldName must be between $min and $max"
+    val isInRange = value >= min && value <= max
+
+    return if (isInRange) {
+        null // Válido
     } else {
-        null
+        customMessage ?: "$fieldName must be between $min and $max"
     }
 }
 
@@ -230,11 +232,16 @@ public fun validateEmail(
     val atCount = email.count { it == '@' }
     val atIndex = email.indexOf('@')
 
-    return when {
-        atCount != 1 -> customMessage ?: "Invalid email format"
-        atIndex == 0 -> customMessage ?: "Invalid email format"
-        atIndex == email.length - 1 -> customMessage ?: "Invalid email format"
-        else -> null
+    // Variables descriptivas para cada validación
+    val hasExactlyOneAt = atCount == 1
+    val atIsNotFirst = atIndex > 0
+    val atIsNotLast = atIndex < email.length - 1
+    val isValidStructure = hasExactlyOneAt && atIsNotFirst && atIsNotLast
+
+    return if (!isValidStructure) {
+        customMessage ?: "Invalid email format"
+    } else {
+        null
     }
 }
 

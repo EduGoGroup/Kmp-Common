@@ -61,12 +61,16 @@ public object JsonConfig {
      * val json = JsonConfig.Default.encodeToString(user)
      * // {"id":"123","name":"John"}
      * ```
+     *
+     * Inicializada lazy para optimizar memoria y startup time.
      */
-    public val Default: Json = Json {
-        ignoreUnknownKeys = true
-        isLenient = false
-        prettyPrint = false
-        encodeDefaults = true
+    public val Default: Json by lazy {
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = false
+            prettyPrint = false
+            encodeDefaults = true
+        }
     }
 
     /**
@@ -98,12 +102,16 @@ public object JsonConfig {
      * ```
      *
      * **⚠️ Advertencia**: No usar en producción por el tamaño adicional del JSON.
+     *
+     * Inicializada lazy - solo se crea si se usa.
      */
-    public val Pretty: Json = Json {
-        ignoreUnknownKeys = true
-        isLenient = false
-        prettyPrint = true
-        encodeDefaults = true
+    public val Pretty: Json by lazy {
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = false
+            prettyPrint = true
+            encodeDefaults = true
+        }
     }
 
     /**
@@ -140,12 +148,16 @@ public object JsonConfig {
      *
      * **⚠️ Advertencia**: Usar solo en testing o validación explícita.
      * No recomendado para producción por baja tolerancia a cambios.
+     *
+     * Inicializada lazy - solo se crea si se usa.
      */
-    public val Strict: Json = Json {
-        ignoreUnknownKeys = false
-        isLenient = false
-        prettyPrint = false
-        encodeDefaults = true
+    public val Strict: Json by lazy {
+        Json {
+            ignoreUnknownKeys = false
+            isLenient = false
+            prettyPrint = false
+            encodeDefaults = true
+        }
     }
 
     /**
@@ -176,11 +188,15 @@ public object JsonConfig {
      *
      * **⚠️ Advertencia**: Solo usar para datos externos no controlados.
      * No recomendado para serialización interna por seguridad.
+     *
+     * Inicializada lazy - solo se crea si se usa.
      */
-    public val Lenient: Json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-        prettyPrint = false
-        encodeDefaults = false
+    public val Lenient: Json by lazy {
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            prettyPrint = false
+            encodeDefaults = false
+        }
     }
 }

@@ -86,9 +86,10 @@ public inline fun <T> catchSerialization(block: () -> T): Result<T> {
         Result.Success(block())
     } catch (e: SerializationException) {
         Result.Failure(e.message ?: "Serialization error occurred")
-    } catch (e: Exception) {
-        // Captura cualquier otra excepción inesperada
-        Result.Failure("Unexpected error during serialization: ${e.message}")
+    } catch (e: IllegalArgumentException) {
+        Result.Failure("Invalid argument for serialization: ${e.message}")
+    } catch (e: IllegalStateException) {
+        Result.Failure("Invalid state during serialization: ${e.message}")
     }
 }
 
@@ -140,10 +141,10 @@ public inline fun <T> catchSerializationAsAppError(
             details = details
         )
         appError.toResult()
-    } catch (e: Exception) {
+    } catch (e: IllegalArgumentException) {
         val appError = AppError.fromException(
             exception = e,
-            code = ErrorCode.SYSTEM_UNKNOWN_ERROR,
+            code = ErrorCode.VALIDATION_INVALID_INPUT,
             details = details + ("context" to "serialization")
         )
         appError.toResult()
@@ -179,9 +180,9 @@ public inline fun <T> catchSerializationWithDetails(
     } catch (e: SerializationException) {
         val detailsStr = details.entries.joinToString(", ") { "${it.key}=${it.value}" }
         Result.Failure("${e.message ?: "Serialization error"} [details: $detailsStr]")
-    } catch (e: Exception) {
+    } catch (e: IllegalArgumentException) {
         val detailsStr = details.entries.joinToString(", ") { "${it.key}=${it.value}" }
-        Result.Failure("Unexpected error: ${e.message} [details: $detailsStr]")
+        Result.Failure("Invalid argument: ${e.message} [details: $detailsStr]")
     }
 }
 

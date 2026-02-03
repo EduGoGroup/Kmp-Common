@@ -2,7 +2,7 @@
 name: correction-executor-agent
 description: Aplica correcciones específicas a archivos según issues reportados
 subagent_type: correction-executor
-tools: mcp__acp__Read, mcp__acp__Edit
+tools: mcp__acp__Read, mcp__acp__Write, mcp__acp__Edit
 model: sonnet
 ---
 
