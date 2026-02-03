@@ -11,15 +11,49 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 
 /**
- * Tests del modelo Role - Verifica uso de interfaces base y RoleMinimal
+ * Test suite para el modelo Role.
+ *
+ * Esta suite de tests verifica:
+ * - Serialización/deserialización JSON con kotlinx-serialization
+ * - Validaciones del modelo (id, name, permissions, description)
+ * - Compatibilidad con interface RoleMinimal (serialización parcial)
+ * - Mapeo correcto de @SerialName (snake_case ↔ camelCase)
+ * - Round-trip de serialización preserva todos los campos
+ * - Edge cases: permissions vacíos, strings largos, formato inválido
+ * - Casos negativos: JSON inválido, campos faltantes
+ *
+ * ## Cobertura de Tests
+ *
+ * - **Validación**: id/name vacíos, description larga, permissions inválidos
+ * - **Serialización**: Round-trip completo, snake_case mapping, partial deserialization
+ * - **Edge Cases**: Valores extremos, colecciones vacías, caracteres especiales
+ * - **Negative Cases**: JSON malformado, tipos incorrectos, campos requeridos faltantes
+ *
+ * @see Role Modelo bajo test
+ * @see RoleMinimal Interface mínima implementada por Role
  */
 class RoleTest {
 
+    /**
+     * Constantes de test para evitar magic values y facilitar mantenimiento.
+     */
+    private companion object {
+        const val TEST_ROLE_ID = "role-user"
+        const val TEST_ROLE_NAME = "User"
+        const val TEST_ROLE_DESCRIPTION = "Standard user role"
+        val TEST_ROLE_PERMISSIONS = setOf("posts.read", "comments.write")
+
+        const val ADMIN_ROLE_ID = "role-admin"
+        const val ADMIN_ROLE_NAME = "Administrator"
+        const val ADMIN_ROLE_DESCRIPTION = "Full system access"
+        val ADMIN_PERMISSIONS = setOf("users.read", "users.write", "system.manage")
+    }
+
     private fun createValidRole() = Role(
-        id = "role-user",
-        name = "User",
-        description = "Standard user role",
-        permissions = setOf("posts.read", "comments.write"),
+        id = TEST_ROLE_ID,
+        name = TEST_ROLE_NAME,
+        description = TEST_ROLE_DESCRIPTION,
+        permissions = TEST_ROLE_PERMISSIONS,
         isActive = true,
         createdAt = Clock.System.now(),
         updatedAt = Clock.System.now()
@@ -224,5 +258,174 @@ class RoleTest {
         assertTrue(json.contains("\"permissions\""), "JSON debe contener 'permissions'")
         assertTrue(json.contains("\"created_at\""), "JSON debe contener 'created_at'")
         assertTrue(json.contains("\"updated_at\""), "JSON debe contener 'updated_at'")
+    }
+
+    // ========== Edge Case Tests ==========
+
+    @Test
+    fun `role con name muy largo (máximo permitido 100 caracteres)`() {
+        val maxLengthName = "A".repeat(100)
+        val role = createValidRole().copy(name = maxLengthName)
+        assertTrue(role.validate() is Result.Success,
+            "Name de 100 caracteres debe ser válido (límite máximo)")
+    }
+
+    @Test
+    fun `validación falla cuando name excede 100 caracteres`() {
+        val tooLongName = "A".repeat(101)
+        val role = createValidRole().copy(name = tooLongName)
+        val result = role.validate()
+        assertTrue(result is Result.Failure,
+            "Name de 101 caracteres debe ser inválido")
+    }
+
+    @Test
+    fun `role con description de 500 caracteres (máximo) es válido`() {
+        val maxDescription = "B".repeat(500)
+        val role = createValidRole().copy(description = maxDescription)
+        assertTrue(role.validate() is Result.Success,
+            "Description de 500 caracteres debe ser válida (límite máximo)")
+    }
+
+    @Test
+    fun `role con caracteres especiales en name es válido`() {
+        val specialChars = "Admin-Role_2024 (Manager) @Company"
+        val role = createValidRole().copy(name = specialChars)
+        assertTrue(role.validate() is Result.Success,
+            "Name con caracteres especiales debe ser válido")
+    }
+
+    @Test
+    fun `role con permissions con caracteres especiales válidos`() {
+        // La validación actual solo verifica formato "resource.action" (exactamente 1 punto, partes no vacías)
+        // Permite caracteres alfanuméricos, guiones y underscores en resource y action
+        val permissions = setOf("users-v2.read", "posts_legacy.write", "api123.execute")
+        val role = createValidRole().copy(permissions = permissions)
+        assertTrue(role.validate() is Result.Success,
+            "Permissions con guiones/underscores/números son válidos (pasan isNotBlank())")
+    }
+
+    @Test
+    fun `role con single character id y name es válido`() {
+        val role = Role(id = "a", name = "A")
+        assertTrue(role.validate() is Result.Success,
+            "Role con id y name de 1 carácter debe ser válido")
+    }
+
+    @Test
+    fun `permissions con formato exacto resource punto action es válido`() {
+        val validPermissions = setOf(
+            "a.b",  // Mínimo válido
+            "users.read",
+            "longresourcename.longactionname",
+            "x.y"
+        )
+        val role = createValidRole().copy(permissions = validPermissions)
+        assertTrue(role.validate() is Result.Success,
+            "Permissions con formato correcto deben ser válidos")
+    }
+
+    // ========== Negative Test Cases ==========
+
+    @Test
+    fun `deserialización falla con JSON malformado`() {
+        val malformedJson = """{"id":"test","name":"Test" // Missing closing brace"""
+
+        try {
+            Json.decodeFromString<Role>(malformedJson)
+            assertTrue(false, "Deserialización debe fallar con JSON malformado")
+        } catch (e: Exception) {
+            // Expected: SerializationException or similar
+            assertTrue(true, "Deserialización falló correctamente: ${e::class.simpleName}")
+        }
+    }
+
+    @Test
+    fun `deserialización falla cuando id es de tipo incorrecto (number en lugar de string)`() {
+        val wrongTypeJson = """{"id":12345,"name":"Test"}"""
+
+        try {
+            Json.decodeFromString<Role>(wrongTypeJson)
+            assertTrue(false, "Deserialización debe fallar con tipo incorrecto para id")
+        } catch (e: Exception) {
+            // Expected: SerializationException
+            assertTrue(true, "Deserialización falló correctamente: ${e::class.simpleName}")
+        }
+    }
+
+    @Test
+    fun `deserialización falla cuando permissions es string en lugar de array`() {
+        val wrongTypeJson = """{"id":"test","name":"Test","permissions":"users.read"}"""
+
+        try {
+            Json.decodeFromString<Role>(wrongTypeJson)
+            assertTrue(false, "Deserialización debe fallar con permissions como string")
+        } catch (e: Exception) {
+            // Expected: SerializationException
+            assertTrue(true, "Deserialización falló correctamente: ${e::class.simpleName}")
+        }
+    }
+
+    @Test
+    fun `deserialización falla cuando falta campo requerido id`() {
+        val missingIdJson = """{"name":"Test Role"}"""
+
+        try {
+            Json.decodeFromString<Role>(missingIdJson)
+            assertTrue(false, "Deserialización debe fallar sin campo id requerido")
+        } catch (e: Exception) {
+            // Expected: MissingFieldException or SerializationException
+            assertTrue(true, "Deserialización falló correctamente: ${e::class.simpleName}")
+        }
+    }
+
+    @Test
+    fun `deserialización falla cuando falta campo requerido name`() {
+        val missingNameJson = """{"id":"role-test"}"""
+
+        try {
+            Json.decodeFromString<Role>(missingNameJson)
+            assertTrue(false, "Deserialización debe fallar sin campo name requerido")
+        } catch (e: Exception) {
+            // Expected: MissingFieldException or SerializationException
+            assertTrue(true, "Deserialización falló correctamente: ${e::class.simpleName}")
+        }
+    }
+
+    @Test
+    fun `deserialización con null en campo no-nullable falla`() {
+        val nullFieldJson = """{"id":"test","name":null}"""
+
+        try {
+            Json.decodeFromString<Role>(nullFieldJson)
+            assertTrue(false, "Deserialización debe fallar con null en campo no-nullable")
+        } catch (e: Exception) {
+            // Expected: SerializationException
+            assertTrue(true, "Deserialización falló correctamente: ${e::class.simpleName}")
+        }
+    }
+
+    @Test
+    fun `role con permissions formato incorrecto (sin punto) falla validación`() {
+        val invalidPermissions = setOf("read", "write", "delete")  // Faltan "resource."
+        val role = createValidRole().copy(permissions = invalidPermissions)
+        assertTrue(role.validate() is Result.Failure,
+            "Permissions sin formato resource.action deben ser inválidos")
+    }
+
+    @Test
+    fun `role con permissions formato incorrecto (múltiples puntos) falla validación`() {
+        val invalidPermissions = setOf("users.read.all", "posts.write.draft")
+        val role = createValidRole().copy(permissions = invalidPermissions)
+        assertTrue(role.validate() is Result.Failure,
+            "Permissions con múltiples puntos deben ser inválidos")
+    }
+
+    @Test
+    fun `role con permission vacío (solo punto) falla validación`() {
+        val invalidPermissions = setOf(".", ".read", "users.", "")
+        val role = createValidRole().copy(permissions = invalidPermissions)
+        assertTrue(role.validate() is Result.Failure,
+            "Permissions con partes vacías deben ser inválidos")
     }
 }

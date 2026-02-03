@@ -55,7 +55,7 @@ if (!files_to_review || !Array.isArray(files_to_review)) {
 }
 
 // Validar kind y project_level (opcionales pero recomendados)
-const validKinds = ['api', 'web', 'mobile', 'lib', 'cli']
+const validKinds = ['library', 'api', 'mobile', 'web', 'cli']
 const validLevels = ['mvp', 'standard', 'enterprise']
 ```
 
@@ -66,14 +66,14 @@ const validLevels = ['mvp', 'standard', 'enterprise']
 ```json
 {
   "files_to_review": [
-    "internal/handlers/user.go",
-    "internal/services/auth.go",
-    "cmd/main.go"
+    "src/main/kotlin/handlers/UserHandler.kt",
+    "src/main/kotlin/services/AuthService.kt",
+    "src/main/kotlin/Main.kt"
   ],
   "project_path": "/path/to/project",
-  "tech": "golang",
-  "kind": "api",
-  "project_level": "standard"
+  "tech": "kotlin",
+  "kind": "library",
+  "project_level": "enterprise"
 }
 ```
 
@@ -92,8 +92,8 @@ Excepción: Si hay error, sé detallado en `error_message`.
 |-------|------|-------------|
 | `files_to_review` | array | Lista de paths relativos a revisar |
 | `project_path` | string | Ruta absoluta al proyecto |
-| `tech` | string | Tecnología: golang, python, nodejs, etc. |
-| `kind` | string | Tipo de proyecto: api, web, lib, cli |
+| `tech` | string | Tecnología: **kotlin** o **java** |
+| `kind` | string | Tipo de proyecto: library, api, mobile, web, cli |
 | `project_level` | string | Nivel: mvp, standard, enterprise |
 
 ---
@@ -129,12 +129,19 @@ Para cada archivo en `files_to_review`:
 const fullPath = `${project_path}/${file}`
 const content = await Read({ file_path: fullPath })
 
+// Aplicar patrones según tecnología (kotlin o java)
 const securityIssues = analyzeSecurityIssues(content, file, tech)
-const qualityIssues = analyzeQualityIssues(content, file, tech)
+const qualityIssues = analyzeQualityIssues(content, file, tech, project_level)
 const styleIssues = analyzeStyleIssues(content, file, tech)
 
 allIssues.push(...securityIssues, ...qualityIssues, ...styleIssues)
 ```
+
+**Ejemplo de análisis específico para Kotlin:**
+- Detectar `!!` operator → medium severity
+- Detectar `catch (e: Exception) {}` vacío → medium severity
+- Detectar trailing whitespace → style severity
+- Contar líneas de función (> 50 líneas) → medium severity
 
 ### Paso 3: Consolidar Resultados
 
@@ -152,7 +159,22 @@ const summary = {
 
 ## Patrones de Detección
 
+**IMPORTANTE - Lo que NO se detecta:**
+- ❌ **NO** validar falta de documentación (KDoc/JavaDoc)
+- ❌ **NO** validar naming conventions (nombres de clases/funciones)
+- ❌ **NO** validar arquitectura o patrones de diseño
+- ❌ **NO** validar tests (eso es responsabilidad de QA)
+
+**Solo detectar:**
+- ✅ Seguridad: credenciales hardcodeadas, uso peligroso de APIs
+- ✅ Calidad: uso de operadores peligrosos, bloques vacíos, complejidad
+- ✅ Estilo: whitespace, longitud de líneas, líneas en blanco
+
+---
+
 ### Seguridad (Security)
+
+**Aplica a Kotlin y Java:**
 
 | Patrón | Severity | Mensaje |
 |--------|----------|---------|
@@ -160,44 +182,68 @@ const summary = {
 | `api[_-]?key\s*=\s*["'][^"']+["']` | critical | Hardcoded API key detected |
 | `secret\s*=\s*["'][^"']+["']` | high | Hardcoded secret detected |
 | `token\s*=\s*["'][^"']+["']` | high | Hardcoded token detected |
-| `eval\s*\(` | high | Use of eval() detected (security risk) |
-| `exec\s*\(` | medium | Use of exec() detected (potential risk) |
-| `sql\s*=.*\+.*` | high | Potential SQL injection |
-| `innerHTML\s*=` | medium | Potential XSS vulnerability |
+| `Runtime\.getRuntime\(\)\.exec` | high | Use of Runtime.exec() detected (command injection risk) |
+| `ProcessBuilder` con input no sanitizado | medium | Potential command injection in ProcessBuilder |
+| `@SuppressWarnings.*("all")` | medium | Suppressing all warnings is dangerous |
 
 ### Calidad (Quality)
 
-| Patrón (Go) | Severity | Mensaje |
-|-------------|----------|---------|
-| `if err != nil \{[^}]*\}` sin return/log | medium | Error not handled properly |
-| Variable declarada pero no usada | low | Unused variable |
-| Import no usado | low | Unused import |
-| Función > 100 líneas | medium | Function too long |
-| Complejidad ciclomática > 10 | high | High cyclomatic complexity |
+**Kotlin:**
 
-| Patrón (Python) | Severity | Mensaje |
-|-----------------|----------|---------|
-| `except:` (bare except) | medium | Bare except clause |
-| `pass` en except | medium | Exception silently ignored |
-| Variable no usada | low | Unused variable |
-| Import * | medium | Wildcard import |
+| Patrón | Severity | Mensaje |
+|--------|----------|---------|
+| `!!` (not-null assertion) | medium | Avoid !! operator, use safe call ?. or let {} instead |
+| `lateinit` sin validación | low | Consider using lazy delegation or nullable type |
+| Función > 50 líneas | medium | Function too long (max 50 lines for Kotlin) |
+| `Any` como tipo de retorno | low | Avoid using Any, use generics instead |
+| `@Throws` en Kotlin puro | low | @Throws is for Java interop only |
+| Bloque `catch (e: Exception)` vacío | medium | Empty catch block swallows exceptions |
+| Magic numbers (números hardcodeados) | low | Extract magic number to named constant |
+| Variable no usada (warning del compilador) | low | Remove unused variable |
 
-| Patrón (Node.js) | Severity | Mensaje |
-|------------------|----------|---------|
-| `.catch(() => {})` | medium | Empty catch block |
-| `console.log` en producción | low | Console.log in production code |
-| `var` en lugar de `let/const` | low | Use let or const instead of var |
-| `==` en lugar de `===` | low | Use strict equality |
+**Java:**
+
+| Patrón | Severity | Mensaje |
+|--------|----------|---------|
+| `catch (Exception e) {}` vacío | medium | Empty catch block swallows exceptions |
+| `System.out.println` en código de producción | low | Remove debug print statements |
+| Variable declarada pero no usada | low | Remove unused variable |
+| Método > 100 líneas | medium | Method too long (max 100 lines) |
+| `== null` sin else | low | Consider using Optional or null object pattern |
+| Múltiples return statements | low | Consider single return point |
+
+**Kotlin y Java (compartido):**
+
+| Patrón | Severity | Mensaje |
+|--------|----------|---------|
+| Clase > 500 líneas | high | Class too large, consider splitting responsibilities |
+| Complejidad ciclomática > 10 | medium | High cyclomatic complexity, refactor needed |
+| Función con > 5 parámetros | low | Too many parameters, consider parameter object |
+| Comentarios `TODO` o `FIXME` | low | Unresolved TODO/FIXME comment |
 
 ### Estilo (Style)
+
+**Kotlin:**
 
 | Patrón | Severity | Mensaje |
 |--------|----------|---------|
 | Trailing whitespace | style | Trailing whitespace |
-| Tabs mezclados con espacios | style | Mixed tabs and spaces |
-| Líneas > 120 caracteres | style | Line too long |
+| Múltiples líneas en blanco (> 2) | style | Multiple consecutive blank lines |
+| Líneas > 140 caracteres | style | Line too long (Kotlin convention: 140 max) |
 | Falta newline al final | style | Missing newline at end of file |
-| Múltiples líneas en blanco | style | Multiple consecutive blank lines |
+| `fun` sin espacios antes de `{` | style | Add space before opening brace |
+| Import no usado | style | Remove unused import |
+
+**Java:**
+
+| Patrón | Severity | Mensaje |
+|--------|----------|---------|
+| Trailing whitespace | style | Trailing whitespace |
+| Múltiples líneas en blanco (> 1) | style | Multiple consecutive blank lines |
+| Líneas > 120 caracteres | style | Line too long (Java convention: 120 max) |
+| Falta newline al final | style | Missing newline at end of file |
+| Tabs mezclados con espacios | style | Mixed tabs and spaces |
+| Import no usado | style | Remove unused import |
 
 ---
 
@@ -214,28 +260,28 @@ const summary = {
     {
       "severity": "critical",
       "category": "security",
-      "file": "internal/services/auth.go",
+      "file": "src/main/kotlin/services/AuthService.kt",
       "line": 45,
       "message": "Hardcoded API key detected",
-      "code_snippet": "apiKey := \"sk-1234567890abcdef\"",
-      "suggestion": "Use environment variable: os.Getenv(\"API_KEY\")"
+      "code_snippet": "val apiKey = \"sk-1234567890abcdef\"",
+      "suggestion": "Use environment variable or configuration: System.getenv(\"API_KEY\")"
     },
     {
       "severity": "medium",
       "category": "quality",
-      "file": "internal/handlers/user.go",
+      "file": "src/main/kotlin/handlers/UserHandler.kt",
       "line": 78,
-      "message": "Error not handled properly",
-      "code_snippet": "if err != nil { }",
-      "suggestion": "Return the error or log it appropriately"
+      "message": "Avoid !! operator, use safe call ?. or let {} instead",
+      "code_snippet": "val user = repository.findById(id)!!",
+      "suggestion": "Use safe call: repository.findById(id)?.let { ... } ?: throw NotFoundException()"
     },
     {
       "severity": "style",
       "category": "style",
-      "file": "cmd/main.go",
+      "file": "src/main/kotlin/Main.kt",
       "line": 120,
       "message": "Trailing whitespace",
-      "code_snippet": "func main() {   ",
+      "code_snippet": "fun main() {   ",
       "suggestion": "Remove trailing whitespace"
     }
   ],
@@ -248,17 +294,17 @@ const summary = {
   },
   "files_detail": [
     {
-      "file": "internal/services/auth.go",
+      "file": "src/main/kotlin/services/AuthService.kt",
       "issues_count": 3,
       "issues": ["critical:1", "medium:1", "style:1"]
     },
     {
-      "file": "internal/handlers/user.go",
+      "file": "src/main/kotlin/handlers/UserHandler.kt",
       "issues_count": 2,
       "issues": ["medium:1", "low:1"]
     },
     {
-      "file": "cmd/main.go",
+      "file": "src/main/kotlin/Main.kt",
       "issues_count": 2,
       "issues": ["low:1", "style:1"]
     }
@@ -291,7 +337,7 @@ const summary = {
 {
   "status": "error",
   "error_code": "FILE_NOT_FOUND",
-  "error_message": "No se pudo leer: internal/handlers/user.go",
+  "error_message": "No se pudo leer: src/main/kotlin/handlers/UserHandler.kt",
   "partial_results": {
     "files_analyzed": 2,
     "issues_found": 3
@@ -332,10 +378,8 @@ interface Issue {
 
 | Tech | Extensiones | Análisis Específico |
 |------|-------------|---------------------|
-| golang | .go | Error handling, unused vars, imports |
-| python | .py | Bare except, unused vars, wildcard imports |
-| nodejs | .js, .ts | Empty catch, console.log, var usage |
-| rust | .rs | Unwrap usage, unsafe blocks |
+| kotlin | .kt, .kts | !! operator, lateinit, empty catch, magic numbers |
+| java | .java | Empty catch, System.out, null checks, unused vars |
 
 ---
 
@@ -345,10 +389,10 @@ interface Issue {
 **Input:**
 ```json
 {
-  "files_to_review": ["src/main.go"],
+  "files_to_review": ["src/main/kotlin/Main.kt"],
   "project_path": "/home/user/project",
-  "tech": "golang",
-  "kind": "api",
+  "tech": "kotlin",
+  "kind": "library",
   "project_level": "standard"
 }
 ```
@@ -359,7 +403,7 @@ interface Issue {
 **Output esperado:** status: success con partial_results indicando archivos no leídos
 
 ### Caso 3: Proyecto sin issues
-**Input:** proyecto limpio
+**Input:** proyecto limpio Kotlin/Java
 **Output esperado:** status: success, total_issues: 0
 
 ---
