@@ -261,6 +261,7 @@ test-module/
 
 - **[Guía de Manejo de Errores](docs/error-handling-guide.md)**: Patrones y mejores prácticas para `Result<T>`
 - **[Guía de Patrones de Mappers](docs/mapper-patterns.md)**: DomainMapper, validación y conversión DTO/Domain
+- **[Modelos de Dominio y Serialización](docs/DOMAIN_MODELS.md)**: User, Role, AuthToken con kotlinx-serialization, @SerialName, validaciones y schema evolution
 
 ### Conceptos Clave
 
