@@ -39,6 +39,9 @@ kotlin {
             dependencies {
                 // Coroutines test utilities
                 implementation(libs.kotlinx.coroutines.test)
+
+                // Storage test utilities (MapSettings)
+                implementation(libs.multiplatform.settings.test)
             }
         }
     }
