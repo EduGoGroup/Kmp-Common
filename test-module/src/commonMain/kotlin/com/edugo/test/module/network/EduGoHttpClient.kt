@@ -1,8 +1,10 @@
 package com.edugo.test.module.network
 
 import com.edugo.test.module.core.Result
+import com.edugo.test.module.network.interceptor.InterceptorChain
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -12,13 +14,19 @@ import io.ktor.http.*
  *
  * Encapsula operaciones HTTP con serialización/deserialización automática
  * usando kotlinx.serialization. Proporciona una API fluida y type-safe
- * sobre Ktor Client.
+ * sobre Ktor Client con soporte para interceptores.
  *
  * ## Uso básico
  *
  * ```kotlin
  * // Crear cliente (recomendado)
  * val client = EduGoHttpClient.create()
+ *
+ * // Con builder y configuración avanzada
+ * val client = EduGoHttpClient.builder()
+ *     .retry(RetryConfig.Default)
+ *     .interceptor(HeadersInterceptor.jsonDefaults())
+ *     .build()
  *
  * // GET simple
  * val user: User = client.get("https://api.example.com/users/1")
@@ -35,10 +43,15 @@ import io.ktor.http.*
  * ```
  *
  * @param client HttpClient configurado (usar [create] o [withClient])
+ * @param interceptorChain Cadena de interceptores (default: vacía)
  * @see HttpClientFactory Para crear clientes HTTP configurados
  * @see HttpRequestConfig Para personalizar requests individuales
+ * @see EduGoHttpClientBuilder Para configuración avanzada
  */
-public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
+public class EduGoHttpClient(
+    @PublishedApi internal val client: HttpClient,
+    @PublishedApi internal val interceptorChain: InterceptorChain = InterceptorChain.Empty
+) {
 
     public companion object {
         /**
@@ -86,6 +99,25 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         public fun withClient(client: HttpClient): EduGoHttpClient {
             return EduGoHttpClient(client)
         }
+
+        /**
+         * Crea un nuevo builder para configuración avanzada.
+         *
+         * Permite configurar interceptores, retry, timeouts y logging de forma fluida.
+         *
+         * ```kotlin
+         * val client = EduGoHttpClient.builder()
+         *     .retry(RetryConfig.Default)
+         *     .interceptor(HeadersInterceptor.jsonDefaults())
+         *     .interceptor(AuthInterceptor(tokenProvider))
+         *     .logging(LogLevel.INFO)
+         *     .build()
+         * ```
+         *
+         * @return Nuevo [EduGoHttpClientBuilder]
+         * @see EduGoHttpClientBuilder Para todas las opciones de configuración
+         */
+        public fun builder(): EduGoHttpClientBuilder = EduGoHttpClientBuilder()
     }
 
     /**
@@ -113,14 +145,34 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         url: String,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ): T {
-        return client.get(url) {
-            config.headers.forEach { (key, value) ->
-                header(key, value)
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Get
+            url(url)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
-            config.queryParams.forEach { (key, value) ->
-                parameter(key, value)
-            }
-        }.body()
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        return try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
+            response.body()
+        } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
+            throw e
+        }
     }
 
     /**
@@ -155,16 +207,36 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         body: T,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ): R {
-        return client.post(url) {
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Post
+            url(url)
             contentType(ContentType.Application.Json)
             setBody(body)
-            config.headers.forEach { (key, value) ->
-                header(key, value)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
-            config.queryParams.forEach { (key, value) ->
-                parameter(key, value)
-            }
-        }.body()
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        return try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
+            response.body()
+        } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
+            throw e
+        }
     }
 
     /**
@@ -193,15 +265,34 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         body: T,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ) {
-        client.post(url) {
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Post
+            url(url)
             contentType(ContentType.Application.Json)
             setBody(body)
-            config.headers.forEach { (key, value) ->
-                header(key, value)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
-            config.queryParams.forEach { (key, value) ->
-                parameter(key, value)
-            }
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
+        } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
+            throw e
         }
     }
 
@@ -235,16 +326,36 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         body: T,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ): R {
-        return client.put(url) {
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Put
+            url(url)
             contentType(ContentType.Application.Json)
             setBody(body)
-            config.headers.forEach { (key, value) ->
-                header(key, value)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
-            config.queryParams.forEach { (key, value) ->
-                parameter(key, value)
-            }
-        }.body()
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        return try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
+            response.body()
+        } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
+            throw e
+        }
     }
 
     /**
@@ -277,16 +388,36 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         body: T,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ): R {
-        return client.patch(url) {
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Patch
+            url(url)
             contentType(ContentType.Application.Json)
             setBody(body)
-            config.headers.forEach { (key, value) ->
-                header(key, value)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
-            config.queryParams.forEach { (key, value) ->
-                parameter(key, value)
-            }
-        }.body()
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        return try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
+            response.body()
+        } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
+            throw e
+        }
     }
 
     /**
@@ -315,14 +446,34 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         url: String,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ): T {
-        return client.delete(url) {
-            config.headers.forEach { (key, value) ->
-                header(key, value)
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Delete
+            url(url)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
-            config.queryParams.forEach { (key, value) ->
-                parameter(key, value)
-            }
-        }.body()
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        return try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
+            response.body()
+        } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
+            throw e
+        }
     }
 
     /**
@@ -352,13 +503,32 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         url: String,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ) {
-        client.delete(url) {
-            config.headers.forEach { (key, value) ->
-                header(key, value)
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Delete
+            url(url)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
-            config.queryParams.forEach { (key, value) ->
-                parameter(key, value)
-            }
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
+        } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
+            throw e
         }
     }
 
@@ -387,13 +557,32 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         url: String,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ): Result<T> {
-        return try {
-            val response = client.get(url) {
-                config.headers.forEach { (key, value) -> header(key, value) }
-                config.queryParams.forEach { (key, value) -> parameter(key, value) }
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Get
+            url(url)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        return try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
             response.toResult()
         } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
             val networkException = ExceptionMapper.map(e)
             Result.Failure(networkException.toAppError().toString())
         }
@@ -419,15 +608,34 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         body: T,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ): Result<R> {
-        return try {
-            val response = client.post(url) {
-                contentType(ContentType.Application.Json)
-                setBody(body)
-                config.headers.forEach { (key, value) -> header(key, value) }
-                config.queryParams.forEach { (key, value) -> parameter(key, value) }
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Post
+            url(url)
+            contentType(ContentType.Application.Json)
+            setBody(body)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        return try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
             response.toResult()
         } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
             val networkException = ExceptionMapper.map(e)
             Result.Failure(networkException.toAppError().toString())
         }
@@ -453,15 +661,34 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         body: T,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ): Result<R> {
-        return try {
-            val response = client.put(url) {
-                contentType(ContentType.Application.Json)
-                setBody(body)
-                config.headers.forEach { (key, value) -> header(key, value) }
-                config.queryParams.forEach { (key, value) -> parameter(key, value) }
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Put
+            url(url)
+            contentType(ContentType.Application.Json)
+            setBody(body)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        return try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
             response.toResult()
         } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
             val networkException = ExceptionMapper.map(e)
             Result.Failure(networkException.toAppError().toString())
         }
@@ -487,15 +714,34 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         body: T,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ): Result<R> {
-        return try {
-            val response = client.patch(url) {
-                contentType(ContentType.Application.Json)
-                setBody(body)
-                config.headers.forEach { (key, value) -> header(key, value) }
-                config.queryParams.forEach { (key, value) -> parameter(key, value) }
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Patch
+            url(url)
+            contentType(ContentType.Application.Json)
+            setBody(body)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        return try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
             response.toResult()
         } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
             val networkException = ExceptionMapper.map(e)
             Result.Failure(networkException.toAppError().toString())
         }
@@ -517,13 +763,32 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
         url: String,
         config: HttpRequestConfig = HttpRequestConfig.Default
     ): Result<T> {
-        return try {
-            val response = client.delete(url) {
-                config.headers.forEach { (key, value) -> header(key, value) }
-                config.queryParams.forEach { (key, value) -> parameter(key, value) }
+        val requestBuilder = HttpRequestBuilder().apply {
+            method = HttpMethod.Delete
+            url(url)
+            config.headers.forEach { (key, value) -> header(key, value) }
+            config.queryParams.forEach { (key, value) -> parameter(key, value) }
+
+            // Aplicar timeout override si está configurado
+            if (config.hasTimeoutOverride()) {
+                timeout {
+                    config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+                    config.requestTimeout?.let { requestTimeoutMillis = it.inWholeMilliseconds }
+                    config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
+                }
             }
+        }
+
+        // Ejecutar interceptores de request
+        interceptorChain.processRequest(requestBuilder)
+
+        return try {
+            val response = client.request(requestBuilder)
+            // Ejecutar interceptores de response
+            interceptorChain.processResponse(response)
             response.toResult()
         } catch (e: Throwable) {
+            interceptorChain.notifyError(requestBuilder, e)
             val networkException = ExceptionMapper.map(e)
             Result.Failure(networkException.toAppError().toString())
         }
