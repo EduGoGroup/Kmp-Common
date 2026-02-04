@@ -24,6 +24,11 @@ class EduGoStorage internal constructor(
     private val settings: Settings,
     private val keyPrefix: String = ""
 ) {
+    /**
+     * Acceso interno al Settings subyacente.
+     * Usado por extensiones como StorageFlow que necesitan acceso directo.
+     */
+    internal val internalSettings: Settings get() = settings
 
     private fun prefixedKey(key: String): String =
         if (keyPrefix.isEmpty()) key else "$keyPrefix.$key"
