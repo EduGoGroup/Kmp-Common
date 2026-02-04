@@ -30,6 +30,9 @@ kotlin {
 
                 // Logging
                 implementation(libs.kermit)
+
+                // Storage (multiplatform-settings)
+                implementation(libs.bundles.multiplatform.settings.common)
             }
         }
         val commonTest by getting {

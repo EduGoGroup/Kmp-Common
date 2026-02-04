@@ -196,7 +196,7 @@ kotlinx-serialization = ["kotlinx-serialization-core", "kotlinx-serialization-js
 # -----------------------------------------------------------------------------
 # Multiplatform Settings bundle
 # -----------------------------------------------------------------------------
-multiplatform-settings-common = ["multiplatform-settings", "multiplatform-settings-coroutines", "multiplatform-settings-serialization"]
+multiplatform-settings-common = ["multiplatform-settings", "multiplatform-settings-no-arg", "multiplatform-settings-coroutines", "multiplatform-settings-serialization"]
 
 # -----------------------------------------------------------------------------
 # Ktor por plataforma
