@@ -97,7 +97,7 @@ public object HttpClientFactory {
      * - Automatically selects the optimal engine for the current platform
      * - Configures sensible default timeouts
      * - Sets up JSON serialization
-     * - Optionally enables logging
+     * - Optionally enables logging with automatic sanitization
      *
      * **Default timeouts:**
      * - Connect timeout: 30 seconds
@@ -108,11 +108,17 @@ public object HttpClientFactory {
      * - JVM/Desktop: CIO (Coroutine-based I/O)
      * - JS: Js (Browser Fetch API)
      *
+     * **Logging:**
+     * When logging is enabled, [NetworkLogger] automatically sanitizes sensitive data
+     * (auth tokens, passwords, API keys) before writing to logs.
+     *
      * @param logLevel Logging level for HTTP operations. Default is [LogLevel.NONE].
      * @param connectTimeoutMs Maximum time to establish a connection in milliseconds.
      *                         Default is 30,000ms (30 seconds).
      * @param requestTimeoutMs Maximum time for the entire request in milliseconds.
      *                         Default is 60,000ms (60 seconds).
+     * @param networkLogger Custom logger implementation. Default is [NetworkLogger.Default]
+     *                      which sanitizes sensitive data automatically.
      * @return Configured HttpClient instance ready for making requests
      *
      * @see createBaseClient For creating clients with custom engines (useful for testing)
@@ -120,7 +126,8 @@ public object HttpClientFactory {
     public fun create(
         logLevel: LogLevel = LogLevel.NONE,
         connectTimeoutMs: Long = DEFAULT_CONNECT_TIMEOUT_MS,
-        requestTimeoutMs: Long = DEFAULT_REQUEST_TIMEOUT_MS
+        requestTimeoutMs: Long = DEFAULT_REQUEST_TIMEOUT_MS,
+        networkLogger: io.ktor.client.plugins.logging.Logger = NetworkLogger.Default
     ): HttpClient {
         return HttpClient(createPlatformEngine()) {
             install(ContentNegotiation) {
@@ -134,6 +141,7 @@ public object HttpClientFactory {
 
             if (logLevel != LogLevel.NONE) {
                 install(Logging) {
+                    logger = networkLogger
                     level = logLevel
                 }
             }
