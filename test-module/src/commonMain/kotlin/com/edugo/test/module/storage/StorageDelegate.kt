@@ -8,6 +8,10 @@ package com.edugo.test.module.storage
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
+// =============================================================================
+// DELEGATED PROPERTIES PARA TIPOS PRIMITIVOS
+// =============================================================================
+
 /**
  * Delegated property para String en storage.
  *
@@ -103,10 +107,133 @@ fun EduGoStorage.doubleOrNull(key: String): ReadWriteProperty<Any?, Double?> {
     )
 }
 
+// =============================================================================
+// DELEGATED PROPERTIES PARA OBJETOS @SERIALIZABLE
+// =============================================================================
+
 /**
- * Implementacion generica de delegated property para storage.
+ * Delegated property para objeto @Serializable nullable.
+ *
+ * Permite usar objetos serializables como propiedades delegadas, con soporte
+ * para valores null. Cuando se asigna null, la key se elimina del storage.
+ *
+ * Ejemplo:
+ * ```kotlin
+ * @Serializable
+ * data class UserSettings(val theme: String, val fontSize: Int)
+ *
+ * class Prefs(storage: EduGoStorage) {
+ *     var settings: UserSettings? by storage.serializable<UserSettings>("user.settings")
+ * }
+ *
+ * // Uso:
+ * val prefs = Prefs(storage)
+ * prefs.settings = UserSettings("dark", 14)  // Guarda en storage
+ * println(prefs.settings?.theme)              // Lee de storage
+ * prefs.settings = null                       // Elimina de storage
+ * ```
+ *
+ * @param key Clave de almacenamiento
+ * @param defaultValue Valor por defecto si no existe la key (default: null)
+ * @return ReadWriteProperty delegada para el objeto nullable
  */
-private class StorageDelegate<T>(
+inline fun <reified T> EduGoStorage.serializable(
+    key: String,
+    defaultValue: T? = null
+): ReadWriteProperty<Any?, T?> {
+    return StorageDelegate(
+        get = { getObject<T>(key) ?: defaultValue },
+        set = { value ->
+            if (value != null) {
+                putObject(key, value)
+            } else {
+                remove(key)
+            }
+        }
+    )
+}
+
+/**
+ * Delegated property para objeto @Serializable con valor por defecto requerido.
+ *
+ * Similar a [serializable], pero garantiza que siempre retorna un valor no-null
+ * usando un provider para generar el valor por defecto cuando no existe.
+ *
+ * Ejemplo:
+ * ```kotlin
+ * @Serializable
+ * data class AppConfig(val version: Int = 1, val features: List<String> = emptyList())
+ *
+ * class Settings(storage: EduGoStorage) {
+ *     var config: AppConfig by storage.serializableWithDefault("app.config") {
+ *         AppConfig() // Valor por defecto lazy
+ *     }
+ * }
+ *
+ * // Uso:
+ * val settings = Settings(storage)
+ * println(settings.config.version) // Siempre retorna valor, nunca null
+ * ```
+ *
+ * @param key Clave de almacenamiento
+ * @param defaultProvider Lambda que provee el valor por defecto (evaluado lazy)
+ * @return ReadWriteProperty delegada para el objeto no-null
+ */
+inline fun <reified T : Any> EduGoStorage.serializableWithDefault(
+    key: String,
+    crossinline defaultProvider: () -> T
+): ReadWriteProperty<Any?, T> {
+    return StorageDelegate(
+        get = { getObject<T>(key) ?: defaultProvider() },
+        set = { value -> putObject(key, value) }
+    )
+}
+
+/**
+ * Delegated property para lista de objetos @Serializable.
+ *
+ * Simplifica el almacenamiento de listas serializables como propiedades delegadas.
+ * Siempre retorna una lista (vacía si no existe la key).
+ *
+ * Ejemplo:
+ * ```kotlin
+ * @Serializable
+ * data class RecentSearch(val query: String, val timestamp: Long)
+ *
+ * class SearchHistory(storage: EduGoStorage) {
+ *     var recentSearches: List<RecentSearch> by storage.serializableList("search.history")
+ * }
+ *
+ * // Uso:
+ * val history = SearchHistory(storage)
+ * history.recentSearches = listOf(RecentSearch("kotlin", System.currentTimeMillis()))
+ * history.recentSearches.forEach { println(it.query) }
+ * ```
+ *
+ * @param key Clave de almacenamiento
+ * @return ReadWriteProperty delegada para la lista
+ */
+inline fun <reified T> EduGoStorage.serializableList(
+    key: String
+): ReadWriteProperty<Any?, List<T>> {
+    return StorageDelegate(
+        get = { getList<T>(key) },
+        set = { value -> putList(key, value) }
+    )
+}
+
+// =============================================================================
+// IMPLEMENTACIÓN DEL DELEGATE
+// =============================================================================
+
+/**
+ * Implementación genérica de delegated property para storage.
+ *
+ * Esta clase es internal para permitir su uso desde funciones inline
+ * dentro del mismo módulo.
+ */
+@PublishedApi
+internal class StorageDelegate<T>(
     private val get: () -> T,
     private val set: (T) -> Unit
 ) : ReadWriteProperty<Any?, T> {
