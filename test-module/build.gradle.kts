@@ -21,6 +21,9 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                // Coroutines
+                implementation(libs.kotlinx.coroutines.core)
+
                 // DateTime utilities
                 implementation(libs.kotlinx.datetime)
 
