@@ -1,6 +1,7 @@
 package com.edugo.test.module.network
 
 import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
@@ -10,16 +11,25 @@ import kotlinx.serialization.json.Json
  * Factory for creating configured HttpClient instances.
  *
  * This factory provides a centralized way to create HTTP clients with
- * consistent configuration across the application, including JSON serialization
- * and optional logging.
+ * consistent configuration across the application, including JSON serialization,
+ * timeouts, and optional logging.
  *
  * Example usage:
  * ```kotlin
- * // Production: No logging
- * val client = HttpClientFactory.createBaseClient(engine)
+ * // Recommended: Use platform engine with default timeouts
+ * val client = HttpClientFactory.create()
+ *
+ * // With custom timeouts
+ * val customClient = HttpClientFactory.create(
+ *     connectTimeoutMs = 15_000,
+ *     requestTimeoutMs = 30_000
+ * )
  *
  * // Development: With logging
- * val debugClient = HttpClientFactory.createBaseClient(engine, LogLevel.INFO)
+ * val debugClient = HttpClientFactory.create(logLevel = LogLevel.INFO)
+ *
+ * // Legacy: With explicit engine (for testing or special cases)
+ * val testClient = HttpClientFactory.createBaseClient(mockEngine, LogLevel.NONE)
  * ```
  */
 public object HttpClientFactory {
@@ -79,4 +89,61 @@ public object HttpClientFactory {
             }
         }
     }
+
+    /**
+     * Creates a configured HttpClient using the platform-specific engine with timeouts.
+     *
+     * This is the recommended way to create an HttpClient as it:
+     * - Automatically selects the optimal engine for the current platform
+     * - Configures sensible default timeouts
+     * - Sets up JSON serialization
+     * - Optionally enables logging
+     *
+     * **Default timeouts:**
+     * - Connect timeout: 30 seconds
+     * - Request timeout: 60 seconds
+     *
+     * **Platform engines used:**
+     * - Android: OkHttp (HTTP/2, connection pooling)
+     * - JVM/Desktop: CIO (Coroutine-based I/O)
+     * - JS: Js (Browser Fetch API)
+     *
+     * @param logLevel Logging level for HTTP operations. Default is [LogLevel.NONE].
+     * @param connectTimeoutMs Maximum time to establish a connection in milliseconds.
+     *                         Default is 30,000ms (30 seconds).
+     * @param requestTimeoutMs Maximum time for the entire request in milliseconds.
+     *                         Default is 60,000ms (60 seconds).
+     * @return Configured HttpClient instance ready for making requests
+     *
+     * @see createBaseClient For creating clients with custom engines (useful for testing)
+     */
+    public fun create(
+        logLevel: LogLevel = LogLevel.NONE,
+        connectTimeoutMs: Long = DEFAULT_CONNECT_TIMEOUT_MS,
+        requestTimeoutMs: Long = DEFAULT_REQUEST_TIMEOUT_MS
+    ): HttpClient {
+        return HttpClient(createPlatformEngine()) {
+            install(ContentNegotiation) {
+                json(json)
+            }
+
+            install(HttpTimeout) {
+                connectTimeoutMillis = connectTimeoutMs
+                requestTimeoutMillis = requestTimeoutMs
+            }
+
+            if (logLevel != LogLevel.NONE) {
+                install(Logging) {
+                    level = logLevel
+                }
+            }
+        }
+    }
+
 }
+
+/** Default connection timeout: 30 seconds */
+private const val DEFAULT_CONNECT_TIMEOUT_MS = 30_000L
+
+/** Default request timeout: 60 seconds */
+private const val DEFAULT_REQUEST_TIMEOUT_MS = 60_000L

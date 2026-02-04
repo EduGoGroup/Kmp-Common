@@ -138,6 +138,7 @@ kotlin {
                     .orElseThrow { IllegalStateException("Library 'kotlin-test-junit' not found in version catalog. Check gradle/libs.versions.toml") })
             }
         }
+
     }
 
     jvmToolchain(JVM_TARGET)
