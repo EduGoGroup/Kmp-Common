@@ -4,6 +4,7 @@ import com.edugo.test.module.core.AppError
 import com.edugo.test.module.core.ErrorCode
 import com.edugo.test.module.core.Result
 import com.edugo.test.module.core.flatMap
+import kotlinx.datetime.Clock
 
 /**
  * Extensiones para integrar DomainMapper con AppError y Result.
@@ -333,9 +334,9 @@ public fun <DTO, Domain> List<DTO>.toDomainListIgnoreErrors(
 public fun <DTO, Domain> List<DTO>.toDomainListWithMetrics(
     mapper: DomainMapper<DTO, Domain>
 ): Pair<Result<List<Domain>>, ConversionMetrics> {
-    val startTime = System.currentTimeMillis()
+    val startTime = Clock.System.now().toEpochMilliseconds()
     val (successes, failures) = toDomainPartial(mapper)
-    val endTime = System.currentTimeMillis()
+    val endTime = Clock.System.now().toEpochMilliseconds()
 
     val metrics = ConversionMetrics(
         total = size,

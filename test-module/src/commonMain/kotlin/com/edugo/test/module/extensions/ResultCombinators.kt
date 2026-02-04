@@ -268,7 +268,7 @@ public inline fun <A, B, C, D, E, R> zip5(
  * @param transform Función que combina los tres valores
  * @return Result con el valor transformado
  */
-@JvmName("zip3Ext")
+@kotlin.jvm.JvmName("zip3Ext")
 public inline fun <A, B, C, R> Result<A>.zip3(
     b: Result<B>,
     c: Result<C>,
@@ -285,7 +285,7 @@ public inline fun <A, B, C, R> Result<A>.zip3(
  * @param transform Función que combina los cuatro valores
  * @return Result con el valor transformado
  */
-@JvmName("zip4Ext")
+@kotlin.jvm.JvmName("zip4Ext")
 public inline fun <A, B, C, D, R> Result<A>.zip4(
     b: Result<B>,
     c: Result<C>,
@@ -304,7 +304,7 @@ public inline fun <A, B, C, D, R> Result<A>.zip4(
  * @param transform Función que combina los cinco valores
  * @return Result con el valor transformado
  */
-@JvmName("zip5Ext")
+@kotlin.jvm.JvmName("zip5Ext")
 public inline fun <A, B, C, D, E, R> Result<A>.zip5(
     b: Result<B>,
     c: Result<C>,
