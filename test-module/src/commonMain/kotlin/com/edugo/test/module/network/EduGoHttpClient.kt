@@ -37,7 +37,7 @@ import io.ktor.http.*
  * @see HttpClientFactory Para crear clientes HTTP configurados
  * @see HttpRequestConfig Para personalizar requests individuales
  */
-public class EduGoHttpClient(private val client: HttpClient) {
+public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
 
     public companion object {
         /**
