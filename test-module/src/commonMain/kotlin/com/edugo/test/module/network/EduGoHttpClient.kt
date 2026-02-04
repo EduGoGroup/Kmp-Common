@@ -2,6 +2,7 @@ package com.edugo.test.module.network
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.request.*
 import io.ktor.http.*
 
@@ -15,8 +16,8 @@ import io.ktor.http.*
  * ## Uso básico
  *
  * ```kotlin
- * // Crear cliente con factory (recomendado)
- * val client = EduGoHttpClient(HttpClientFactory.create())
+ * // Crear cliente (recomendado)
+ * val client = EduGoHttpClient.create()
  *
  * // GET simple
  * val user: User = client.get("https://api.example.com/users/1")
@@ -32,11 +33,59 @@ import io.ktor.http.*
  * client.close()
  * ```
  *
- * @param client HttpClient configurado (usar [HttpClientFactory.create])
+ * @param client HttpClient configurado (usar [create] o [withClient])
  * @see HttpClientFactory Para crear clientes HTTP configurados
  * @see HttpRequestConfig Para personalizar requests individuales
  */
 public class EduGoHttpClient(private val client: HttpClient) {
+
+    public companion object {
+        /**
+         * Crea una instancia de EduGoHttpClient con configuración por defecto.
+         *
+         * Usa el engine de plataforma automáticamente:
+         * - **Android**: OkHttp
+         * - **JVM/Desktop**: CIO
+         * - **JS**: Js (Fetch API)
+         *
+         * ```kotlin
+         * // Producción (sin logging)
+         * val client = EduGoHttpClient.create()
+         *
+         * // Desarrollo (con logging)
+         * val debugClient = EduGoHttpClient.create(logLevel = LogLevel.INFO)
+         * ```
+         *
+         * @param logLevel Nivel de logging (default: NONE para producción)
+         * @return Nueva instancia de EduGoHttpClient
+         * @see HttpClientFactory.create Para más opciones de configuración
+         */
+        public fun create(logLevel: LogLevel = LogLevel.NONE): EduGoHttpClient {
+            val client = HttpClientFactory.create(logLevel = logLevel)
+            return EduGoHttpClient(client)
+        }
+
+        /**
+         * Crea una instancia con HttpClient personalizado.
+         *
+         * Útil para testing con MockEngine o configuraciones especiales.
+         *
+         * ```kotlin
+         * // Testing con MockEngine
+         * val mockClient = HttpClient(MockEngine { request ->
+         *     respond("""{"id": 1}""", headers = headersOf(HttpHeaders.ContentType, "application/json"))
+         * }) { install(ContentNegotiation) { json() } }
+         *
+         * val client = EduGoHttpClient.withClient(mockClient)
+         * ```
+         *
+         * @param client HttpClient configurado
+         * @return Nueva instancia de EduGoHttpClient
+         */
+        public fun withClient(client: HttpClient): EduGoHttpClient {
+            return EduGoHttpClient(client)
+        }
+    }
 
     /**
      * Realiza petición GET y deserializa respuesta al tipo especificado.
