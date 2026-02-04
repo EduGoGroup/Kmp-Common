@@ -240,6 +240,79 @@ public class EduGoHttpClient(private val client: HttpClient) {
     }
 
     /**
+     * Realiza petición DELETE y deserializa respuesta al tipo especificado.
+     *
+     * Útil cuando el servidor retorna información del recurso eliminado
+     * o un objeto de confirmación.
+     *
+     * ```kotlin
+     * @Serializable
+     * data class DeleteResponse(val success: Boolean, val message: String)
+     *
+     * val result: DeleteResponse = client.delete("https://api.example.com/users/1")
+     * ```
+     *
+     * @param T Tipo del objeto a deserializar (debe ser @Serializable)
+     * @param url URL del recurso a eliminar
+     * @param config Configuración opcional de headers y query params
+     * @return Objeto deserializado del tipo T
+     * @throws io.ktor.client.plugins.ClientRequestException Si el servidor retorna 4xx
+     * @throws io.ktor.client.plugins.ServerResponseException Si el servidor retorna 5xx
+     * @throws kotlinx.serialization.SerializationException Si la deserialización falla
+     * @see deleteNoResponse Para DELETE sin body en respuesta (204 No Content)
+     */
+    public suspend inline fun <reified T> delete(
+        url: String,
+        config: HttpRequestConfig = HttpRequestConfig.Default
+    ): T {
+        return client.delete(url) {
+            config.headers.forEach { (key, value) ->
+                header(key, value)
+            }
+            config.queryParams.forEach { (key, value) ->
+                parameter(key, value)
+            }
+        }.body()
+    }
+
+    /**
+     * Realiza petición DELETE sin esperar body en respuesta.
+     *
+     * Útil para endpoints que retornan 204 No Content o 200 OK sin body.
+     * Es el caso más común para operaciones DELETE.
+     *
+     * ```kotlin
+     * // Eliminar usuario sin esperar respuesta
+     * client.deleteNoResponse("https://api.example.com/users/1")
+     *
+     * // Con headers de autorización
+     * val config = HttpRequestConfig.builder()
+     *     .header("Authorization", "Bearer token")
+     *     .build()
+     * client.deleteNoResponse("https://api.example.com/users/1", config)
+     * ```
+     *
+     * @param url URL del recurso a eliminar
+     * @param config Configuración opcional de headers y query params
+     * @throws io.ktor.client.plugins.ClientRequestException Si el servidor retorna 4xx
+     * @throws io.ktor.client.plugins.ServerResponseException Si el servidor retorna 5xx
+     * @see delete Para DELETE con body en respuesta
+     */
+    public suspend fun deleteNoResponse(
+        url: String,
+        config: HttpRequestConfig = HttpRequestConfig.Default
+    ) {
+        client.delete(url) {
+            config.headers.forEach { (key, value) ->
+                header(key, value)
+            }
+            config.queryParams.forEach { (key, value) ->
+                parameter(key, value)
+            }
+        }
+    }
+
+    /**
      * Cierra el cliente HTTP y libera recursos.
      *
      * Debe llamarse cuando el cliente ya no sea necesario para evitar
