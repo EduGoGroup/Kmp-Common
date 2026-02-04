@@ -1,5 +1,6 @@
 package com.edugo.test.module.network
 
+import com.edugo.test.module.core.Result
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.logging.LogLevel
@@ -360,6 +361,175 @@ public class EduGoHttpClient(@PublishedApi internal val client: HttpClient) {
             }
         }
     }
+
+    // ==================== SAFE METHODS (Return Result<T>) ====================
+
+    /**
+     * GET seguro que retorna Result<T> en lugar de lanzar excepciones.
+     *
+     * Usa [ExceptionMapper] para convertir excepciones de red a [NetworkException]
+     * y [toResult] para convertir respuestas HTTP a Result.
+     *
+     * ```kotlin
+     * val result: Result<User> = client.getSafe("https://api.example.com/users/1")
+     * when (result) {
+     *     is Result.Success -> println("User: ${result.data}")
+     *     is Result.Failure -> println("Error: ${result.error}")
+     * }
+     * ```
+     *
+     * @param T Tipo del objeto a deserializar (debe ser @Serializable)
+     * @param url URL del endpoint
+     * @param config Configuración opcional de headers y query params
+     * @return Result.Success con datos o Result.Failure con mensaje de error
+     */
+    public suspend inline fun <reified T> getSafe(
+        url: String,
+        config: HttpRequestConfig = HttpRequestConfig.Default
+    ): Result<T> {
+        return try {
+            val response = client.get(url) {
+                config.headers.forEach { (key, value) -> header(key, value) }
+                config.queryParams.forEach { (key, value) -> parameter(key, value) }
+            }
+            response.toResult()
+        } catch (e: Throwable) {
+            val networkException = ExceptionMapper.map(e)
+            Result.Failure(networkException.toAppError().toString())
+        }
+    }
+
+    /**
+     * POST seguro que retorna Result<R> en lugar de lanzar excepciones.
+     *
+     * ```kotlin
+     * val request = CreateUserRequest("John", "john@example.com")
+     * val result: Result<User> = client.postSafe("https://api.example.com/users", request)
+     * ```
+     *
+     * @param T Tipo del objeto a enviar en el body (debe ser @Serializable)
+     * @param R Tipo del objeto a deserializar de la respuesta (debe ser @Serializable)
+     * @param url URL del endpoint
+     * @param body Objeto a serializar como JSON en el body
+     * @param config Configuración opcional de headers y query params
+     * @return Result.Success con datos o Result.Failure con mensaje de error
+     */
+    public suspend inline fun <reified T, reified R> postSafe(
+        url: String,
+        body: T,
+        config: HttpRequestConfig = HttpRequestConfig.Default
+    ): Result<R> {
+        return try {
+            val response = client.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(body)
+                config.headers.forEach { (key, value) -> header(key, value) }
+                config.queryParams.forEach { (key, value) -> parameter(key, value) }
+            }
+            response.toResult()
+        } catch (e: Throwable) {
+            val networkException = ExceptionMapper.map(e)
+            Result.Failure(networkException.toAppError().toString())
+        }
+    }
+
+    /**
+     * PUT seguro que retorna Result<R> en lugar de lanzar excepciones.
+     *
+     * ```kotlin
+     * val updatedUser = User(1, "John Updated", "john@example.com")
+     * val result: Result<User> = client.putSafe("https://api.example.com/users/1", updatedUser)
+     * ```
+     *
+     * @param T Tipo del objeto a enviar en el body (debe ser @Serializable)
+     * @param R Tipo del objeto a deserializar de la respuesta (debe ser @Serializable)
+     * @param url URL del endpoint
+     * @param body Objeto completo a serializar como JSON
+     * @param config Configuración opcional de headers y query params
+     * @return Result.Success con datos o Result.Failure con mensaje de error
+     */
+    public suspend inline fun <reified T, reified R> putSafe(
+        url: String,
+        body: T,
+        config: HttpRequestConfig = HttpRequestConfig.Default
+    ): Result<R> {
+        return try {
+            val response = client.put(url) {
+                contentType(ContentType.Application.Json)
+                setBody(body)
+                config.headers.forEach { (key, value) -> header(key, value) }
+                config.queryParams.forEach { (key, value) -> parameter(key, value) }
+            }
+            response.toResult()
+        } catch (e: Throwable) {
+            val networkException = ExceptionMapper.map(e)
+            Result.Failure(networkException.toAppError().toString())
+        }
+    }
+
+    /**
+     * PATCH seguro que retorna Result<R> en lugar de lanzar excepciones.
+     *
+     * ```kotlin
+     * val patch = UserPatch(name = "New Name")
+     * val result: Result<User> = client.patchSafe("https://api.example.com/users/1", patch)
+     * ```
+     *
+     * @param T Tipo del objeto parcial a enviar en el body (debe ser @Serializable)
+     * @param R Tipo del objeto a deserializar de la respuesta (debe ser @Serializable)
+     * @param url URL del endpoint
+     * @param body Objeto parcial a serializar como JSON
+     * @param config Configuración opcional de headers y query params
+     * @return Result.Success con datos o Result.Failure con mensaje de error
+     */
+    public suspend inline fun <reified T, reified R> patchSafe(
+        url: String,
+        body: T,
+        config: HttpRequestConfig = HttpRequestConfig.Default
+    ): Result<R> {
+        return try {
+            val response = client.patch(url) {
+                contentType(ContentType.Application.Json)
+                setBody(body)
+                config.headers.forEach { (key, value) -> header(key, value) }
+                config.queryParams.forEach { (key, value) -> parameter(key, value) }
+            }
+            response.toResult()
+        } catch (e: Throwable) {
+            val networkException = ExceptionMapper.map(e)
+            Result.Failure(networkException.toAppError().toString())
+        }
+    }
+
+    /**
+     * DELETE seguro que retorna Result<T> en lugar de lanzar excepciones.
+     *
+     * ```kotlin
+     * val result: Result<DeleteResponse> = client.deleteSafe("https://api.example.com/users/1")
+     * ```
+     *
+     * @param T Tipo del objeto a deserializar (debe ser @Serializable)
+     * @param url URL del recurso a eliminar
+     * @param config Configuración opcional de headers y query params
+     * @return Result.Success con datos o Result.Failure con mensaje de error
+     */
+    public suspend inline fun <reified T> deleteSafe(
+        url: String,
+        config: HttpRequestConfig = HttpRequestConfig.Default
+    ): Result<T> {
+        return try {
+            val response = client.delete(url) {
+                config.headers.forEach { (key, value) -> header(key, value) }
+                config.queryParams.forEach { (key, value) -> parameter(key, value) }
+            }
+            response.toResult()
+        } catch (e: Throwable) {
+            val networkException = ExceptionMapper.map(e)
+            Result.Failure(networkException.toAppError().toString())
+        }
+    }
+
+    // ==================== LIFECYCLE ====================
 
     /**
      * Cierra el cliente HTTP y libera recursos.
