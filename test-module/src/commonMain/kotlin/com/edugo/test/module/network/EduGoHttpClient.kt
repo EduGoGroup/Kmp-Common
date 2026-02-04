@@ -156,6 +156,90 @@ public class EduGoHttpClient(private val client: HttpClient) {
     }
 
     /**
+     * Realiza petición PUT con body serializado automáticamente.
+     *
+     * PUT reemplaza completamente el recurso en el servidor.
+     * Usar cuando se envía el objeto completo actualizado.
+     *
+     * ```kotlin
+     * @Serializable
+     * data class User(val id: Int, val name: String, val email: String)
+     *
+     * val updatedUser = User(1, "John Updated", "john.updated@example.com")
+     * val result: User = client.put("https://api.example.com/users/1", updatedUser)
+     * ```
+     *
+     * @param T Tipo del objeto a enviar en el body (debe ser @Serializable)
+     * @param R Tipo del objeto a deserializar de la respuesta (debe ser @Serializable)
+     * @param url URL del endpoint
+     * @param body Objeto completo a serializar como JSON
+     * @param config Configuración opcional de headers y query params
+     * @return Objeto deserializado del tipo R
+     * @throws io.ktor.client.plugins.ClientRequestException Si el servidor retorna 4xx
+     * @throws io.ktor.client.plugins.ServerResponseException Si el servidor retorna 5xx
+     * @throws kotlinx.serialization.SerializationException Si la serialización/deserialización falla
+     * @see patch Para actualizaciones parciales
+     */
+    public suspend inline fun <reified T, reified R> put(
+        url: String,
+        body: T,
+        config: HttpRequestConfig = HttpRequestConfig.Default
+    ): R {
+        return client.put(url) {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+            config.headers.forEach { (key, value) ->
+                header(key, value)
+            }
+            config.queryParams.forEach { (key, value) ->
+                parameter(key, value)
+            }
+        }.body()
+    }
+
+    /**
+     * Realiza petición PATCH con body serializado automáticamente.
+     *
+     * PATCH actualiza parcialmente el recurso en el servidor.
+     * Usar cuando solo se envían los campos a modificar.
+     *
+     * ```kotlin
+     * @Serializable
+     * data class UserPatch(val name: String? = null, val email: String? = null)
+     *
+     * val patch = UserPatch(name = "New Name") // Solo actualiza el nombre
+     * val result: User = client.patch("https://api.example.com/users/1", patch)
+     * ```
+     *
+     * @param T Tipo del objeto parcial a enviar en el body (debe ser @Serializable)
+     * @param R Tipo del objeto a deserializar de la respuesta (debe ser @Serializable)
+     * @param url URL del endpoint
+     * @param body Objeto parcial a serializar como JSON
+     * @param config Configuración opcional de headers y query params
+     * @return Objeto deserializado del tipo R
+     * @throws io.ktor.client.plugins.ClientRequestException Si el servidor retorna 4xx
+     * @throws io.ktor.client.plugins.ServerResponseException Si el servidor retorna 5xx
+     * @throws kotlinx.serialization.SerializationException Si la serialización/deserialización falla
+     * @see put Para reemplazos completos
+     */
+    public suspend inline fun <reified T, reified R> patch(
+        url: String,
+        body: T,
+        config: HttpRequestConfig = HttpRequestConfig.Default
+    ): R {
+        return client.patch(url) {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+            config.headers.forEach { (key, value) ->
+                header(key, value)
+            }
+            config.queryParams.forEach { (key, value) ->
+                parameter(key, value)
+            }
+        }.body()
+    }
+
+    /**
      * Cierra el cliente HTTP y libera recursos.
      *
      * Debe llamarse cuando el cliente ya no sea necesario para evitar
