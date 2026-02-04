@@ -55,6 +55,23 @@ kotlin {
         }
     }
 
+    // JavaScript target - Browser and Node.js support
+    js(IR) {
+        browser {
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                }
+            }
+        }
+        nodejs {
+            testTask {
+                useMocha()
+            }
+        }
+        binaries.executable()
+    }
+
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -136,6 +153,20 @@ kotlin {
                     .orElseThrow { IllegalStateException("Library 'mockk' not found in version catalog. Check gradle/libs.versions.toml") })
                 implementation(libs.findLibrary("kotlin-test-junit")
                     .orElseThrow { IllegalStateException("Library 'kotlin-test-junit' not found in version catalog. Check gradle/libs.versions.toml") })
+            }
+        }
+
+        // JavaScript source sets
+        val jsMain by getting {
+            dependencies {
+                // Ktor engine para JavaScript (Fetch API / Node.js HTTP)
+                implementation(libs.findLibrary("ktor-client-js")
+                    .orElseThrow { IllegalStateException("Library 'ktor-client-js' not found in version catalog. Check gradle/libs.versions.toml") })
+            }
+        }
+        val jsTest by getting {
+            dependencies {
+                implementation(kotlin("test-js"))
             }
         }
 

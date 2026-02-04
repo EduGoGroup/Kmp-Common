@@ -1,5 +1,8 @@
 package com.edugo.test.module.platform
 
+import com.edugo.test.module.platform.PlatformVolatile
+import com.edugo.test.module.platform.platformSynchronized
+
 /**
  * Configuration for logger filtering by tag patterns.
  *
@@ -49,9 +52,9 @@ public object LoggerConfig {
      * Default log level for tags without specific configuration.
      * Default is DEBUG (all logs enabled).
      *
-     * Thread-safe: Uses @Volatile for visibility across threads.
+     * Thread-safe: Uses @PlatformVolatile for visibility across threads.
      */
-    @Volatile
+    @PlatformVolatile
     var defaultLevel: LogLevel = LogLevel.DEBUG
 
     /**
@@ -104,7 +107,7 @@ public object LoggerConfig {
     public fun setLevel(pattern: String, level: LogLevel) {
         require(pattern.isNotBlank()) { "Pattern cannot be blank" }
         require(LogFilter.isValidPattern(pattern)) { "Invalid pattern: '$pattern'" }
-        synchronized(lock) {
+        platformSynchronized(lock) {
             levelRules[pattern] = level
             // Invalidate cache when rules change
             levelCache.clear()
@@ -120,7 +123,7 @@ public object LoggerConfig {
      * @param pattern The pattern to remove
      */
     public fun removeLevel(pattern: String) {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             levelRules.remove(pattern)
             // Invalidate cache when rules change
             levelCache.clear()
@@ -134,7 +137,7 @@ public object LoggerConfig {
      * Invalidates the level cache to ensure changes take effect.
      */
     public fun clearLevels() {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             levelRules.clear()
             // Invalidate cache when rules change
             levelCache.clear()
@@ -158,7 +161,7 @@ public object LoggerConfig {
      * @return The minimum log level for this tag
      */
     public fun getLevel(tag: String): LogLevel {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             // Check cache first (fast path)
             levelCache[tag]?.let { return it }
 
@@ -208,7 +211,7 @@ public object LoggerConfig {
      * @return Map of patterns to levels (defensive copy)
      */
     public fun getAllRules(): Map<String, LogLevel> {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             return levelRules.toMap()
         }
     }
@@ -219,7 +222,7 @@ public object LoggerConfig {
      * Clears all rules and cache.
      */
     public fun reset() {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             levelRules.clear()
             levelCache.clear()
             cacheInsertionOrder.clear()

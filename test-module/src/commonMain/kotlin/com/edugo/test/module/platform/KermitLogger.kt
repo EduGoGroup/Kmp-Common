@@ -2,6 +2,7 @@ package com.edugo.test.module.platform
 
 import co.touchlab.kermit.Logger as KermitLoggerImpl
 import co.touchlab.kermit.Severity
+import com.edugo.test.module.platform.PlatformVolatile
 
 /**
  * Wrapper/alternativa al Logger expect/actual que usa Kermit 2.0.4 como backend.
@@ -34,7 +35,7 @@ import co.touchlab.kermit.Severity
 public object KermitLogger {
     private var kermitInstance: KermitLoggerImpl = KermitLoggerImpl
 
-    @Volatile
+    @PlatformVolatile
     private var isInitialized: Boolean = false
 
     /**

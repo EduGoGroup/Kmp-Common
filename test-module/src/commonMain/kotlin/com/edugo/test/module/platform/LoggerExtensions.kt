@@ -2,6 +2,7 @@ package com.edugo.test.module.platform
 
 import com.edugo.test.module.core.AppError
 import com.edugo.test.module.core.Result
+import com.edugo.test.module.platform.platformSynchronized
 import kotlin.reflect.KClass
 
 /**
@@ -333,7 +334,7 @@ internal object LoggerCache {
      * ```
      */
     public fun getOrCreate(tag: String, logger: Logger = DefaultLogger): TaggedLogger {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             return cache.getOrPut(tag) {
                 TaggedLogger(tag, logger)  // Constructor validates tag
             }
@@ -347,7 +348,7 @@ internal object LoggerCache {
      * @return The cached logger, or null if not found
      */
     public fun get(tag: String): TaggedLogger? {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             return cache[tag]
         }
     }
@@ -359,7 +360,7 @@ internal object LoggerCache {
      * @return true if cached, false otherwise
      */
     public fun contains(tag: String): Boolean {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             return cache.containsKey(tag)
         }
     }
@@ -371,7 +372,7 @@ internal object LoggerCache {
      * Existing TaggedLogger instances remain valid but won't be cached.
      */
     public fun clear() {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             cache.clear()
         }
     }
@@ -382,7 +383,7 @@ internal object LoggerCache {
      * @return Number of cached loggers
      */
     public fun size(): Int {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             return cache.size
         }
     }
@@ -393,7 +394,7 @@ internal object LoggerCache {
      * @return Set of all tags currently in cache (defensive copy)
      */
     public fun getAllTags(): Set<String> {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             return cache.keys.toSet()
         }
     }
@@ -405,7 +406,7 @@ internal object LoggerCache {
      * @return The removed logger, or null if not found
      */
     public fun remove(tag: String): TaggedLogger? {
-        synchronized(lock) {
+        platformSynchronized(lock) {
             return cache.remove(tag)
         }
     }

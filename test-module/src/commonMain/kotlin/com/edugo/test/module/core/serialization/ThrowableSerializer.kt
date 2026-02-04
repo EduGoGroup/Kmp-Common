@@ -34,7 +34,8 @@ public data class SerializableThrowable(
          */
         public fun from(throwable: Throwable): SerializableThrowable {
             return SerializableThrowable(
-                className = throwable::class.qualifiedName ?: throwable::class.simpleName ?: "UnknownException",
+                // Use simpleName for JS compatibility (qualifiedName not supported in JS)
+                className = throwable::class.simpleName ?: "UnknownException",
                 message = throwable.message,
                 stackTrace = throwable.stackTraceToString()
             )

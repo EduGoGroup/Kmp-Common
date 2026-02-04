@@ -283,7 +283,8 @@ public class TaggedLogger internal constructor(
          * ```
          */
         public fun fromClass(clazz: KClass<*>, logger: Logger = DefaultLogger): TaggedLogger {
-            val className = clazz.qualifiedName ?: clazz.simpleName ?: "Unknown"
+            // Use simpleName for JS compatibility (qualifiedName not supported in JS)
+            val className = clazz.simpleName ?: "Unknown"
             return LoggerCache.getOrCreate(className, logger)
         }
 

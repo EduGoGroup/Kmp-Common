@@ -1,5 +1,7 @@
 package com.edugo.test.module.platform
 
+import com.edugo.test.module.platform.platformSynchronized
+
 /**
  * Filtering utilities for hierarchical log tags.
  *
@@ -132,7 +134,7 @@ public object LogFilter {
      * or if you want to force recompilation of patterns.
      */
     public fun clearCache() {
-        synchronized(cacheLock) {
+        platformSynchronized(cacheLock) {
             regexCache.clear()
             insertionOrder.clear()
         }
@@ -144,7 +146,7 @@ public object LogFilter {
      * @return Number of compiled patterns in the cache
      */
     public fun getCacheSize(): Int {
-        synchronized(cacheLock) {
+        platformSynchronized(cacheLock) {
             return regexCache.size
         }
     }
@@ -159,7 +161,7 @@ public object LogFilter {
      * @return Compiled Regex object
      */
     private fun getOrCompileRegex(pattern: String): Regex {
-        synchronized(cacheLock) {
+        platformSynchronized(cacheLock) {
             // Check if already cached
             regexCache[pattern]?.let { return it }
 
