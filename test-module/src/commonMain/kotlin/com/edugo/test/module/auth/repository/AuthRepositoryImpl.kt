@@ -123,6 +123,7 @@ public class AuthRepositoryImpl(
             }
         } catch (e: ClientRequestException) {
             // Mapeo explícito de errores HTTP 4xx
+            println("AuthRepository: Client error on login - Status: ${e.response.status.value}, Message: ${e.message}")
             val errorMessage = when (e.response.status.value) {
                 400 -> ErrorCode.VALIDATION_INVALID_INPUT.description
                 401 -> ErrorCode.AUTH_INVALID_CREDENTIALS.description
@@ -134,6 +135,7 @@ public class AuthRepositoryImpl(
             Result.Failure(errorMessage)
         } catch (e: ServerResponseException) {
             // Mapeo explícito de errores HTTP 5xx
+            println("AuthRepository: Server error on login - Status: ${e.response.status.value}, Message: ${e.message}")
             val errorMessage = when (e.response.status.value) {
                 500 -> ErrorCode.SYSTEM_INTERNAL_ERROR.description
                 502 -> ErrorCode.NETWORK_SERVER_ERROR.description
@@ -143,6 +145,7 @@ public class AuthRepositoryImpl(
             Result.Failure(errorMessage)
         } catch (e: Throwable) {
             // Mapeo de otros errores (network, timeout, etc.)
+            println("AuthRepository: Unexpected error on login - ${e.message}")
             val networkException = ExceptionMapper.map(e)
             Result.Failure(networkException.toAppError().toString())
         }
@@ -163,6 +166,7 @@ public class AuthRepositoryImpl(
             Result.Success(Unit)
         } catch (e: ClientRequestException) {
             // En logout, típicamente ignoramos errores 401 (token ya inválido)
+            println("AuthRepository: Client error on logout - Status: ${e.response.status.value}, Message: ${e.message}")
             if (e.response.status.value == 401) {
                 // Token ya inválido, considerar como éxito
                 Result.Success(Unit)
@@ -175,11 +179,13 @@ public class AuthRepositoryImpl(
             }
         } catch (e: ServerResponseException) {
             // Errores del servidor en logout no son críticos
+            println("AuthRepository: Server error on logout - Status: ${e.response.status.value}, Message: ${e.message}")
             val errorMessage = ErrorCode.SYSTEM_INTERNAL_ERROR.description
             Result.Failure(errorMessage)
         } catch (e: Throwable) {
             // Errores de red en logout no son críticos
             // Podríamos considerar retornar Success de todos modos
+            println("AuthRepository: Unexpected error on logout - ${e.message}")
             val networkException = ExceptionMapper.map(e)
             Result.Failure(networkException.toAppError().toString())
         }
@@ -208,6 +214,7 @@ public class AuthRepositoryImpl(
             }
         } catch (e: ClientRequestException) {
             // Mapeo explícito de errores HTTP 4xx en refresh
+            println("AuthRepository: Client error on refresh - Status: ${e.response.status.value}, Message: ${e.message}")
             val errorMessage = when (e.response.status.value) {
                 401 -> ErrorCode.AUTH_REFRESH_TOKEN_INVALID.description
                 403 -> ErrorCode.AUTH_FORBIDDEN.description
@@ -216,6 +223,7 @@ public class AuthRepositoryImpl(
             Result.Failure(errorMessage)
         } catch (e: ServerResponseException) {
             // Mapeo explícito de errores HTTP 5xx
+            println("AuthRepository: Server error on refresh - Status: ${e.response.status.value}, Message: ${e.message}")
             val errorMessage = when (e.response.status.value) {
                 500 -> ErrorCode.SYSTEM_INTERNAL_ERROR.description
                 502 -> ErrorCode.NETWORK_SERVER_ERROR.description
@@ -225,6 +233,7 @@ public class AuthRepositoryImpl(
             Result.Failure(errorMessage)
         } catch (e: Throwable) {
             // Mapeo de otros errores (network, timeout, etc.)
+            println("AuthRepository: Unexpected error on refresh - ${e.message}")
             val networkException = ExceptionMapper.map(e)
             Result.Failure(networkException.toAppError().toString())
         }

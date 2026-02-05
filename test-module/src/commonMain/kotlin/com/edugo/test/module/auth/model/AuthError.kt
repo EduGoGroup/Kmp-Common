@@ -181,24 +181,28 @@ public sealed class AuthError {
      *
      * @return Mensaje en español para el usuario final
      */
-    public fun getUserFriendlyMessage(): String {
-        return when (this) {
-            is InvalidCredentials ->
-                "Usuario o contraseña incorrectos. Por favor verifica tus credenciales."
-            is UserNotFound ->
-                "No encontramos una cuenta con ese correo electrónico."
-            is AccountLocked ->
-                "Tu cuenta ha sido bloqueada. Por favor contacta al soporte."
-            is UserInactive ->
-                "Tu cuenta está inactiva. Por favor contacta al administrador."
-            is NetworkError ->
-                "Problema de conexión. Verifica tu internet e intenta de nuevo."
-            is UnknownError ->
-                "Ocurrió un error inesperado. Por favor intenta de nuevo más tarde."
-        }
-    }
+    public fun getUserFriendlyMessage(): String = ERROR_MESSAGES[this::class] ?:
+        "Ocurrió un error inesperado. Por favor intenta de nuevo más tarde."
 
     companion object {
+        /**
+         * Mapa estático de mensajes amigables por tipo de error.
+         */
+        private val ERROR_MESSAGES = mapOf(
+            InvalidCredentials::class to
+                "Usuario o contraseña incorrectos. Por favor verifica tus credenciales.",
+            UserNotFound::class to
+                "No encontramos una cuenta con ese correo electrónico.",
+            AccountLocked::class to
+                "Tu cuenta ha sido bloqueada. Por favor contacta al soporte.",
+            UserInactive::class to
+                "Tu cuenta está inactiva. Por favor contacta al administrador.",
+            NetworkError::class to
+                "Problema de conexión. Verifica tu internet e intenta de nuevo.",
+            UnknownError::class to
+                "Ocurrió un error inesperado. Por favor intenta de nuevo más tarde."
+        )
+
         /**
          * Crea un AuthError desde un código de error del backend.
          *
