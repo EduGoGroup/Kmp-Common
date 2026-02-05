@@ -6,15 +6,31 @@
 package com.edugo.test.module.storage
 
 import com.edugo.test.module.core.Result
-import kotlinx.coroutines.withContext
 
 /**
  * Extensiones asíncronas para serialización/deserialización de objetos en AsyncEduGoStorage.
  *
- * Nota: Las funciones con `reified` type parameters no pueden ser `suspend` directamente,
- * por lo que estas extensiones ejecutan la operación síncrona dentro de withContext.
+ * ## Limitación técnica de Kotlin
+ * Las funciones con `reified` type parameters no pueden usar `withContext` internamente
+ * debido a que `inline` + `reified` requiere que el cuerpo de la función sea inlineable,
+ * y `withContext` es una función suspendida que no puede ser inlineada.
  *
- * ## Uso
+ * **Implicación:** Estas operaciones se ejecutan en el thread que las invoca, NO en el
+ * dispatcher configurado en AsyncEduGoStorage. Para objetos muy grandes donde la
+ * serialización/deserialización podría ser costosa, considera envolver la llamada
+ * manualmente:
+ *
+ * ```kotlin
+ * // Para objetos grandes, envolver manualmente en el dispatcher deseado:
+ * withContext(Dispatchers.Default) {
+ *     asyncStorage.putObject("largeObject", myLargeObject)
+ * }
+ * ```
+ *
+ * ## Uso normal
+ * Para la mayoría de casos de uso con objetos pequeños/medianos, el overhead es
+ * negligible y puedes usar las funciones directamente:
+ *
  * ```kotlin
  * @Serializable
  * data class User(val id: Int, val name: String)

@@ -36,6 +36,19 @@ import kotlinx.coroutines.flow.asStateFlow
  *     Text("Hello, $userName")
  * }
  * ```
+ *
+ * @param scope CoroutineScope para el ciclo de vida de los flows.
+ *              Actualmente no se usa, pero está reservado para observación
+ *              automática de cambios del storage en versiones futuras
+ *              (integrando con StorageFlow), eliminando la necesidad de
+ *              llamar refresh() manualmente.
+ * @param storage Instancia de EduGoStorage a observar
+ *
+ * ## Thread-Safety
+ * Esta clase está diseñada para uso desde un único thread (típicamente el UI thread).
+ * Aunque MutableStateFlow es thread-safe, el acceso concurrente a los mapas internos
+ * desde múltiples threads puede causar comportamiento indefinido. Para uso multi-thread,
+ * sincroniza externamente o usa desde un único Dispatcher (ej. Dispatchers.Main).
  */
 class StateFlowStorage(
     private val scope: CoroutineScope,
@@ -168,6 +181,9 @@ class StateFlowStorage(
     /**
      * Refresca todos los StateFlows desde storage.
      * Útil cuando el storage fue modificado externamente.
+     *
+     * NOTA: En versiones futuras, este método podría volverse obsoleto
+     * si se implementa observación automática usando el scope y StorageFlow.
      */
     fun refresh() {
         stringFlows.forEach { (key, flow) ->

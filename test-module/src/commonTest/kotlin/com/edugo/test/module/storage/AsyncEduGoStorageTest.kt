@@ -9,7 +9,14 @@ import com.russhwolf.settings.MapSettings
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.Serializable
 import kotlin.test.*
+
+/**
+ * Test data class for async serialization tests.
+ */
+@Serializable
+private data class AsyncTestUser(val id: Int, val name: String, val email: String)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AsyncEduGoStorageTest {
@@ -233,5 +240,83 @@ class AsyncEduGoStorageTest {
         wrapped.putString("test", "value")
 
         assertEquals("value", wrapped.getString("test"))
+    }
+
+    // ===== SERIALIZATION EXTENSIONS TESTS =====
+
+    @Test
+    fun `putObject and getObject works with serializable data class`() = runTest {
+        val user = AsyncTestUser(id = 1, name = "John", email = "john@example.com")
+
+        asyncStorage.putObject("user", user)
+        val result: AsyncTestUser? = asyncStorage.getObject("user")
+
+        assertEquals(user, result)
+    }
+
+    @Test
+    fun `getObject returns null for missing key`() = runTest {
+        val result: AsyncTestUser? = asyncStorage.getObject("missingUser")
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `getObject with default returns default when key missing`() = runTest {
+        val default = AsyncTestUser(id = 0, name = "Guest", email = "")
+
+        val result: AsyncTestUser = asyncStorage.getObject("missingUser", default)
+
+        assertEquals(default, result)
+    }
+
+    @Test
+    fun `putList and getList works with serializable objects`() = runTest {
+        val users = listOf(
+            AsyncTestUser(1, "John", "john@example.com"),
+            AsyncTestUser(2, "Jane", "jane@example.com")
+        )
+
+        asyncStorage.putList("users", users)
+        val result: List<AsyncTestUser> = asyncStorage.getList("users")
+
+        assertEquals(users, result)
+    }
+
+    @Test
+    fun `addToList appends element to existing list`() = runTest {
+        val initialUsers = listOf(AsyncTestUser(1, "John", "john@example.com"))
+        asyncStorage.putList("users", initialUsers)
+
+        val newUser = AsyncTestUser(2, "Jane", "jane@example.com")
+        asyncStorage.addToList("users", newUser)
+
+        val result: List<AsyncTestUser> = asyncStorage.getList("users")
+        assertEquals(2, result.size)
+        assertEquals(newUser, result[1])
+    }
+
+    @Test
+    fun `putSet and getSet works with serializable objects`() = runTest {
+        val tags = setOf("kotlin", "multiplatform", "coroutines")
+
+        asyncStorage.putSet("tags", tags)
+        val result: Set<String> = asyncStorage.getSet("tags")
+
+        assertEquals(tags, result)
+    }
+
+    @Test
+    fun `putMap and getMap works with string keys`() = runTest {
+        val config = mapOf(
+            "theme" to "dark",
+            "language" to "es",
+            "notifications" to "enabled"
+        )
+
+        asyncStorage.putMap("config", config)
+        val result: Map<String, String> = asyncStorage.getMap("config")
+
+        assertEquals(config, result)
     }
 }
