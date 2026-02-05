@@ -16,6 +16,7 @@ package com.edugo.test.module.core
  * | VALIDATION | 3000-3999   | Input validation and format errors            |
  * | BUSINESS   | 4000-4999   | Business logic and domain rule violations     |
  * | SYSTEM     | 5000-5999   | System-level and infrastructure errors        |
+ * | STORAGE    | 6000-6999   | Local storage and persistence errors          |
  *
  * ## Usage Examples
  *
@@ -290,7 +291,49 @@ public enum class ErrorCode(
      * Internal error.
      * An internal system error occurred.
      */
-    SYSTEM_INTERNAL_ERROR(5006, "Internal system error", retryable = true);
+    SYSTEM_INTERNAL_ERROR(5006, "Internal system error", retryable = true),
+
+    // ============================================================================
+    // STORAGE ERRORS (6000-6999)
+    // Local storage, persistence, and data integrity errors
+    // ============================================================================
+
+    /**
+     * Invalid storage key format.
+     * The storage key contains invalid characters or is empty.
+     * Valid keys: alphanumeric, dots, dashes, and underscores.
+     */
+    STORAGE_INVALID_KEY(6000, "Invalid storage key format", retryable = false),
+
+    /**
+     * Failed to serialize data for storage.
+     * The object could not be converted to a storable format.
+     */
+    STORAGE_SERIALIZATION_ERROR(6001, "Failed to serialize data", retryable = false),
+
+    /**
+     * Failed to deserialize data from storage.
+     * The stored data could not be converted back to the expected type.
+     */
+    STORAGE_DESERIALIZATION_ERROR(6002, "Failed to deserialize data", retryable = false),
+
+    /**
+     * Storage data is corrupted or invalid.
+     * The stored data is malformed or does not match the expected schema.
+     */
+    STORAGE_DATA_CORRUPTED(6003, "Storage data is corrupted", retryable = false),
+
+    /**
+     * Storage operation failed.
+     * A read, write, or delete operation on storage failed unexpectedly.
+     */
+    STORAGE_OPERATION_FAILED(6004, "Storage operation failed", retryable = true),
+
+    /**
+     * Storage key not found.
+     * The requested key does not exist in storage.
+     */
+    STORAGE_KEY_NOT_FOUND(6005, "Storage key not found", retryable = false);
 
     /**
      * Maps this error code to the corresponding HTTP status code.
@@ -324,6 +367,11 @@ public enum class ErrorCode(
      * Checks if this is a system error (5000-5999 range).
      */
     public fun isSystemError(): Boolean = code in 5000..5999
+
+    /**
+     * Checks if this is a storage error (6000-6999 range).
+     */
+    public fun isStorageError(): Boolean = code in 6000..6999
 
     /**
      * Checks if this error code represents a client-side error.
@@ -399,7 +447,15 @@ public enum class ErrorCode(
             SYSTEM_DATABASE_ERROR to 500,
             SYSTEM_SERIALIZATION_ERROR to 500,
             SYSTEM_EXTERNAL_SERVICE_ERROR to 502,
-            SYSTEM_INTERNAL_ERROR to 500
+            SYSTEM_INTERNAL_ERROR to 500,
+
+            // Storage errors -> 400/404/500
+            STORAGE_INVALID_KEY to 400,
+            STORAGE_SERIALIZATION_ERROR to 500,
+            STORAGE_DESERIALIZATION_ERROR to 500,
+            STORAGE_DATA_CORRUPTED to 500,
+            STORAGE_OPERATION_FAILED to 500,
+            STORAGE_KEY_NOT_FOUND to 404
         )
         /**
          * Gets an ErrorCode from a numeric code value.
@@ -473,5 +529,10 @@ public enum class ErrorCode(
          * Gets all system error codes (5000-5999).
          */
         public fun systemErrors(): List<ErrorCode> = entries.filter { it.isSystemError() }
+
+        /**
+         * Gets all storage error codes (6000-6999).
+         */
+        public fun storageErrors(): List<ErrorCode> = entries.filter { it.isStorageError() }
     }
 }

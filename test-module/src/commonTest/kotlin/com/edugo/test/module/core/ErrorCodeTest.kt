@@ -94,6 +94,18 @@ class ErrorCodeTest {
     }
 
     @Test
+    fun storageErrors_areInCorrectRange() {
+        val storageCodes = ErrorCode.entries.filter { it.name.startsWith("STORAGE_") }
+        assertTrue(storageCodes.isNotEmpty(), "Should have storage error codes")
+        storageCodes.forEach { code ->
+            assertTrue(
+                code.code in 6000..6999,
+                "Storage error ${code.name} (${code.code}) should be in range 6000-6999"
+            )
+        }
+    }
+
+    @Test
     fun allCategories_haveMinimumCodes() {
         assertTrue(ErrorCode.networkErrors().size >= 4, "Should have at least 4 network errors")
         assertTrue(ErrorCode.authErrors().size >= 4, "Should have at least 4 auth errors")
@@ -157,6 +169,15 @@ class ErrorCodeTest {
         assertTrue(ErrorCode.SYSTEM_SERVICE_UNAVAILABLE.isSystemError())
         assertFalse(ErrorCode.NETWORK_TIMEOUT.isSystemError())
         assertFalse(ErrorCode.AUTH_UNAUTHORIZED.isSystemError())
+    }
+
+    @Test
+    fun isStorageError_identifiesStorageErrors() {
+        assertTrue(ErrorCode.STORAGE_INVALID_KEY.isStorageError())
+        assertTrue(ErrorCode.STORAGE_SERIALIZATION_ERROR.isStorageError())
+        assertTrue(ErrorCode.STORAGE_DATA_CORRUPTED.isStorageError())
+        assertFalse(ErrorCode.NETWORK_TIMEOUT.isStorageError())
+        assertFalse(ErrorCode.SYSTEM_UNKNOWN_ERROR.isStorageError())
     }
 
     // ============================================================================
@@ -400,7 +421,7 @@ class ErrorCodeTest {
         assertEquals(ErrorCode.SYSTEM_UNKNOWN_ERROR, ErrorCode.fromCode(-1))
         assertEquals(ErrorCode.SYSTEM_UNKNOWN_ERROR, ErrorCode.fromCode(0))
         assertEquals(ErrorCode.SYSTEM_UNKNOWN_ERROR, ErrorCode.fromCode(999))
-        assertEquals(ErrorCode.SYSTEM_UNKNOWN_ERROR, ErrorCode.fromCode(6000))
+        assertEquals(ErrorCode.SYSTEM_UNKNOWN_ERROR, ErrorCode.fromCode(7000))
         assertEquals(ErrorCode.SYSTEM_UNKNOWN_ERROR, ErrorCode.fromCode(9999))
     }
 
@@ -490,6 +511,10 @@ class ErrorCodeTest {
             ErrorCode.entries.filter { it.isSystemError() },
             ErrorCode.systemErrors()
         )
+        assertEquals(
+            ErrorCode.entries.filter { it.isStorageError() },
+            ErrorCode.storageErrors()
+        )
     }
 
     // ============================================================================
@@ -577,7 +602,7 @@ class ErrorCodeTest {
                 parts.size >= 2,
                 "ErrorCode ${code.name} should follow CATEGORY_SPECIFIC_ERROR naming convention"
             )
-            val validCategories = listOf("NETWORK", "AUTH", "VALIDATION", "BUSINESS", "SYSTEM")
+            val validCategories = listOf("NETWORK", "AUTH", "VALIDATION", "BUSINESS", "SYSTEM", "STORAGE")
             assertTrue(
                 validCategories.contains(parts[0]),
                 "ErrorCode ${code.name} should start with a valid category prefix"
