@@ -2,6 +2,7 @@ package com.edugo.test.module.auth.service
 
 import com.edugo.test.module.auth.repository.AuthRepository
 import com.edugo.test.module.auth.repository.StubAuthRepository
+import com.edugo.test.module.auth.token.TokenRefreshConfig
 import com.edugo.test.module.storage.EduGoStorage
 import com.edugo.test.module.storage.SafeEduGoStorage
 import kotlinx.coroutines.CoroutineScope
@@ -88,12 +89,14 @@ public object AuthServiceFactory {
      * @param validEmail Email válido para el stub (default: "test@edugo.com")
      * @param validPassword Password válido para el stub (default: "password123")
      * @param scope CoroutineScope para operaciones asíncronas (default: Dispatchers.Default con SupervisorJob)
+     * @param refreshConfig Configuración de refresh (default: TokenRefreshConfig.DEFAULT)
      * @return AuthService configurado para testing
      */
     public fun createForTesting(
         validEmail: String = "test@edugo.com",
         validPassword: String = "password123",
-        scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
+        refreshConfig: TokenRefreshConfig = TokenRefreshConfig.DEFAULT
     ): AuthService {
         val stubRepository = StubAuthRepository().apply {
             this.validEmail = validEmail
@@ -108,7 +111,8 @@ public object AuthServiceFactory {
         return AuthServiceImpl(
             repository = stubRepository,
             storage = safeStorage,
-            scope = scope
+            scope = scope,
+            refreshConfig = refreshConfig
         )
     }
 
@@ -150,15 +154,17 @@ public object AuthServiceFactory {
      * @param storage Storage seguro para persistencia
      * @param json Instancia de Json para serialización (default: Json con ignoreUnknownKeys)
      * @param scope CoroutineScope para operaciones asíncronas (default: Dispatchers.Default con SupervisorJob)
+     * @param refreshConfig Configuración de refresh (default: TokenRefreshConfig.DEFAULT)
      * @return AuthService configurado
      */
     public fun createWithCustomComponents(
         repository: AuthRepository,
         storage: SafeEduGoStorage,
         json: Json = Json { ignoreUnknownKeys = true },
-        scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
+        refreshConfig: TokenRefreshConfig = TokenRefreshConfig.DEFAULT
     ): AuthService {
-        return AuthServiceImpl(repository, storage, json, scope)
+        return AuthServiceImpl(repository, storage, json, scope, refreshConfig)
     }
 
     /**

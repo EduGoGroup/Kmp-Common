@@ -1,9 +1,11 @@
 package com.edugo.test.module.auth.service
 
 import com.edugo.test.module.auth.model.*
+import com.edugo.test.module.auth.token.TokenRefreshManager
 import com.edugo.test.module.core.Result
 import com.edugo.test.module.data.models.AuthToken
 import com.edugo.test.module.network.interceptor.TokenProvider
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -100,6 +102,86 @@ public interface AuthService : TokenProvider {
      * (Unauthenticated por defecto).
      */
     public val authState: StateFlow<AuthState>
+
+    /**
+     * Manager para refresh de tokens con sincronización y retry.
+     *
+     * Proporciona acceso al [TokenRefreshManager] para casos avanzados
+     * como refresh manual, verificación de estado, u observación de fallos.
+     *
+     * ## Ejemplo de Uso
+     *
+     * ```kotlin
+     * // Verificar si un token necesita refresh
+     * val token = authService.getCurrentAuthToken()
+     * if (token != null && authService.tokenRefreshManager.shouldRefresh(token)) {
+     *     println("Token necesita renovación")
+     * }
+     *
+     * // Observar fallos de refresh
+     * authService.tokenRefreshManager.onRefreshFailed.collect { reason ->
+     *     when (reason) {
+     *         is RefreshFailureReason.TokenExpired -> navigateToLogin()
+     *         is RefreshFailureReason.NetworkError -> showRetryDialog()
+     *         // ... otros casos
+     *     }
+     * }
+     * ```
+     */
+    public val tokenRefreshManager: TokenRefreshManager
+
+    /**
+     * Flow que emite cuando la sesión expira y no se puede renovar.
+     *
+     * Este flow emite Unit cuando:
+     * - El refresh token ha expirado
+     * - El refresh token fue revocado
+     * - No hay refresh token disponible
+     *
+     * **La UI debe observar esto para navegar a login.**
+     *
+     * **IMPORTANTE**: Este flow NO emite en errores de red temporales.
+     * Solo emite cuando la sesión está definitivamente expirada y el
+     * usuario debe volver a autenticarse.
+     *
+     * ## Ejemplo en ViewModel
+     *
+     * ```kotlin
+     * class MainViewModel(
+     *     private val authService: AuthService
+     * ) : ViewModel() {
+     *
+     *     init {
+     *         viewModelScope.launch {
+     *             authService.onSessionExpired.collect {
+     *                 // Sesión expiró, navegar a login
+     *                 _navigationEvent.emit(NavigationEvent.ToLogin)
+     *             }
+     *         }
+     *     }
+     * }
+     * ```
+     *
+     * ## Ejemplo en Compose
+     *
+     * ```kotlin
+     * @Composable
+     * fun MainScreen(authService: AuthService) {
+     *     val navigator = rememberNavigator()
+     *
+     *     LaunchedEffect(Unit) {
+     *         authService.onSessionExpired.collect {
+     *             navigator.navigate(Screen.Login) {
+     *                 popUpTo(Screen.Main) { inclusive = true }
+     *             }
+     *         }
+     *     }
+     *
+     *     // ... resto de la UI
+     * }
+     * ```
+     */
+    public val onSessionExpired: Flow<Unit>
 
     /**
      * Autentica un usuario con credenciales.

@@ -2,15 +2,23 @@ package com.edugo.test.module.auth.service
 
 import com.edugo.test.module.auth.model.*
 import com.edugo.test.module.auth.repository.AuthRepository
+import com.edugo.test.module.auth.token.RefreshFailureReason
+import com.edugo.test.module.auth.token.TokenRefreshConfig
+import com.edugo.test.module.auth.token.TokenRefreshManager
+import com.edugo.test.module.auth.token.TokenRefreshManagerImpl
 import com.edugo.test.module.core.Result
 import com.edugo.test.module.data.models.AuthToken
 import com.edugo.test.module.storage.SafeEduGoStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
@@ -46,12 +54,14 @@ import kotlinx.serialization.json.Json
  * @property storage Storage seguro para persistencia
  * @property json Instancia de Json para serialización
  * @property scope CoroutineScope para operaciones asíncronas (observar eventos, etc.)
+ * @property refreshConfig Configuración para el TokenRefreshManager
  */
 public class AuthServiceImpl(
     private val repository: AuthRepository,
     private val storage: SafeEduGoStorage,
     private val json: Json = Json { ignoreUnknownKeys = true },
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
+    refreshConfig: TokenRefreshConfig = TokenRefreshConfig.DEFAULT
 ) : AuthService {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Unauthenticated)
@@ -59,6 +69,55 @@ public class AuthServiceImpl(
 
     // Mutex para thread-safety en operaciones de estado (KMP-compatible)
     private val stateMutex = Mutex()
+
+    // TokenRefreshManager para refresh automático
+    override val tokenRefreshManager: TokenRefreshManager = TokenRefreshManagerImpl(
+        repository = repository,
+        storage = storage,
+        config = refreshConfig,
+        scope = scope,
+        json = json
+    )
+
+    // Flow para notificar expiración de sesión
+    private val _onSessionExpired = MutableSharedFlow<Unit>(replay = 0)
+    override val onSessionExpired: Flow<Unit> = _onSessionExpired.asSharedFlow()
+
+    init {
+        // Observar fallos de refresh para limpiar sesión cuando sea necesario
+        scope.launch {
+            tokenRefreshManager.onRefreshFailed.collect { reason ->
+                when (reason) {
+                    is RefreshFailureReason.TokenExpired,
+                    is RefreshFailureReason.TokenRevoked,
+                    is RefreshFailureReason.NoRefreshToken -> {
+                        // Sesión irrecuperable: limpiar y notificar
+                        clearSession()
+                        _onSessionExpired.emit(Unit)
+                    }
+                    is RefreshFailureReason.NetworkError -> {
+                        // Error de red: no limpiar sesión, UI puede reintentar
+                        // Solo loguear
+                        println("TokenRefresh: Network error during refresh: ${reason.cause}")
+                    }
+                    is RefreshFailureReason.ServerError -> {
+                        // Error de servidor: loguear pero no limpiar sesión
+                        println("TokenRefresh: Server error during refresh: ${reason.code} - ${reason.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Limpia la sesión localmente sin notificar al backend.
+     */
+    private suspend fun clearSession() {
+        stateMutex.withLock {
+            clearAuthData()
+            _authState.value = AuthState.Unauthenticated
+        }
+    }
 
     public companion object {
         private const val AUTH_TOKEN_KEY = "auth_token"
@@ -129,37 +188,20 @@ public class AuthServiceImpl(
     }
 
     override suspend fun refreshAuthToken(): Result<AuthToken> {
-        return stateMutex.withLock {
-            val currentToken = getCurrentAuthToken()
-                ?: return Result.Failure("No token to refresh")
+        // Delegar al TokenRefreshManager que maneja sincronización y retry
+        val result = tokenRefreshManager.forceRefresh()
 
-            when (val result = repository.refresh(currentToken.refreshToken ?: "")) {
-                is Result.Success -> {
-                    val refreshResponse = result.data
-                    val newToken = refreshResponse.toAuthToken(currentToken.refreshToken!!)
-
-                    // Guardar nuevo token
-                    saveToken(newToken)
-
-                    // Actualizar estado si estamos autenticados
-                    val currentState = _authState.value
-                    if (currentState is AuthState.Authenticated) {
-                        _authState.value = currentState.copy(token = newToken)
-                    }
-
-                    Result.Success(newToken)
-                }
-                is Result.Failure -> {
-                    // Token refresh falló, limpiar sesión
-                    clearAuthData()
-                    _authState.value = AuthState.Unauthenticated
-                    result
-                }
-                is Result.Loading -> {
-                    Result.Failure("Unexpected loading state")
+        // Actualizar estado si estamos autenticados y el refresh fue exitoso
+        if (result is Result.Success) {
+            stateMutex.withLock {
+                val currentState = _authState.value
+                if (currentState is AuthState.Authenticated) {
+                    _authState.value = currentState.copy(token = result.data)
                 }
             }
         }
+
+        return result
     }
 
     // === Implementación de TokenProvider ===
@@ -224,14 +266,14 @@ public class AuthServiceImpl(
                     if (!token.isExpired()) {
                         _authState.value = AuthState.Authenticated(user, token)
                     } else {
-                        // Intentar refresh si está expirado
+                        // Intentar refresh si está expirado y hay refresh token
                         if (token.hasRefreshToken()) {
-                            val refreshResult = refreshAuthToken()
+                            val refreshResult = tokenRefreshManager.forceRefresh()
                             if (refreshResult is Result.Success) {
                                 val newToken = refreshResult.data
                                 _authState.value = AuthState.Authenticated(user, newToken)
                             } else {
-                                // Refresh falló, limpiar
+                                // Refresh falló, limpiar (onRefreshFailed se emitirá automáticamente)
                                 clearAuthData()
                                 _authState.value = AuthState.Unauthenticated
                             }
