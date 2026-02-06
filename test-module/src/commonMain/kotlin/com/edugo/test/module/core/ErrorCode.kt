@@ -140,6 +140,12 @@ public enum class ErrorCode(
      */
     AUTH_REFRESH_TOKEN_INVALID(2006, "Refresh token is invalid or expired", retryable = false),
 
+    /**
+     * Token has been revoked.
+     * The token was explicitly revoked by the server or administrator.
+     */
+    AUTH_TOKEN_REVOKED(2007, "Token has been revoked", retryable = false),
+
     // ============================================================================
     // VALIDATION ERRORS (3000-3999)
     // Input validation, data format, and constraint errors

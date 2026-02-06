@@ -5,6 +5,9 @@ import com.edugo.test.module.auth.repository.AuthRepository
 import com.edugo.test.module.core.Result
 import com.edugo.test.module.data.models.AuthToken
 import com.edugo.test.module.storage.SafeEduGoStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,11 +45,13 @@ import kotlinx.serialization.json.Json
  * @property repository Repositorio para operaciones de red
  * @property storage Storage seguro para persistencia
  * @property json Instancia de Json para serialización
+ * @property scope CoroutineScope para operaciones asíncronas (observar eventos, etc.)
  */
 public class AuthServiceImpl(
     private val repository: AuthRepository,
     private val storage: SafeEduGoStorage,
-    private val json: Json = Json { ignoreUnknownKeys = true }
+    private val json: Json = Json { ignoreUnknownKeys = true },
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 ) : AuthService {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Unauthenticated)
@@ -123,7 +128,7 @@ public class AuthServiceImpl(
         }
     }
 
-    override suspend fun refreshToken(): Result<AuthToken> {
+    override suspend fun refreshAuthToken(): Result<AuthToken> {
         return stateMutex.withLock {
             val currentToken = getCurrentAuthToken()
                 ?: return Result.Failure("No token to refresh")
@@ -157,6 +162,21 @@ public class AuthServiceImpl(
         }
     }
 
+    // === Implementación de TokenProvider ===
+
+    /**
+     * Implementación de [TokenProvider.refreshToken] que delega a [refreshAuthToken].
+     *
+     * Retorna el nuevo access token como String o null si falla.
+     */
+    override suspend fun refreshToken(): String? {
+        return when (val result = refreshAuthToken()) {
+            is Result.Success -> result.data.token
+            is Result.Failure -> null
+            is Result.Loading -> null
+        }
+    }
+
     override fun isAuthenticated(): Boolean {
         return _authState.value is AuthState.Authenticated
     }
@@ -166,11 +186,7 @@ public class AuthServiceImpl(
 
         // Si está expirado, intentar refresh
         if (token.isExpired()) {
-            return when (val result = refreshToken()) {
-                is Result.Success -> result.data.token
-                is Result.Failure -> null
-                is Result.Loading -> null
-            }
+            return refreshToken() // Usa la implementación de TokenProvider
         }
 
         return token.token
@@ -209,12 +225,10 @@ public class AuthServiceImpl(
                         _authState.value = AuthState.Authenticated(user, token)
                     } else {
                         // Intentar refresh si está expirado
-                        val refreshToken = token.refreshToken
-                        if (refreshToken != null) {
-                            val refreshResult = repository.refresh(refreshToken)
+                        if (token.hasRefreshToken()) {
+                            val refreshResult = refreshAuthToken()
                             if (refreshResult is Result.Success) {
-                                val newToken = refreshResult.data.toAuthToken(refreshToken)
-                                saveToken(newToken)
+                                val newToken = refreshResult.data
                                 _authState.value = AuthState.Authenticated(user, newToken)
                             } else {
                                 // Refresh falló, limpiar

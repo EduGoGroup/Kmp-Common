@@ -4,6 +4,10 @@ import com.edugo.test.module.auth.repository.AuthRepository
 import com.edugo.test.module.auth.repository.StubAuthRepository
 import com.edugo.test.module.storage.EduGoStorage
 import com.edugo.test.module.storage.SafeEduGoStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 
 /**
@@ -83,11 +87,13 @@ public object AuthServiceFactory {
      *
      * @param validEmail Email válido para el stub (default: "test@edugo.com")
      * @param validPassword Password válido para el stub (default: "password123")
+     * @param scope CoroutineScope para operaciones asíncronas (default: Dispatchers.Default con SupervisorJob)
      * @return AuthService configurado para testing
      */
     public fun createForTesting(
         validEmail: String = "test@edugo.com",
-        validPassword: String = "password123"
+        validPassword: String = "password123",
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     ): AuthService {
         val stubRepository = StubAuthRepository().apply {
             this.validEmail = validEmail
@@ -95,13 +101,14 @@ public object AuthServiceFactory {
         }
 
         // Storage en memoria con nombre único para evitar contaminación entre tests
-        val uniqueStorageName = "test_auth_storage_${System.currentTimeMillis()}_${(0..999999).random()}"
+        val uniqueStorageName = "test_auth_storage_${Clock.System.now().toEpochMilliseconds()}_${(0..999999).random()}"
         val memoryStorage = EduGoStorage.create(uniqueStorageName)
         val safeStorage = SafeEduGoStorage.wrap(memoryStorage)
 
         return AuthServiceImpl(
             repository = stubRepository,
-            storage = safeStorage
+            storage = safeStorage,
+            scope = scope
         )
     }
 
@@ -142,14 +149,16 @@ public object AuthServiceFactory {
      * @param repository Repositorio de autenticación (real o stub)
      * @param storage Storage seguro para persistencia
      * @param json Instancia de Json para serialización (default: Json con ignoreUnknownKeys)
+     * @param scope CoroutineScope para operaciones asíncronas (default: Dispatchers.Default con SupervisorJob)
      * @return AuthService configurado
      */
     public fun createWithCustomComponents(
         repository: AuthRepository,
         storage: SafeEduGoStorage,
-        json: Json = Json { ignoreUnknownKeys = true }
+        json: Json = Json { ignoreUnknownKeys = true },
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     ): AuthService {
-        return AuthServiceImpl(repository, storage, json)
+        return AuthServiceImpl(repository, storage, json, scope)
     }
 
     /**
@@ -173,17 +182,21 @@ public object AuthServiceFactory {
      * }
      * ```
      *
+     * @param scope CoroutineScope para operaciones asíncronas (default: Dispatchers.Default con SupervisorJob)
      * @return AuthService que siempre retorna errores de red
      */
-    public fun createForTestingWithNetworkError(): AuthService {
+    public fun createForTestingWithNetworkError(
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    ): AuthService {
         val stubRepository = StubAuthRepository.createWithNetworkError()
-        val uniqueStorageName = "test_auth_storage_network_error_${System.currentTimeMillis()}_${(0..999999).random()}"
+        val uniqueStorageName = "test_auth_storage_network_error_${Clock.System.now().toEpochMilliseconds()}_${(0..999999).random()}"
         val memoryStorage = EduGoStorage.create(uniqueStorageName)
         val safeStorage = SafeEduGoStorage.wrap(memoryStorage)
 
         return AuthServiceImpl(
             repository = stubRepository,
-            storage = safeStorage
+            storage = safeStorage,
+            scope = scope
         )
     }
 
@@ -212,17 +225,22 @@ public object AuthServiceFactory {
      * ```
      *
      * @param delayMillis Delay en milisegundos
+     * @param scope CoroutineScope para operaciones asíncronas (default: Dispatchers.Default con SupervisorJob)
      * @return AuthService con delay simulado
      */
-    public fun createForTestingWithDelay(delayMillis: Long): AuthService {
+    public fun createForTestingWithDelay(
+        delayMillis: Long,
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    ): AuthService {
         val stubRepository = StubAuthRepository.createWithDelay(delayMillis)
-        val uniqueStorageName = "test_auth_storage_delay_${System.currentTimeMillis()}_${(0..999999).random()}"
+        val uniqueStorageName = "test_auth_storage_delay_${Clock.System.now().toEpochMilliseconds()}_${(0..999999).random()}"
         val memoryStorage = EduGoStorage.create(uniqueStorageName)
         val safeStorage = SafeEduGoStorage.wrap(memoryStorage)
 
         return AuthServiceImpl(
             repository = stubRepository,
-            storage = safeStorage
+            storage = safeStorage,
+            scope = scope
         )
     }
 }

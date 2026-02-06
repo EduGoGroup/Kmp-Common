@@ -185,7 +185,7 @@ class AuthServiceImplTest {
         assertNotNull(oldToken)
 
         // Refresh
-        val result = service.refreshToken()
+        val result = service.refreshAuthToken()
 
         assertTrue(result is Result.Success)
         val newToken = service.getCurrentAuthToken()
@@ -196,7 +196,7 @@ class AuthServiceImplTest {
     fun testRefreshTokenFailsWhenNotAuthenticated() = runTest {
         val service = createTestService()
 
-        val result = service.refreshToken()
+        val result = service.refreshAuthToken()
 
         assertTrue(result is Result.Failure)
     }

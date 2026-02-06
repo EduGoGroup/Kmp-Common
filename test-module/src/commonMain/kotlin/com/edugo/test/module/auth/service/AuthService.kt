@@ -3,6 +3,7 @@ package com.edugo.test.module.auth.service
 import com.edugo.test.module.auth.model.*
 import com.edugo.test.module.core.Result
 import com.edugo.test.module.data.models.AuthToken
+import com.edugo.test.module.network.interceptor.TokenProvider
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -79,24 +80,17 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * ## Integración con HTTP Client
  *
- * El servicio puede usarse para proveer tokens a un interceptor HTTP:
+ * El servicio implementa [TokenProvider] para integrarse directamente con
+ * interceptores HTTP:
  *
  * ```kotlin
- * class AuthInterceptor(private val authService: AuthService) {
- *     suspend fun getToken(): String? {
- *         return authService.getToken()
- *     }
- *
- *     suspend fun refreshToken(): String? {
- *         return when (val result = authService.refreshToken()) {
- *             is Result.Success -> result.data.accessToken
- *             is Result.Failure -> null
- *         }
- *     }
- * }
+ * val authInterceptor = AuthInterceptor(
+ *     tokenProvider = authService,  // AuthService IS-A TokenProvider
+ *     autoRefresh = true
+ * )
  * ```
  */
-public interface AuthService {
+public interface AuthService : TokenProvider {
     /**
      * Estado reactivo de autenticación.
      *
@@ -167,7 +161,7 @@ public interface AuthService {
      *
      * @return [Result.Success] con nuevo [AuthToken] o [Result.Failure]
      */
-    public suspend fun refreshToken(): Result<AuthToken>
+    public suspend fun refreshAuthToken(): Result<AuthToken>
 
     /**
      * Verifica si hay un usuario autenticado actualmente.
@@ -189,14 +183,14 @@ public interface AuthService {
      *
      * @return Token de acceso válido o null
      */
-    public suspend fun getToken(): String?
+    override suspend fun getToken(): String?
 
     /**
      * Verifica si el token actual está expirado.
      *
      * @return true si el token está expirado o no existe
      */
-    public suspend fun isTokenExpired(): Boolean
+    override suspend fun isTokenExpired(): Boolean
 
     /**
      * Obtiene el usuario actual si está autenticado.

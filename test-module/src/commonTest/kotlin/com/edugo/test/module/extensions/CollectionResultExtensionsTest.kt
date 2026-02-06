@@ -488,7 +488,7 @@ class CollectionResultExtensionsTest {
     fun `sequence no hace copias innecesarias`() {
         data class LargeObject(val data: ByteArray) {
             override fun equals(other: Any?) = this === other
-            override fun hashCode() = System.identityHashCode(this)
+            override fun hashCode() = data.contentHashCode()
         }
 
         val objects = List(100) { LargeObject(ByteArray(1024)) }
