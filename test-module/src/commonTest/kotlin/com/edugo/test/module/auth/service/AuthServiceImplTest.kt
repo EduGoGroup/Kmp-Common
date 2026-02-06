@@ -286,6 +286,8 @@ class AuthServiceImplTest {
 
     @Test
     fun testRestoreSessionWithNoDataDoesNothing() = runTest {
+        // Cada test tiene storage único (AuthServiceFactory genera nombre único)
+        // Esto garantiza aislamiento completo entre tests
         val service = createTestService()
 
         service.restoreSession()

@@ -94,8 +94,9 @@ public object AuthServiceFactory {
             this.validPassword = validPassword
         }
 
-        // Storage en memoria (no persistente)
-        val memoryStorage = EduGoStorage.create("test_auth_storage")
+        // Storage en memoria con nombre único para evitar contaminación entre tests
+        val uniqueStorageName = "test_auth_storage_${System.currentTimeMillis()}_${(0..999999).random()}"
+        val memoryStorage = EduGoStorage.create(uniqueStorageName)
         val safeStorage = SafeEduGoStorage.wrap(memoryStorage)
 
         return AuthServiceImpl(
@@ -176,7 +177,8 @@ public object AuthServiceFactory {
      */
     public fun createForTestingWithNetworkError(): AuthService {
         val stubRepository = StubAuthRepository.createWithNetworkError()
-        val memoryStorage = EduGoStorage.create("test_auth_storage_network_error")
+        val uniqueStorageName = "test_auth_storage_network_error_${System.currentTimeMillis()}_${(0..999999).random()}"
+        val memoryStorage = EduGoStorage.create(uniqueStorageName)
         val safeStorage = SafeEduGoStorage.wrap(memoryStorage)
 
         return AuthServiceImpl(
@@ -214,7 +216,8 @@ public object AuthServiceFactory {
      */
     public fun createForTestingWithDelay(delayMillis: Long): AuthService {
         val stubRepository = StubAuthRepository.createWithDelay(delayMillis)
-        val memoryStorage = EduGoStorage.create("test_auth_storage_delay")
+        val uniqueStorageName = "test_auth_storage_delay_${System.currentTimeMillis()}_${(0..999999).random()}"
+        val memoryStorage = EduGoStorage.create(uniqueStorageName)
         val safeStorage = SafeEduGoStorage.wrap(memoryStorage)
 
         return AuthServiceImpl(
