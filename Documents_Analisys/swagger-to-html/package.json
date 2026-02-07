@@ -1,0 +1,19 @@
+{
+  "name": "edugo-swagger-to-html",
+  "version": "1.0.0",
+  "description": "Generador de documentación HTML imprimible a partir de especificaciones Swagger/OpenAPI",
+  "main": "generator.js",
+  "scripts": {
+    "generate": "node generator.js",
+    "start": "node generator.js"
+  },
+  "keywords": [
+    "swagger",
+    "openapi",
+    "documentation",
+    "html",
+    "generator"
+  ],
+  "author": "EduGo Team",
+  "license": "MIT"
+}

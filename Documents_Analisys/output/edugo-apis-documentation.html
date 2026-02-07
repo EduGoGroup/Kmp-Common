@@ -1,0 +1,3224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduGo APIs - Documentación Técnica</title>
+    <style>
+        /* === RESET Y BASE === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* === ESTILOS PARA PANTALLA === */
+        @media screen {
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                background: #f8f9fa;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            /* Navegación sticky */
+            .nav-toc {
+                position: sticky;
+                top: 0;
+                background: white;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                padding: 1em;
+                margin-bottom: 2em;
+                border-radius: 8px;
+                z-index: 100;
+            }
+
+            .nav-toc h2 {
+                font-size: 1.2em;
+                margin-bottom: 0.5em;
+                color: #2c3e50;
+            }
+
+            .nav-toc ul {
+                list-style: none;
+                columns: 2;
+                column-gap: 2em;
+            }
+
+            .nav-toc li {
+                margin: 0.3em 0;
+                break-inside: avoid;
+            }
+
+            .nav-toc a {
+                color: #2980b9;
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+
+            .nav-toc a:hover {
+                color: #3498db;
+                text-decoration: underline;
+            }
+
+            /* Portada */
+            .cover-page {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 4em 2em;
+                text-align: center;
+                border-radius: 12px;
+                margin-bottom: 2em;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+
+            .cover-page h1 {
+                font-size: 2.5em;
+                margin-bottom: 0.5em;
+                font-weight: 700;
+            }
+
+            .cover-page .subtitle {
+                font-size: 1.2em;
+                opacity: 0.9;
+                margin-bottom: 1em;
+            }
+
+            .cover-page .stats {
+                font-size: 1em;
+                opacity: 0.85;
+            }
+
+            /* Secciones */
+            .api-section {
+                background: white;
+                padding: 2em;
+                margin-bottom: 2em;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .api-section h1 {
+                font-size: 2em;
+                color: #2c3e50;
+                margin-bottom: 0.5em;
+                padding-bottom: 0.3em;
+                border-bottom: 3px solid #3498db;
+            }
+
+            .api-info {
+                background: #ecf0f1;
+                padding: 1em;
+                border-radius: 6px;
+                margin: 1em 0;
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 0.9em;
+            }
+
+            .module-section {
+                margin: 2em 0;
+            }
+
+            .module-section h2 {
+                font-size: 1.6em;
+                color: #34495e;
+                margin: 1.5em 0 1em;
+                padding-bottom: 0.3em;
+                border-bottom: 2px solid #95a5a6;
+            }
+
+            /* Tarjetas de endpoint */
+            .endpoint-card {
+                background: white;
+                border: 1px solid #e1e8ed;
+                border-left: 4px solid #3498db;
+                padding: 1.5em;
+                margin: 1em 0;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                transition: box-shadow 0.2s, transform 0.2s;
+            }
+
+            .endpoint-card:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+                transform: translateY(-2px);
+            }
+
+            .endpoint-header {
+                display: flex;
+                align-items: center;
+                gap: 1em;
+                margin-bottom: 1em;
+            }
+
+            .method-badge {
+                display: inline-block;
+                padding: 0.4em 0.8em;
+                border-radius: 6px;
+                font-weight: 700;
+                font-size: 0.85em;
+                color: white;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                min-width: 70px;
+                text-align: center;
+            }
+
+            .method-get { background: #4caf50; }
+            .method-post { background: #2196f3; }
+            .method-put { background: #ff9800; }
+            .method-delete { background: #f44336; }
+            .method-patch { background: #9c27b0; }
+
+            .endpoint-path {
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 1.1em;
+                font-weight: 600;
+                color: #2c3e50;
+                word-break: break-all;
+                flex: 1;
+            }
+
+            .endpoint-summary {
+                font-size: 1.1em;
+                color: #2c3e50;
+                margin-bottom: 0.5em;
+                font-weight: 600;
+            }
+
+            .endpoint-description {
+                color: #7f8c8d;
+                margin-bottom: 1em;
+                line-height: 1.6;
+            }
+
+            /* Tablas */
+            .param-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1em 0;
+                font-size: 0.9em;
+                background: white;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                border-radius: 6px;
+                overflow: hidden;
+            }
+
+            .param-table thead {
+                background: #34495e;
+                color: white;
+            }
+
+            .param-table th {
+                padding: 0.75em;
+                text-align: left;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.85em;
+                letter-spacing: 0.5px;
+            }
+
+            .param-table td {
+                padding: 0.75em;
+                border-bottom: 1px solid #ecf0f1;
+                vertical-align: top;
+            }
+
+            .param-table tbody tr:hover {
+                background: #f8f9fa;
+            }
+
+            .param-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+            .param-table code {
+                background: #ecf0f1;
+                padding: 0.2em 0.4em;
+                border-radius: 3px;
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 0.9em;
+                color: #c7254e;
+            }
+
+            .required {
+                color: #e74c3c;
+                font-weight: 700;
+            }
+
+            .optional {
+                color: #95a5a6;
+            }
+
+            /* Sección de parámetros */
+            .params-section {
+                margin-top: 1em;
+            }
+
+            .params-section h4 {
+                color: #34495e;
+                margin-bottom: 0.5em;
+                font-size: 1em;
+            }
+
+            .no-params {
+                color: #95a5a6;
+                font-style: italic;
+            }
+        }
+
+        /* === ESTILOS PARA IMPRESIÓN === */
+        @media print {
+            @page {
+                size: A4;
+                margin: 2cm 1.5cm;
+            }
+
+            body {
+                font-family: Georgia, 'Times New Roman', Times, serif;
+                font-size: 10pt;
+                line-height: 1.4;
+                color: #000;
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            /* Ocultar navegación en impresión */
+            .nav-toc {
+                display: block !important;
+                position: static;
+                background: white;
+                box-shadow: none;
+                border-radius: 0;
+                page-break-after: always;
+                padding: 0;
+            }
+
+            .nav-toc h2 {
+                font-size: 14pt;
+                margin-bottom: 1em;
+                border-bottom: 2px solid #000;
+                padding-bottom: 0.3em;
+            }
+
+            .nav-toc ul {
+                columns: 2;
+                column-gap: 2em;
+            }
+
+            .nav-toc li {
+                margin: 0.5em 0;
+                page-break-inside: avoid;
+            }
+
+            .nav-toc a {
+                color: #000;
+                text-decoration: none;
+            }
+
+            .nav-toc a::after {
+                content: " .............................. " attr(data-count);
+                color: #666;
+            }
+
+            /* Portada */
+            .cover-page {
+                page-break-after: always;
+                text-align: center;
+                padding: 30% 0 0;
+                background: white;
+                border: none;
+                box-shadow: none;
+            }
+
+            .cover-page h1 {
+                font-size: 24pt;
+                margin-bottom: 1em;
+                color: #000;
+            }
+
+            .cover-page .subtitle {
+                font-size: 14pt;
+                margin-bottom: 2em;
+                color: #333;
+            }
+
+            .cover-page .stats {
+                font-size: 11pt;
+                color: #666;
+            }
+
+            /* Secciones de API */
+            .api-section {
+                page-break-before: always;
+                background: white;
+                padding: 0;
+                margin: 0;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .api-section h1 {
+                font-size: 18pt;
+                margin: 0 0 0.5em;
+                padding-bottom: 0.2em;
+                border-bottom: 2px solid #000;
+                page-break-after: avoid;
+            }
+
+            .api-info {
+                background: #f5f5f5;
+                padding: 0.5em;
+                margin: 0.5em 0 1em;
+                border: 1px solid #ccc;
+                border-radius: 0;
+                font-size: 9pt;
+            }
+
+            /* Módulos */
+            .module-section {
+                page-break-before: always;
+                margin: 0;
+            }
+
+            .module-section h2 {
+                font-size: 14pt;
+                margin: 0 0 1em;
+                padding-bottom: 0.2em;
+                border-bottom: 2px solid #333;
+                page-break-after: avoid;
+            }
+
+            /* Tarjetas de endpoint */
+            .endpoint-card {
+                page-break-inside: avoid;
+                orphans: 3;
+                widows: 3;
+                margin: 0 0 1.5em;
+                padding: 0.8em;
+                border: 1px solid #ccc;
+                border-left: 4px solid #666;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .endpoint-header {
+                display: block;
+                margin-bottom: 0.5em;
+            }
+
+            .method-badge {
+                display: inline-block;
+                padding: 2px 8px;
+                border: 1px solid #000;
+                font-weight: 700;
+                font-size: 9pt;
+                color: #000;
+                border-radius: 3px;
+                min-width: auto;
+            }
+
+            .method-get { background: #e8f5e9; }
+            .method-post { background: #e3f2fd; }
+            .method-put { background: #fff3e0; }
+            .method-delete { background: #ffebee; }
+            .method-patch { background: #f3e5f5; }
+
+            .endpoint-path {
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 10pt;
+                word-break: break-all;
+                display: block;
+                margin-top: 0.3em;
+            }
+
+            .endpoint-summary {
+                font-size: 11pt;
+                margin: 0.5em 0;
+                font-weight: 700;
+            }
+
+            .endpoint-description {
+                font-size: 9pt;
+                color: #333;
+                margin: 0.5em 0;
+            }
+
+            /* Tablas */
+            .param-table {
+                page-break-inside: avoid;
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 9pt;
+                margin: 0.5em 0;
+                border: 1px solid #999;
+            }
+
+            .param-table thead {
+                display: table-header-group;
+                background: #f0f0f0;
+            }
+
+            .param-table th {
+                padding: 4px 6px;
+                text-align: left;
+                border: 1px solid #999;
+                font-weight: 700;
+                font-size: 9pt;
+            }
+
+            .param-table td {
+                padding: 4px 6px;
+                border: 1px solid #ccc;
+                vertical-align: top;
+            }
+
+            .param-table code {
+                background: #f5f5f5;
+                padding: 1px 3px;
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 8pt;
+            }
+
+            .required {
+                color: #000;
+                font-weight: 700;
+            }
+
+            .optional {
+                color: #666;
+            }
+
+            .params-section h4 {
+                font-size: 10pt;
+                margin: 0.5em 0 0.3em;
+                font-weight: 700;
+                page-break-after: avoid;
+            }
+
+            .no-params {
+                font-size: 9pt;
+                color: #666;
+                font-style: italic;
+            }
+
+            /* Evitar breaks problemáticos */
+            h1, h2, h3, h4 {
+                page-break-after: avoid;
+            }
+
+            table {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Portada -->
+        <div class="cover-page">
+            <h1>EduGo APIs</h1>
+            <div class="subtitle">Documentación Técnica de Endpoints</div>
+            <div class="stats">
+                <p>Generado: 7 de febrero de 2026</p>
+                <p>Total: 48 endpoints en 2 APIs</p>
+            </div>
+        </div>
+
+        <!-- Tabla de contenidos -->
+        <nav class="nav-toc">
+            <h2>Tabla de Contenidos</h2>
+            <ul>
+            <li>
+                <a href="#edu-admin">EduGo API Administración (33 endpoints)</a>
+                <ul>
+        
+                    <li><a href="#auth" data-count="6">auth</a></li>
+            
+                    <li><a href="#guardians" data-count="6">guardians</a></li>
+            
+                    <li><a href="#materials" data-count="1">materials</a></li>
+            
+                    <li><a href="#memberships" data-count="8">memberships</a></li>
+            
+                    <li><a href="#schools" data-count="6">schools</a></li>
+            
+                    <li><a href="#academic-units" data-count="9">academic-units</a></li>
+            
+                    <li><a href="#stats" data-count="1">stats</a></li>
+            
+                    <li><a href="#subjects" data-count="5">subjects</a></li>
+            
+                    <li><a href="#units" data-count="3">units</a></li>
+            
+                    <li><a href="#users" data-count="4">users</a></li>
+            
+                </ul>
+            </li>
+        
+            <li>
+                <a href="#edu-mobile">EduGo API Mobile (15 endpoints)</a>
+                <ul>
+        
+                    <li><a href="#health" data-count="1">health</a></li>
+            
+                    <li><a href="#evaluaciones" data-count="4">Evaluaciones</a></li>
+            
+                    <li><a href="#materials" data-count="9">materials</a></li>
+            
+                    <li><a href="#stats" data-count="2">stats</a></li>
+            
+                    <li><a href="#progress" data-count="1">progress</a></li>
+            
+                </ul>
+            </li>
+        </ul>
+        </nav>
+
+        <!-- Contenido principal -->
+        
+        <section class="api-section" id="edu-admin">
+            <h1>EduGo API Administración</h1>
+            
+        <div class="api-info">
+            <strong>Título:</strong> EduGo API Administración<br>
+            <strong>Versión:</strong> 1.0<br>
+            <strong>Host:</strong> localhost:8081<br>
+            <strong>Base Path:</strong> /v1<br>
+            <strong>Descripción:</strong> API para operaciones CRUD y administrativas en EduGo
+        </div>
+    
+            
+        <section class="module-section" id="auth">
+            <h2>auth (6 endpoints)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/auth/login</span>
+            </div>
+            <div class="endpoint-summary">Login de usuario</div>
+            <div class="endpoint-description">Autentica un usuario y retorna tokens JWT</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.LoginRequest</strong></td>
+                    <td>Credenciales de login</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/auth/logout</span>
+            </div>
+            <div class="endpoint-summary">Logout de usuario</div>
+            <div class="endpoint-description">Invalida el access token actual</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>Authorization</code></td>
+                    <td>header</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Bearer token</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/auth/refresh</span>
+            </div>
+            <div class="endpoint-summary">Refrescar access token</div>
+            <div class="endpoint-description">Genera un nuevo access token usando el refresh token</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.RefreshTokenRequest</strong></td>
+                    <td>Refresh token</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/auth/switch-context</span>
+            </div>
+            <div class="endpoint-summary">Cambiar contexto de escuela</div>
+            <div class="endpoint-description">Cambia el contexto (escuela) del usuario autenticado</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>Authorization</code></td>
+                    <td>header</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Bearer token</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.SwitchContextRequest</strong></td>
+                    <td>Escuela destino</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/auth/verify</span>
+            </div>
+            <div class="endpoint-summary">Verificar token JWT</div>
+            <div class="endpoint-description">Verifica la validez de un token JWT y retorna información del usuario</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.VerifyTokenRequest</strong></td>
+                    <td>Token a verificar</td>
+                </tr>
+        
+                <tr>
+                    <td><code>X-Service-API-Key</code></td>
+                    <td>header</td>
+                    <td><span class="optional">No</span></td>
+                    <td>string</td>
+                    <td>API Key del servicio (para rate limiting diferenciado)</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/auth/verify-bulk</span>
+            </div>
+            <div class="endpoint-summary">Verificar múltiples tokens JWT</div>
+            <div class="endpoint-description">Verifica la validez de múltiples tokens JWT en una sola llamada</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_auth_dto.VerifyTokenBulkRequest</strong></td>
+                    <td>Tokens a verificar</td>
+                </tr>
+        
+                <tr>
+                    <td><code>X-Service-API-Key</code></td>
+                    <td>header</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>API Key del servicio (requerido para bulk)</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="guardians">
+            <h2>guardians (6 endpoints)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/guardian-relations</span>
+            </div>
+            <div class="endpoint-summary">Create guardian-student relation</div>
+            <div class="endpoint-description">Creates a new relationship between a guardian and a student</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateGuardianRelationRequest</strong></td>
+                    <td>Guardian relation data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/guardian-relations/{id}</span>
+            </div>
+            <div class="endpoint-summary">Get guardian relation by ID</div>
+            <div class="endpoint-description">Get details of a specific guardian-student relation</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Relation ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-put">PUT</span>
+                <span class="endpoint-path">/v1/guardian-relations/{id}</span>
+            </div>
+            <div class="endpoint-summary">Update guardian relation</div>
+            <div class="endpoint-description">Updates an existing guardian-student relationship</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string (uuid)</td>
+                    <td>Relation ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateGuardianRelationRequest</strong></td>
+                    <td>Update data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-delete">DELETE</span>
+                <span class="endpoint-path">/v1/guardian-relations/{id}</span>
+            </div>
+            <div class="endpoint-summary">Delete guardian relation</div>
+            <div class="endpoint-description">Soft deletes a guardian-student relationship</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string (uuid)</td>
+                    <td>Relation ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/guardians/{guardian_id}/relations</span>
+            </div>
+            <div class="endpoint-summary">Get all relations for a guardian</div>
+            <div class="endpoint-description">Get all student relations for a specific guardian</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>guardian_id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Guardian ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/students/{student_id}/guardians</span>
+            </div>
+            <div class="endpoint-summary">Get all guardians for a student</div>
+            <div class="endpoint-description">Get all guardian relations for a specific student</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>student_id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Student ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="materials">
+            <h2>materials (1 endpoint)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-delete">DELETE</span>
+                <span class="endpoint-path">/v1/materials/{id}</span>
+            </div>
+            <div class="endpoint-summary">Delete a material</div>
+            <div class="endpoint-description">Soft delete a material (mark as deleted)</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Material ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="memberships">
+            <h2>memberships (8 endpoints)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/memberships</span>
+            </div>
+            <div class="endpoint-summary">Create a new membership</div>
+            <div class="endpoint-description">Assigns a user to an academic unit with a specific role</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateMembershipRequest</strong></td>
+                    <td>Membership data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/memberships/{id}</span>
+            </div>
+            <div class="endpoint-summary">Get a membership by ID</div>
+            <div class="endpoint-description">Retrieves a membership by its ID</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Membership ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-put">PUT</span>
+                <span class="endpoint-path">/v1/memberships/{id}</span>
+            </div>
+            <div class="endpoint-summary">Update a membership</div>
+            <div class="endpoint-description">Updates an existing membership (e.g., change role or validity dates)</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Membership ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateMembershipRequest</strong></td>
+                    <td>Updated membership data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-delete">DELETE</span>
+                <span class="endpoint-path">/v1/memberships/{id}</span>
+            </div>
+            <div class="endpoint-summary">Delete a membership</div>
+            <div class="endpoint-description">Permanently deletes a membership from the system</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Membership ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/memberships/{id}/expire</span>
+            </div>
+            <div class="endpoint-summary">Expire a membership</div>
+            <div class="endpoint-description">Sets a membership as expired (sets valid_until to now)</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Membership ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/units/{unitId}/memberships</span>
+            </div>
+            <div class="endpoint-summary">List memberships for a unit</div>
+            <div class="endpoint-description">Retrieves all memberships for a specific academic unit</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>unitId</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Unit ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>activeOnly</code></td>
+                    <td>query</td>
+                    <td><span class="optional">No</span></td>
+                    <td>boolean</td>
+                    <td>Show only active memberships</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/units/{unitId}/memberships/by-role</span>
+            </div>
+            <div class="endpoint-summary">List memberships by role</div>
+            <div class="endpoint-description">Retrieves memberships filtered by role within a unit</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>unitId</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Unit ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>role</code></td>
+                    <td>query</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Role (owner, teacher, assistant, student, guardian)</td>
+                </tr>
+        
+                <tr>
+                    <td><code>activeOnly</code></td>
+                    <td>query</td>
+                    <td><span class="optional">No</span></td>
+                    <td>boolean</td>
+                    <td>Show only active memberships</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/users/{userId}/memberships</span>
+            </div>
+            <div class="endpoint-summary">List memberships for a user</div>
+            <div class="endpoint-description">Retrieves all memberships for a specific user across all units</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>userId</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>User ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>activeOnly</code></td>
+                    <td>query</td>
+                    <td><span class="optional">No</span></td>
+                    <td>boolean</td>
+                    <td>Show only active memberships</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="schools">
+            <h2>schools (6 endpoints)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/schools</span>
+            </div>
+            <div class="endpoint-summary">List all schools</div>
+            <div class="endpoint-description">Retrieves a list of all schools in the system</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                <p class="no-params">Este endpoint no requiere parámetros.</p>
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/schools</span>
+            </div>
+            <div class="endpoint-summary">Create a new school</div>
+            <div class="endpoint-description">Creates a new school in the system</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateSchoolRequest</strong></td>
+                    <td>School data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/schools/code/{code}</span>
+            </div>
+            <div class="endpoint-summary">Get a school by code</div>
+            <div class="endpoint-description">Retrieves a school by its unique code</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>code</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>School Code</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/schools/{id}</span>
+            </div>
+            <div class="endpoint-summary">Get a school by ID</div>
+            <div class="endpoint-description">Retrieves a school by its ID</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>School ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-put">PUT</span>
+                <span class="endpoint-path">/v1/schools/{id}</span>
+            </div>
+            <div class="endpoint-summary">Update a school</div>
+            <div class="endpoint-description">Updates an existing school</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>School ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateSchoolRequest</strong></td>
+                    <td>Updated school data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-delete">DELETE</span>
+                <span class="endpoint-path">/v1/schools/{id}</span>
+            </div>
+            <div class="endpoint-summary">Delete a school</div>
+            <div class="endpoint-description">Soft deletes a school from the system</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>School ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="academic-units">
+            <h2>academic-units (9 endpoints)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/schools/{schoolId}/units</span>
+            </div>
+            <div class="endpoint-summary">List all units for a school</div>
+            <div class="endpoint-description">Retrieves all academic units for a specific school</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>schoolId</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>School ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>includeDeleted</code></td>
+                    <td>query</td>
+                    <td><span class="optional">No</span></td>
+                    <td>boolean</td>
+                    <td>Include soft-deleted units</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/schools/{schoolId}/units</span>
+            </div>
+            <div class="endpoint-summary">Create a new academic unit</div>
+            <div class="endpoint-description">Creates a new academic unit (grade, section, club, department) within a school</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>schoolId</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>School ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateAcademicUnitRequest</strong></td>
+                    <td>Academic unit data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/schools/{schoolId}/units/by-type</span>
+            </div>
+            <div class="endpoint-summary">List units by type</div>
+            <div class="endpoint-description">Retrieves academic units filtered by type (grade, section, club, department)</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>schoolId</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>School ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>type</code></td>
+                    <td>query</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Unit type (grade, section, club, department)</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/schools/{schoolId}/units/tree</span>
+            </div>
+            <div class="endpoint-summary">Get the hierarchical tree of units for a school</div>
+            <div class="endpoint-description">Retrieves the complete hierarchy tree of academic units for a school</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>schoolId</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>School ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/units/{id}</span>
+            </div>
+            <div class="endpoint-summary">Get an academic unit by ID</div>
+            <div class="endpoint-description">Retrieves an academic unit by its ID</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Unit ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-put">PUT</span>
+                <span class="endpoint-path">/v1/units/{id}</span>
+            </div>
+            <div class="endpoint-summary">Update an academic unit</div>
+            <div class="endpoint-description">Updates an existing academic unit</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Unit ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateAcademicUnitRequest</strong></td>
+                    <td>Updated unit data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-delete">DELETE</span>
+                <span class="endpoint-path">/v1/units/{id}</span>
+            </div>
+            <div class="endpoint-summary">Delete an academic unit</div>
+            <div class="endpoint-description">Soft deletes an academic unit</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Unit ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/units/{id}/hierarchy-path</span>
+            </div>
+            <div class="endpoint-summary">Get the hierarchy path for a unit</div>
+            <div class="endpoint-description">Retrieves the complete hierarchy path from root to the specified unit</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Unit ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/units/{id}/restore</span>
+            </div>
+            <div class="endpoint-summary">Restore a soft-deleted academic unit</div>
+            <div class="endpoint-description">Restores a previously soft-deleted academic unit</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Unit ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="stats">
+            <h2>stats (1 endpoint)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/stats/global</span>
+            </div>
+            <div class="endpoint-summary">Get global statistics</div>
+            <div class="endpoint-description">Get system-wide statistics (users, schools, subjects, etc.)</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                <p class="no-params">Este endpoint no requiere parámetros.</p>
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="subjects">
+            <h2>subjects (5 endpoints)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/subjects</span>
+            </div>
+            <div class="endpoint-summary">List subjects</div>
+            <div class="endpoint-description">Lists all subjects, optionally filtered by school</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>school_id</code></td>
+                    <td>query</td>
+                    <td><span class="optional">No</span></td>
+                    <td>string (uuid)</td>
+                    <td>Filter by school ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/subjects</span>
+            </div>
+            <div class="endpoint-summary">Create a new subject</div>
+            
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateSubjectRequest</strong></td>
+                    <td>Subject data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/subjects/{id}</span>
+            </div>
+            <div class="endpoint-summary">Get subject by ID</div>
+            <div class="endpoint-description">Retrieves a subject by its unique identifier</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string (uuid)</td>
+                    <td>Subject ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-delete">DELETE</span>
+                <span class="endpoint-path">/v1/subjects/{id}</span>
+            </div>
+            <div class="endpoint-summary">Delete subject</div>
+            <div class="endpoint-description">Soft deletes a subject</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string (uuid)</td>
+                    <td>Subject ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-patch">PATCH</span>
+                <span class="endpoint-path">/v1/subjects/{id}</span>
+            </div>
+            <div class="endpoint-summary">Update subject</div>
+            
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Subject ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateSubjectRequest</strong></td>
+                    <td>Update data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="units">
+            <h2>units (3 endpoints)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/units</span>
+            </div>
+            <div class="endpoint-summary">Create a new unit</div>
+            <div class="endpoint-description">Creates a new organizational unit (department, grade, group, etc.)</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateUnitRequest</strong></td>
+                    <td>Unit data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-patch">PATCH</span>
+                <span class="endpoint-path">/v1/units/{id}</span>
+            </div>
+            <div class="endpoint-summary">Update unit</div>
+            <div class="endpoint-description">Update unit information</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Unit ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateUnitRequest</strong></td>
+                    <td>Update data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/units/{id}/members</span>
+            </div>
+            <div class="endpoint-summary">Assign member to unit</div>
+            <div class="endpoint-description">Assign a user (teacher or student) to a unit</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Unit ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="users">
+            <h2>users (4 endpoints)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/users</span>
+            </div>
+            <div class="endpoint-summary">Create a new user</div>
+            <div class="endpoint-description">Creates a new user in the system</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.CreateUserRequest</strong></td>
+                    <td>User data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/users/{id}</span>
+            </div>
+            <div class="endpoint-summary">Get user by ID</div>
+            <div class="endpoint-description">Get details of a specific user</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>User ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-delete">DELETE</span>
+                <span class="endpoint-path">/v1/users/{id}</span>
+            </div>
+            <div class="endpoint-summary">Delete user</div>
+            <div class="endpoint-description">Soft delete a user (deactivate)</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>User ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-patch">PATCH</span>
+                <span class="endpoint-path">/v1/users/{id}</span>
+            </div>
+            <div class="endpoint-summary">Update user</div>
+            <div class="endpoint-description">Update user information</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>User ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>github_com_EduGoGroup_edugo-api-administracion_internal_application_dto.UpdateUserRequest</strong></td>
+                    <td>Update data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+        </section>
+    
+
+        <section class="api-section" id="edu-mobile">
+            <h1>EduGo API Mobile</h1>
+            
+        <div class="api-info">
+            <strong>Título:</strong> EduGo API Mobile<br>
+            <strong>Versión:</strong> 1.0<br>
+            
+            <strong>Base Path:</strong> /<br>
+            <strong>Descripción:</strong> API para operaciones frecuentes de docentes y estudiantes en EduGo
+        </div>
+    
+            
+        <section class="module-section" id="health">
+            <h2>health (1 endpoint)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/health</span>
+            </div>
+            <div class="endpoint-summary">Health check</div>
+            <div class="endpoint-description">Verifica que la API y sus dependencias (PostgreSQL, MongoDB, RabbitMQ, S3) estén funcionando correctamente.
+Use el parámetro detail=1 para obtener información detallada con latencias de cada componente.</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>detail</code></td>
+                    <td>query</td>
+                    <td><span class="optional">No</span></td>
+                    <td>string</td>
+                    <td>Incluir detalles de cada componente (1=detallado, retorna DetailedHealthResponse)</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="evaluaciones">
+            <h2>Evaluaciones (4 endpoints)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/attempts/{id}/results</span>
+            </div>
+            <div class="endpoint-summary">Obtener resultados de un intento específico</div>
+            <div class="endpoint-description">Retorna los resultados detallados de un intento, incluyendo feedback por pregunta</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Attempt ID (UUID)</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/materials/{id}/assessment</span>
+            </div>
+            <div class="endpoint-summary">Obtener cuestionario de un material (SIN respuestas correctas)</div>
+            <div class="endpoint-description">Retorna las preguntas de evaluación de un material sin exponer las respuestas correctas</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Material ID (UUID)</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/materials/{id}/assessment/attempts</span>
+            </div>
+            <div class="endpoint-summary">Crear intento de evaluación y obtener calificación</div>
+            <div class="endpoint-description">Crea un intento, valida respuestas en servidor, calcula score y retorna resultados con feedback</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Material ID (UUID)</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>dto.CreateAttemptRequest</strong></td>
+                    <td>Respuestas del estudiante</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/users/me/attempts</span>
+            </div>
+            <div class="endpoint-summary">Obtener historial de intentos del usuario autenticado</div>
+            <div class="endpoint-description">Retorna todos los intentos de evaluación del usuario, ordenados por fecha descendente</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>limit</code></td>
+                    <td>query</td>
+                    <td><span class="optional">No</span></td>
+                    <td>integer</td>
+                    <td>Número máximo de resultados</td>
+                </tr>
+        
+                <tr>
+                    <td><code>offset</code></td>
+                    <td>query</td>
+                    <td><span class="optional">No</span></td>
+                    <td>integer</td>
+                    <td>Número de resultados a saltar</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="materials">
+            <h2>materials (9 endpoints)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/materials</span>
+            </div>
+            <div class="endpoint-summary">List all materials</div>
+            <div class="endpoint-description">Retrieves a list of all educational materials available in the system</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                <p class="no-params">Este endpoint no requiere parámetros.</p>
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/materials</span>
+            </div>
+            <div class="endpoint-summary">Create a new material</div>
+            <div class="endpoint-description">Creates a new educational material with title, description, and optional subject. Requires authentication.</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>dto.CreateMaterialRequest</strong></td>
+                    <td>Material data (title, description, subject_id)</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/materials/{id}</span>
+            </div>
+            <div class="endpoint-summary">Get material by ID</div>
+            <div class="endpoint-description">Retrieves a specific educational material by its unique identifier</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Material ID (UUID format)</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-put">PUT</span>
+                <span class="endpoint-path">/v1/materials/{id}</span>
+            </div>
+            <div class="endpoint-summary">Update material</div>
+            <div class="endpoint-description">Updates an existing material&#039;s metadata (title, description, subject, grade, academic_unit_id, is_public)</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Material ID (UUID format)</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>dto.UpdateMaterialRequest</strong></td>
+                    <td>Update data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/materials/{id}/download-url</span>
+            </div>
+            <div class="endpoint-summary">Generate presigned download URL</div>
+            <div class="endpoint-description">Generate a presigned URL for downloading a material file from S3</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Material ID</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/materials/{id}/summary</span>
+            </div>
+            <div class="endpoint-summary">Get material summary</div>
+            <div class="endpoint-description">Retrieves an AI-generated summary of the material content</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Material ID (UUID format)</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/materials/{id}/upload-complete</span>
+            </div>
+            <div class="endpoint-summary">Notify upload complete</div>
+            <div class="endpoint-description">Notifies the system that a PDF file has been successfully uploaded to S3</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Material ID (UUID format)</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>dto.UploadCompleteRequest</strong></td>
+                    <td>S3 key and URL information</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/materials/{id}/upload-url</span>
+            </div>
+            <div class="endpoint-summary">Generate presigned upload URL</div>
+            <div class="endpoint-description">Generate a presigned URL for uploading a material file to S3</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Material ID</td>
+                </tr>
+        
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>dto.GenerateUploadURLRequest</strong></td>
+                    <td>Upload URL request</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/materials/{id}/versions</span>
+            </div>
+            <div class="endpoint-summary">Get material with version history</div>
+            <div class="endpoint-description">Get a material including its complete version history</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Material ID (UUID format)</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="stats">
+            <h2>stats (2 endpoints)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/materials/{id}/stats</span>
+            </div>
+            <div class="endpoint-summary">Get material statistics</div>
+            <div class="endpoint-description">Retrieves statistics for a specific material including views, completion rate, and average score</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>id</code></td>
+                    <td>path</td>
+                    <td><span class="required">Sí</span></td>
+                    <td>string</td>
+                    <td>Material ID (UUID format)</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-get">GET</span>
+                <span class="endpoint-path">/v1/stats/global</span>
+            </div>
+            <div class="endpoint-summary">Get global system statistics</div>
+            <div class="endpoint-description">Obtiene estadísticas globales del sistema (solo admins)</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                <p class="no-params">Este endpoint no requiere parámetros.</p>
+            </div>
+        </div>
+    
+        </section>
+    
+
+        <section class="module-section" id="progress">
+            <h2>progress (1 endpoint)</h2>
+            
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <span class="method-badge method-put">PUT</span>
+                <span class="endpoint-path">/v1/progress</span>
+            </div>
+            <div class="endpoint-summary">Upsert progress idempotently (new UPSERT endpoint)</div>
+            <div class="endpoint-description">Updates user progress in a material using idempotent UPSERT operation. Multiple calls with same data are safe.</div>
+            <div class="params-section">
+                <h4>Parámetros</h4>
+                
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Requerido</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td><code>request</code></td>
+                    <td>body</td>
+                    <td><span class="required">Sí</span></td>
+                    <td><strong>handler.UpsertProgressRequest</strong></td>
+                    <td>Progress data</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    
+            </div>
+        </div>
+    
+        </section>
+    
+        </section>
+    
+    </div>
+</body>
+</html>

@@ -249,4 +249,62 @@ public object AuthServiceFactory {
             scope = scope
         )
     }
+
+    /**
+     * Crea un HttpClient configurado con auto-refresh de tokens en 401.
+     *
+     * Este método es una utilidad para crear HttpClient con la configuración
+     * completa de auto-refresh integrado con el AuthService.
+     *
+     * ## Uso Recomendado
+     *
+     * ```kotlin
+     * // En tu módulo de DI
+     * single<AuthService> {
+     *     AuthServiceFactory.createWithCustomComponents(
+     *         repository = get(),
+     *         storage = get()
+     *     )
+     * }
+     *
+     * single<HttpClient> {
+     *     AuthServiceFactory.createHttpClientWithAutoRefresh(
+     *         authService = get(),
+     *         logLevel = if (BuildConfig.DEBUG) LogLevel.INFO else LogLevel.NONE
+     *     )
+     * }
+     * ```
+     *
+     * ## Comportamiento
+     *
+     * Cuando un request recibe 401 Unauthorized:
+     * 1. El HttpCallValidator intercepta la respuesta
+     * 2. Llama a `authService.tokenRefreshManager.forceRefresh()`
+     * 3. Si el refresh es exitoso: actualiza el token en storage (retry manual necesario)
+     * 4. Si el refresh falla: `authService.onSessionExpired` emite evento
+     *
+     * **IMPORTANTE**: Ktor lanza la excepción del 401 incluso después del refresh
+     * exitoso. El código cliente debe decidir si reintentar manualmente.
+     *
+     * @param authService Servicio de autenticación con TokenRefreshManager
+     * @param logLevel Nivel de logging HTTP (default: NONE)
+     * @param connectTimeoutMs Timeout de conexión (default: 30s)
+     * @param requestTimeoutMs Timeout de request (default: 60s)
+     * @return HttpClient con auto-refresh configurado
+     *
+     * @see com.edugo.test.module.network.HttpClientFactory.createWithAutoRefresh Para más detalles
+     */
+    public fun createHttpClientWithAutoRefresh(
+        authService: AuthService,
+        logLevel: io.ktor.client.plugins.logging.LogLevel = io.ktor.client.plugins.logging.LogLevel.NONE,
+        connectTimeoutMs: Long = 30_000L,
+        requestTimeoutMs: Long = 60_000L
+    ): io.ktor.client.HttpClient {
+        return com.edugo.test.module.network.HttpClientFactory.createWithAutoRefresh(
+            authService = authService,
+            logLevel = logLevel,
+            connectTimeoutMs = connectTimeoutMs,
+            requestTimeoutMs = requestTimeoutMs
+        )
+    }
 }

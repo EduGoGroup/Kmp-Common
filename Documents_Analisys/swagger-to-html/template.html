@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduGo APIs - Documentación Técnica</title>
+    <style>
+        /* === RESET Y BASE === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* === ESTILOS PARA PANTALLA === */
+        @media screen {
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                background: #f8f9fa;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            /* Navegación sticky */
+            .nav-toc {
+                position: sticky;
+                top: 0;
+                background: white;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                padding: 1em;
+                margin-bottom: 2em;
+                border-radius: 8px;
+                z-index: 100;
+            }
+
+            .nav-toc h2 {
+                font-size: 1.2em;
+                margin-bottom: 0.5em;
+                color: #2c3e50;
+            }
+
+            .nav-toc ul {
+                list-style: none;
+                columns: 2;
+                column-gap: 2em;
+            }
+
+            .nav-toc li {
+                margin: 0.3em 0;
+                break-inside: avoid;
+            }
+
+            .nav-toc a {
+                color: #2980b9;
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+
+            .nav-toc a:hover {
+                color: #3498db;
+                text-decoration: underline;
+            }
+
+            /* Portada */
+            .cover-page {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 4em 2em;
+                text-align: center;
+                border-radius: 12px;
+                margin-bottom: 2em;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+
+            .cover-page h1 {
+                font-size: 2.5em;
+                margin-bottom: 0.5em;
+                font-weight: 700;
+            }
+
+            .cover-page .subtitle {
+                font-size: 1.2em;
+                opacity: 0.9;
+                margin-bottom: 1em;
+            }
+
+            .cover-page .stats {
+                font-size: 1em;
+                opacity: 0.85;
+            }
+
+            /* Secciones */
+            .api-section {
+                background: white;
+                padding: 2em;
+                margin-bottom: 2em;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .api-section h1 {
+                font-size: 2em;
+                color: #2c3e50;
+                margin-bottom: 0.5em;
+                padding-bottom: 0.3em;
+                border-bottom: 3px solid #3498db;
+            }
+
+            .api-info {
+                background: #ecf0f1;
+                padding: 1em;
+                border-radius: 6px;
+                margin: 1em 0;
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 0.9em;
+            }
+
+            .module-section {
+                margin: 2em 0;
+            }
+
+            .module-section h2 {
+                font-size: 1.6em;
+                color: #34495e;
+                margin: 1.5em 0 1em;
+                padding-bottom: 0.3em;
+                border-bottom: 2px solid #95a5a6;
+            }
+
+            /* Tarjetas de endpoint */
+            .endpoint-card {
+                background: white;
+                border: 1px solid #e1e8ed;
+                border-left: 4px solid #3498db;
+                padding: 1.5em;
+                margin: 1em 0;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                transition: box-shadow 0.2s, transform 0.2s;
+            }
+
+            .endpoint-card:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+                transform: translateY(-2px);
+            }
+
+            .endpoint-header {
+                display: flex;
+                align-items: center;
+                gap: 1em;
+                margin-bottom: 1em;
+            }
+
+            .method-badge {
+                display: inline-block;
+                padding: 0.4em 0.8em;
+                border-radius: 6px;
+                font-weight: 700;
+                font-size: 0.85em;
+                color: white;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                min-width: 70px;
+                text-align: center;
+            }
+
+            .method-get { background: #4caf50; }
+            .method-post { background: #2196f3; }
+            .method-put { background: #ff9800; }
+            .method-delete { background: #f44336; }
+            .method-patch { background: #9c27b0; }
+
+            .endpoint-path {
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 1.1em;
+                font-weight: 600;
+                color: #2c3e50;
+                word-break: break-all;
+                flex: 1;
+            }
+
+            .endpoint-summary {
+                font-size: 1.1em;
+                color: #2c3e50;
+                margin-bottom: 0.5em;
+                font-weight: 600;
+            }
+
+            .endpoint-description {
+                color: #7f8c8d;
+                margin-bottom: 1em;
+                line-height: 1.6;
+            }
+
+            /* Tablas */
+            .param-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1em 0;
+                font-size: 0.9em;
+                background: white;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                border-radius: 6px;
+                overflow: hidden;
+            }
+
+            .param-table thead {
+                background: #34495e;
+                color: white;
+            }
+
+            .param-table th {
+                padding: 0.75em;
+                text-align: left;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.85em;
+                letter-spacing: 0.5px;
+            }
+
+            .param-table td {
+                padding: 0.75em;
+                border-bottom: 1px solid #ecf0f1;
+                vertical-align: top;
+            }
+
+            .param-table tbody tr:hover {
+                background: #f8f9fa;
+            }
+
+            .param-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+            .param-table code {
+                background: #ecf0f1;
+                padding: 0.2em 0.4em;
+                border-radius: 3px;
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 0.9em;
+                color: #c7254e;
+            }
+
+            .required {
+                color: #e74c3c;
+                font-weight: 700;
+            }
+
+            .optional {
+                color: #95a5a6;
+            }
+
+            /* Sección de parámetros */
+            .params-section {
+                margin-top: 1em;
+            }
+
+            .params-section h4 {
+                color: #34495e;
+                margin-bottom: 0.5em;
+                font-size: 1em;
+            }
+
+            .no-params {
+                color: #95a5a6;
+                font-style: italic;
+            }
+        }
+
+        /* === ESTILOS PARA IMPRESIÓN === */
+        @media print {
+            @page {
+                size: A4;
+                margin: 2cm 1.5cm;
+            }
+
+            body {
+                font-family: Georgia, 'Times New Roman', Times, serif;
+                font-size: 10pt;
+                line-height: 1.4;
+                color: #000;
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            /* Ocultar navegación en impresión */
+            .nav-toc {
+                display: block !important;
+                position: static;
+                background: white;
+                box-shadow: none;
+                border-radius: 0;
+                page-break-after: always;
+                padding: 0;
+            }
+
+            .nav-toc h2 {
+                font-size: 14pt;
+                margin-bottom: 1em;
+                border-bottom: 2px solid #000;
+                padding-bottom: 0.3em;
+            }
+
+            .nav-toc ul {
+                columns: 2;
+                column-gap: 2em;
+            }
+
+            .nav-toc li {
+                margin: 0.5em 0;
+                page-break-inside: avoid;
+            }
+
+            .nav-toc a {
+                color: #000;
+                text-decoration: none;
+            }
+
+            .nav-toc a::after {
+                content: " .............................. " attr(data-count);
+                color: #666;
+            }
+
+            /* Portada */
+            .cover-page {
+                page-break-after: always;
+                text-align: center;
+                padding: 30% 0 0;
+                background: white;
+                border: none;
+                box-shadow: none;
+            }
+
+            .cover-page h1 {
+                font-size: 24pt;
+                margin-bottom: 1em;
+                color: #000;
+            }
+
+            .cover-page .subtitle {
+                font-size: 14pt;
+                margin-bottom: 2em;
+                color: #333;
+            }
+
+            .cover-page .stats {
+                font-size: 11pt;
+                color: #666;
+            }
+
+            /* Secciones de API */
+            .api-section {
+                page-break-before: always;
+                background: white;
+                padding: 0;
+                margin: 0;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .api-section h1 {
+                font-size: 18pt;
+                margin: 0 0 0.5em;
+                padding-bottom: 0.2em;
+                border-bottom: 2px solid #000;
+                page-break-after: avoid;
+            }
+
+            .api-info {
+                background: #f5f5f5;
+                padding: 0.5em;
+                margin: 0.5em 0 1em;
+                border: 1px solid #ccc;
+                border-radius: 0;
+                font-size: 9pt;
+            }
+
+            /* Módulos */
+            .module-section {
+                page-break-before: always;
+                margin: 0;
+            }
+
+            .module-section h2 {
+                font-size: 14pt;
+                margin: 0 0 1em;
+                padding-bottom: 0.2em;
+                border-bottom: 2px solid #333;
+                page-break-after: avoid;
+            }
+
+            /* Tarjetas de endpoint */
+            .endpoint-card {
+                page-break-inside: avoid;
+                orphans: 3;
+                widows: 3;
+                margin: 0 0 1.5em;
+                padding: 0.8em;
+                border: 1px solid #ccc;
+                border-left: 4px solid #666;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .endpoint-header {
+                display: block;
+                margin-bottom: 0.5em;
+            }
+
+            .method-badge {
+                display: inline-block;
+                padding: 2px 8px;
+                border: 1px solid #000;
+                font-weight: 700;
+                font-size: 9pt;
+                color: #000;
+                border-radius: 3px;
+                min-width: auto;
+            }
+
+            .method-get { background: #e8f5e9; }
+            .method-post { background: #e3f2fd; }
+            .method-put { background: #fff3e0; }
+            .method-delete { background: #ffebee; }
+            .method-patch { background: #f3e5f5; }
+
+            .endpoint-path {
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 10pt;
+                word-break: break-all;
+                display: block;
+                margin-top: 0.3em;
+            }
+
+            .endpoint-summary {
+                font-size: 11pt;
+                margin: 0.5em 0;
+                font-weight: 700;
+            }
+
+            .endpoint-description {
+                font-size: 9pt;
+                color: #333;
+                margin: 0.5em 0;
+            }
+
+            /* Tablas */
+            .param-table {
+                page-break-inside: avoid;
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 9pt;
+                margin: 0.5em 0;
+                border: 1px solid #999;
+            }
+
+            .param-table thead {
+                display: table-header-group;
+                background: #f0f0f0;
+            }
+
+            .param-table th {
+                padding: 4px 6px;
+                text-align: left;
+                border: 1px solid #999;
+                font-weight: 700;
+                font-size: 9pt;
+            }
+
+            .param-table td {
+                padding: 4px 6px;
+                border: 1px solid #ccc;
+                vertical-align: top;
+            }
+
+            .param-table code {
+                background: #f5f5f5;
+                padding: 1px 3px;
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 8pt;
+            }
+
+            .required {
+                color: #000;
+                font-weight: 700;
+            }
+
+            .optional {
+                color: #666;
+            }
+
+            .params-section h4 {
+                font-size: 10pt;
+                margin: 0.5em 0 0.3em;
+                font-weight: 700;
+                page-break-after: avoid;
+            }
+
+            .no-params {
+                font-size: 9pt;
+                color: #666;
+                font-style: italic;
+            }
+
+            /* Evitar breaks problemáticos */
+            h1, h2, h3, h4 {
+                page-break-after: avoid;
+            }
+
+            table {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Portada -->
+        <div class="cover-page">
+            <h1>EduGo APIs</h1>
+            <div class="subtitle">Documentación Técnica de Endpoints</div>
+            <div class="stats">
+                <p>Generado: {{GENERATION_DATE}}</p>
+                <p>{{TOTAL_ENDPOINTS}}</p>
+            </div>
+        </div>
+
+        <!-- Tabla de contenidos -->
+        <nav class="nav-toc">
+            <h2>Tabla de Contenidos</h2>
+            {{TOC_ITEMS}}
+        </nav>
+
+        <!-- Contenido principal -->
+        {{API_SECTIONS}}
+    </div>
+</body>
+</html>
