@@ -202,7 +202,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     compilerOptions {
         freeCompilerArgs.addAll(
             "-Xcontext-receivers",  // Habilita context receivers (Kotlin experimental feature)
-            "-opt-in=kotlin.RequiresOptIn"  // Permite uso de APIs experimentales sin warnings
+            "-opt-in=kotlin.RequiresOptIn",  // Permite uso de APIs experimentales sin warnings
+            "-opt-in=kotlin.io.encoding.ExperimentalEncodingApi"  // Para Base64 (JWT parsing)
         )
     }
 }

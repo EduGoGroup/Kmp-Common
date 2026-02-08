@@ -286,4 +286,77 @@ public interface AuthRepository {
      *         [Result.Failure] con mensaje de error si falla
      */
     public suspend fun refresh(refreshToken: String): Result<RefreshResponse>
+
+    /**
+     * Verifica un token contra el backend.
+     *
+     * Realiza una petición POST a `/v1/auth/verify` con el token JWT
+     * y retorna información de validación del token.
+     *
+     * ## Endpoint del Backend
+     *
+     * ```
+     * POST /v1/auth/verify
+     * Content-Type: application/json
+     *
+     * Body:
+     * {
+     *   "token": "eyJhbGciOiJIUzI1NiI..."
+     * }
+     * ```
+     *
+     * ## Respuesta Exitosa (200 OK) - Token Válido
+     *
+     * ```json
+     * {
+     *   "valid": true,
+     *   "user_id": "user-123",
+     *   "email": "user@edugo.com",
+     *   "role": "student",
+     *   "school_id": "school-456",
+     *   "expires_at": "2025-12-31T23:59:59Z"
+     * }
+     * ```
+     *
+     * ## Respuesta Exitosa (200 OK) - Token Inválido
+     *
+     * ```json
+     * {
+     *   "valid": false,
+     *   "error": "Token has expired"
+     * }
+     * ```
+     *
+     * ## Errores Posibles
+     *
+     * - **400 Bad Request**: Token malformado o falta parámetro
+     * - **429 Too Many Requests**: Rate limit excedido
+     * - **500 Internal Server Error**: Error del servidor
+     * - **Network errors**: Timeout, no conexión, etc.
+     *
+     * ## Ejemplo de Uso
+     *
+     * ```kotlin
+     * val token = "eyJhbGciOiJIUzI1NiI..."
+     *
+     * when (val result = repository.verifyToken(token)) {
+     *     is Result.Success -> {
+     *         val response = result.data
+     *         if (response.valid) {
+     *             println("Token válido para: ${response.email}")
+     *         } else {
+     *             println("Token inválido: ${response.error}")
+     *         }
+     *     }
+     *     is Result.Failure -> {
+     *         println("Verification failed: ${result.error}")
+     *     }
+     * }
+     * ```
+     *
+     * @param token Token JWT a verificar
+     * @return [Result.Success] con [TokenVerificationResponse] si la petición es exitosa,
+     *         [Result.Failure] con mensaje de error si falla
+     */
+    public suspend fun verifyToken(token: String): Result<TokenVerificationResponse>
 }

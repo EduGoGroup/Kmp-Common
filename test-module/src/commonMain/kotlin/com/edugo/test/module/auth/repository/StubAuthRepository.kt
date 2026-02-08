@@ -213,6 +213,46 @@ public class StubAuthRepository : AuthRepository {
     }
 
     /**
+     * Configuración para tests de verifyToken.
+     */
+    public var verifyTokenShouldSucceed: Boolean = true
+
+    /**
+     * Respuesta personalizada para verifyToken (null = usar default).
+     */
+    public var verifyTokenResponse: TokenVerificationResponse? = null
+
+    override suspend fun verifyToken(token: String): Result<TokenVerificationResponse> {
+        // Simular delay si está configurado
+        if (simulateDelay > 0) {
+            delay(simulateDelay)
+        }
+
+        // Simular error de red si está configurado
+        if (simulateNetworkError) {
+            return Result.Failure(ErrorCode.NETWORK_TIMEOUT.description)
+        }
+
+        // Si no se debe tener éxito, retornar error
+        if (!verifyTokenShouldSucceed) {
+            return Result.Failure("Verification failed")
+        }
+
+        // Respuesta por defecto si no se configura una específica
+        val response = verifyTokenResponse ?: TokenVerificationResponse(
+            valid = true,
+            userId = "test-user-id",
+            email = "test@edugo.com",
+            role = "user",
+            schoolId = "test-school",
+            expiresAt = kotlinx.datetime.Clock.System.now().plus(kotlin.time.Duration.parse("1h")).toString(),
+            error = null
+        )
+
+        return Result.Success(response)
+    }
+
+    /**
      * Resetea todas las configuraciones a sus valores por defecto.
      *
      * Útil para limpiar estado entre tests.
@@ -236,6 +276,8 @@ public class StubAuthRepository : AuthRepository {
             lastName = "User",
             role = "student"
         )
+        verifyTokenShouldSucceed = true
+        verifyTokenResponse = null
     }
 
     companion object {

@@ -239,6 +239,51 @@ public class AuthRepositoryImpl(
         }
     }
 
+    override suspend fun verifyToken(token: String): Result<TokenVerificationResponse> {
+        return try {
+            val url = "$baseUrl/v1/auth/verify"
+
+            // Crear body con el token
+            val requestBody = TokenVerificationRequest(token = token)
+
+            // Usar postSafe que retorna Result<T> automáticamente
+            val result = httpClient.postSafe<TokenVerificationRequest, TokenVerificationResponse>(
+                url = url,
+                body = requestBody
+            )
+
+            when (result) {
+                is Result.Success -> result
+                is Result.Failure -> result
+                is Result.Loading -> Result.Failure("Unexpected loading state")
+            }
+        } catch (e: ClientRequestException) {
+            // Mapeo explícito de errores HTTP 4xx en verify
+            println("AuthRepository: Client error on verify - Status: ${e.response.status.value}, Message: ${e.message}")
+            val errorMessage = when (e.response.status.value) {
+                400 -> ErrorCode.VALIDATION_INVALID_INPUT.description
+                429 -> "Rate limit exceeded"
+                else -> e.message ?: "Verification failed"
+            }
+            Result.Failure(errorMessage)
+        } catch (e: ServerResponseException) {
+            // Mapeo explícito de errores HTTP 5xx
+            println("AuthRepository: Server error on verify - Status: ${e.response.status.value}, Message: ${e.message}")
+            val errorMessage = when (e.response.status.value) {
+                500 -> ErrorCode.SYSTEM_INTERNAL_ERROR.description
+                502 -> ErrorCode.NETWORK_SERVER_ERROR.description
+                503 -> ErrorCode.SYSTEM_SERVICE_UNAVAILABLE.description
+                else -> e.message ?: "Server error"
+            }
+            Result.Failure(errorMessage)
+        } catch (e: Throwable) {
+            // Mapeo de otros errores (network, timeout, etc.)
+            println("AuthRepository: Unexpected error on verify - ${e.message}")
+            val networkException = ExceptionMapper.map(e)
+            Result.Failure(networkException.toAppError().toString())
+        }
+    }
+
     companion object {
         /**
          * URLs típicas del backend por entorno.
