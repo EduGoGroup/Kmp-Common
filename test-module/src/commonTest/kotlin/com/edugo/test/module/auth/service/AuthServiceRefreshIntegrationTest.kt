@@ -1,6 +1,5 @@
 package com.edugo.test.module.auth.service
 
-import com.edugo.test.module.auth.model.AuthState
 import com.edugo.test.module.auth.model.LoginCredentials
 import com.edugo.test.module.auth.repository.StubAuthRepository
 import com.edugo.test.module.auth.token.TokenRefreshConfig

@@ -8,6 +8,7 @@ import com.edugo.test.module.data.models.AuthToken
 import com.edugo.test.module.storage.SafeEduGoStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +44,9 @@ public class TokenRefreshManagerImpl(
     // Job del refresh en progreso (null si no hay refresh activo)
     private var refreshJob: Deferred<Result<AuthToken>>? = null
 
+    // Referencia al Job para poder cancelarlo (Deferred no tiene cancel())
+    private var refreshJobCancellable: Job? = null
+
     // SharedFlow para emitir fallos de refresh
     private val _onRefreshFailed = MutableSharedFlow<RefreshFailureReason>(replay = 0)
     override val onRefreshFailed: Flow<RefreshFailureReason> = _onRefreshFailed.asSharedFlow()
@@ -66,9 +70,13 @@ public class TokenRefreshManagerImpl(
             }
 
             // Iniciar nuevo refresh
-            refreshJob = scope.async { performRefresh() }
-            val result = refreshJob!!.await()
+            val job = scope.async { performRefresh() }
+            refreshJob = job
+            refreshJobCancellable = job // Guardar referencia como Job para cancelar
+
+            val result = job.await()
             refreshJob = null
+            refreshJobCancellable = null
 
             result
         }
@@ -80,9 +88,13 @@ public class TokenRefreshManagerImpl(
             refreshJob?.let { return@withLock it.await() }
 
             // Iniciar nuevo refresh forzado
-            refreshJob = scope.async { performRefresh() }
-            val result = refreshJob!!.await()
+            val job = scope.async { performRefresh() }
+            refreshJob = job
+            refreshJobCancellable = job // Guardar referencia como Job para cancelar
+
+            val result = job.await()
             refreshJob = null
+            refreshJobCancellable = null
 
             result
         }
@@ -263,5 +275,12 @@ public class TokenRefreshManagerImpl(
     private fun saveToken(token: AuthToken) {
         val tokenJson = json.encodeToString(token)
         storage.putStringSafe(AUTH_TOKEN_KEY, tokenJson)
+    }
+
+    override fun cancelPendingRefresh() {
+        // Cancelar el job si existe
+        refreshJobCancellable?.cancel()
+        refreshJobCancellable = null
+        refreshJob = null
     }
 }

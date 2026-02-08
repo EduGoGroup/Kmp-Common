@@ -1,6 +1,10 @@
 package com.edugo.test.module.auth.service
 
-import com.edugo.test.module.auth.model.*
+import com.edugo.test.module.auth.model.AuthError
+import com.edugo.test.module.auth.model.AuthUserInfo
+import com.edugo.test.module.auth.model.LoginCredentials
+import com.edugo.test.module.auth.model.LoginResult
+import com.edugo.test.module.auth.model.LogoutResult
 import com.edugo.test.module.auth.token.TokenRefreshManager
 import com.edugo.test.module.core.Result
 import com.edugo.test.module.data.models.AuthToken
@@ -184,6 +188,41 @@ public interface AuthService : TokenProvider {
     public val onSessionExpired: Flow<Unit>
 
     /**
+     * Flow que emite cuando el usuario hace logout EXPLÍCITO.
+     *
+     * Este flow es diferente de [onSessionExpired]:
+     * - **onLogout**: Usuario hace logout manualmente (botón "Cerrar sesión")
+     * - **onSessionExpired**: Sesión expira automáticamente (token expirado/revocado)
+     *
+     * Emite el resultado del logout, que puede ser:
+     * - [LogoutResult.Success]: Logout completo (local + remoto)
+     * - [LogoutResult.PartialSuccess]: Local limpiado, pero backend falló
+     * - [LogoutResult.AlreadyLoggedOut]: Ya estaba deslogueado (idempotente)
+     *
+     * La UI puede usar este flow para mostrar mensajes diferenciados:
+     *
+     * **Ejemplo**:
+     * ```kotlin
+     * authService.onLogout.collect { result ->
+     *     when (result) {
+     *         is LogoutResult.Success -> {
+     *             showMessage("Sesión cerrada exitosamente")
+     *             navigateToLogin()
+     *         }
+     *         is LogoutResult.PartialSuccess -> {
+     *             showWarning("Sesión cerrada localmente. ${result.remoteError}")
+     *             navigateToLogin()
+     *         }
+     *         is LogoutResult.AlreadyLoggedOut -> {
+     *             // No hacer nada, ya estaba deslogueado
+     *         }
+     *     }
+     * }
+     * ```
+     */
+    public val onLogout: Flow<LogoutResult>
+
+    /**
      * Autentica un usuario con credenciales.
      *
      * Este método:
@@ -225,9 +264,83 @@ public interface AuthService : TokenProvider {
      * la llamada al backend falla. Esto garantiza que el usuario pueda
      * cerrar sesión incluso sin conexión a internet.
      *
+     * **DEPRECATED**: Usa [logoutWithDetails] para obtener información
+     * detallada sobre el resultado del logout.
+     *
      * @return [Result.Success] siempre (errores de backend se ignoran)
      */
     public suspend fun logout(): Result<Unit>
+
+    /**
+     * Cierra la sesión del usuario con información detallada del resultado.
+     *
+     * Este método extiende el [logout] básico con:
+     * - **Idempotencia**: Múltiples llamadas son seguras
+     * - **Soporte offline**: Logout local aunque el backend falle
+     * - **Cancelación de refreshes**: Cancela operaciones pendientes
+     * - **Resultado detallado**: Distingue éxito total, parcial e idempotente
+     *
+     * ## Flujo de Ejecución
+     *
+     * 1. **Verificar idempotencia**: Si ya está en [AuthState.Unauthenticated],
+     *    retorna [LogoutResult.AlreadyLoggedOut] sin hacer nada
+     * 2. **Intentar logout remoto**: Llama al backend (POST /v1/auth/logout)
+     * 3. **Decidir limpieza local**: Basado en [forceLocal] y resultado remoto
+     * 4. **Cancelar refreshes**: Cancela [TokenRefreshManager.cancelPendingRefresh]
+     * 5. **Limpiar storage**: Elimina tokens y usuario del storage
+     * 6. **Emitir estado**: Cambia a [AuthState.Unauthenticated]
+     * 7. **Emitir evento**: Emite resultado en [onLogout]
+     *
+     * ## Parámetros
+     *
+     * @param forceLocal Si `true` (default), limpia datos locales aunque el
+     *                   logout remoto falle. Esto garantiza logout offline.
+     *                   Si `false`, solo limpia local si remoto es exitoso.
+     *
+     * ## Retorno
+     *
+     * - [LogoutResult.Success]: Logout completo (local + remoto exitosos)
+     * - [LogoutResult.PartialSuccess]: Local limpiado, pero backend falló (offline)
+     * - [LogoutResult.AlreadyLoggedOut]: Ya estaba deslogueado (idempotente)
+     *
+     * ## Ejemplos
+     *
+     * ```kotlin
+     * // Logout normal (default: forceLocal=true)
+     * val result = authService.logoutWithDetails()
+     * when (result) {
+     *     is LogoutResult.Success -> {
+     *         showMessage("Sesión cerrada exitosamente")
+     *         navigateToLogin()
+     *     }
+     *     is LogoutResult.PartialSuccess -> {
+     *         showWarning("Sin conexión. Sesión cerrada localmente.")
+     *         navigateToLogin()
+     *     }
+     *     is LogoutResult.AlreadyLoggedOut -> {
+     *         // Ya estaba deslogueado, no hacer nada
+     *     }
+     * }
+     *
+     * // Logout que requiere confirmación del servidor
+     * val result = authService.logoutWithDetails(forceLocal = false)
+     * if (result is LogoutResult.PartialSuccess) {
+     *     // Backend falló, usuario sigue "autenticado" localmente
+     *     showError("No se pudo cerrar sesión. Verifica tu conexión.")
+     * }
+     * ```
+     *
+     * ## Diferencia con logout()
+     *
+     * - **logout()**: Retorna `Result<Unit>`, siempre `Success`
+     * - **logoutWithDetails()**: Retorna `LogoutResult` con información detallada
+     *
+     * ## Thread-Safety
+     *
+     * Este método es thread-safe. Múltiples llamadas concurrentes son seguras
+     * gracias al uso de Mutex interno.
+     */
+    public suspend fun logoutWithDetails(forceLocal: Boolean = true): LogoutResult
 
     /**
      * Renueva el access token usando el refresh token.

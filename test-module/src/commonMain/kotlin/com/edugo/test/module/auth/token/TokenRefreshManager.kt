@@ -282,4 +282,44 @@ public interface TokenRefreshManager {
      * @return Flow que emite razones de fallo definitivo
      */
     public val onRefreshFailed: Flow<RefreshFailureReason>
+
+    /**
+     * Cancela cualquier operación de refresh en progreso.
+     *
+     * Este método cancela la coroutine de refresh si hay una actualmente
+     * ejecutándose. Es seguro llamarlo múltiples veces (no-op si no hay
+     * refresh activo).
+     *
+     * ## Casos de Uso
+     *
+     * - **Logout**: Cancelar refreshes pendientes antes de limpiar la sesión
+     * - **App terminating**: Cancelar operaciones pendientes al cerrar la app
+     * - **Testing**: Limpiar estado entre tests
+     *
+     * ## Ejemplo en Logout
+     *
+     * ```kotlin
+     * suspend fun logout() {
+     *     // 1. Cancelar refreshes pendientes
+     *     tokenRefreshManager.cancelPendingRefresh()
+     *
+     *     // 2. Limpiar storage
+     *     storage.remove(AUTH_TOKEN_KEY)
+     *
+     *     // 3. Actualizar estado
+     *     _authState.value = AuthState.Unauthenticated
+     * }
+     * ```
+     *
+     * ## Comportamiento
+     *
+     * - Si hay refresh en progreso: cancela la coroutine
+     * - Si NO hay refresh en progreso: no hace nada (no-op)
+     * - Thread-safe: puede llamarse concurrentemente sin problemas
+     * - No lanza excepciones
+     *
+     * **IMPORTANTE**: Este método NO limpia el storage ni modifica el estado
+     * de autenticación. Solo cancela la operación de refresh en progreso.
+     */
+    public fun cancelPendingRefresh()
 }

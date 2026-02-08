@@ -1,6 +1,10 @@
 package com.edugo.test.module.auth.service
 
-import com.edugo.test.module.auth.model.*
+import com.edugo.test.module.auth.model.AuthError
+import com.edugo.test.module.auth.model.AuthUserInfo
+import com.edugo.test.module.auth.model.LoginCredentials
+import com.edugo.test.module.auth.model.LoginResult
+import com.edugo.test.module.auth.model.LogoutResult
 import com.edugo.test.module.auth.repository.AuthRepository
 import com.edugo.test.module.auth.token.RefreshFailureReason
 import com.edugo.test.module.auth.token.TokenRefreshConfig
@@ -82,6 +86,10 @@ public class AuthServiceImpl(
     // Flow para notificar expiración de sesión
     private val _onSessionExpired = MutableSharedFlow<Unit>(replay = 0)
     override val onSessionExpired: Flow<Unit> = _onSessionExpired.asSharedFlow()
+
+    // Flow para notificar logout explícito del usuario
+    private val _onLogout = MutableSharedFlow<LogoutResult>(replay = 0)
+    override val onLogout: Flow<LogoutResult> = _onLogout.asSharedFlow()
 
     init {
         // Observar fallos de refresh para limpiar sesión cuando sea necesario
@@ -185,6 +193,71 @@ public class AuthServiceImpl(
 
             Result.Success(Unit)
         }
+    }
+
+    override suspend fun logoutWithDetails(forceLocal: Boolean): LogoutResult {
+        return stateMutex.withLock {
+            // 1. IDEMPOTENCIA: Si ya Unauthenticated, retornar inmediatamente
+            // No emitir evento ni llamar al backend
+            if (_authState.value is AuthState.Unauthenticated) {
+                return@withLock LogoutResult.AlreadyLoggedOut
+            }
+
+            val token = getCurrentAuthToken()?.token
+            var remoteError: String? = null
+
+            // 2. Intentar logout remoto (POST /v1/auth/logout)
+            // No lanzar excepción si falla - continuar con limpieza local
+            if (token != null) {
+                try {
+                    val remoteResult = repository.logout(token)
+                    if (remoteResult is Result.Failure) {
+                        remoteError = remoteResult.error
+                    }
+                } catch (e: Exception) {
+                    // Error de red u otro - capturar para PartialSuccess
+                    remoteError = e.message ?: "Network error"
+                }
+            }
+
+            // 3. Limpiar local si:
+            //    - forceLocal=true (default, soporte offline)
+            //    - O remoto fue exitoso
+            val shouldClearLocal = forceLocal || remoteError == null
+
+            if (shouldClearLocal) {
+                clearAllSessionData()
+            }
+
+            // 4. Determinar resultado
+            val result = when {
+                remoteError == null -> LogoutResult.Success
+                shouldClearLocal -> LogoutResult.PartialSuccess(remoteError)
+                else -> LogoutResult.PartialSuccess(remoteError)
+            }
+
+            // 5. Emitir evento solo si limpiamos local
+            if (shouldClearLocal) {
+                _onLogout.emit(result)
+            }
+
+            result
+        }
+    }
+
+    /**
+     * Limpia TODOS los datos de sesión: storage, memoria, refreshes pendientes.
+     */
+    private suspend fun clearAllSessionData() {
+        // 1. Cancelar cualquier refresh en progreso
+        tokenRefreshManager.cancelPendingRefresh()
+
+        // 2. Limpiar storage persistente
+        storage.removeSafe(AUTH_TOKEN_KEY)
+        storage.removeSafe(AUTH_USER_KEY)
+
+        // 3. Limpiar estado en memoria
+        _authState.value = AuthState.Unauthenticated
     }
 
     override suspend fun refreshAuthToken(): Result<AuthToken> {
